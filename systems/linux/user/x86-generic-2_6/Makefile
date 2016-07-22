@@ -3,6 +3,14 @@
 # $Copyright: (c) 2016 Broadcom.
 # Broadcom Proprietary and Confidential. All rights reserved.$
 
+################################################################################
+# Find SDK root folder.
+# For example, if SDK 6.4.4 is placed at:
+# `~/MRV/OPX/BCM_SDK/6.4.4/systems/linux/user/x86-generic-2_6`
+# then `SDK` variable will be:
+# `~/MRV/OPX/BCM_SDK/6.4.4/`
+# because the file named `RELEASE` is in `~/MRV/OPX/BCM_SDK/6.4.4/`.
+################################################################################
 SDK :=$(shell if [ -n "$$SDK" ] ; then\
 	echo $$SDK;\
 	else\

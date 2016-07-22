@@ -4,8 +4,7 @@
 
 # Default kernel source directory
 ifeq (,$(KERNDIR))
-#KERNDIR := /lib/modules/$(shell uname -r)/build
-KERNDIR := $(HOME)/root-fs-x86/src/linux
+KERNDIR := $(LINUX_INCLUDE)
 export KERNDIR
 endif
 

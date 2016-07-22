@@ -75,14 +75,10 @@ endif
 ifdef IPROC_BUILD
 CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
 	    -I$(SDK)/systems/bde/linux/include \
-	    -I$(LINUX_INCLUDE) \
             -I$(KERNDIR)/arch/$(ARCH)
 else
 CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
 	    -I$(SDK)/systems/bde/linux/include \
-	    -I$(LINUX_INCLUDE) \
-	    -I$(LINUX_INCLUDE)/asm/gcc \
-	    -I$(LINUX_INCLUDE)/asm/mach-generic \
             -I$(KERNDIR)/arch/$(ARCH)
 endif
 
