@@ -4,25 +4,12 @@ This README is written following Github Flavored Markdown (GFM):
 https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
 
 
-Compilation
-===========
-Export environment variables:
+Build
+=====
+Run `scripts/build.sh <Scripts dir> <BCM SDK path> <Install dir path>`.
+For example:
 ```
-export ARCH=x86
-export TARGET=linux-x86-smp_generic-2_6
-export TOOLCHAIN_DIR=~/clovis_2015/buildtools/i686-nptl-linux-gnu
-export PATH=/usr/bin:$TOOLCHAIN_DIR/bin:$PATH
-export CROSS_COMPILE=i686-nptl-linux-gnu-
-export LDFLAGS="-L $TOOLCHAIN_DIR/lib"
-export OPT_CFLAGS=" -m32"
-export MODULE_LDFLAGS=" -m elf_i386"
-export KERNDIR=full-path-to-compiled-linux-kernel-source-code-tree
-```
-
-Compile using `make` utility from appropriate directory:
-```
-cd systems/linux/user/x86-smp_generic-2_6
-make
+scripts/build.sh ./scripts . /tmp/bcm_sdk_artifacts
 ```
 
 
@@ -31,8 +18,11 @@ Build Artifacts
 The build artifacts are found under `./build` directory.
 The below command may be used to print the important files:
 ```
-find build/ -not -type d -not -name "*.P" -not -name "*.cmd" -not -name "*.force" -not -name "*.sig" -not -name "*.order" -not -name "*.mod" -not -name "*.tree" -not -name "*.d" -not -name "*.o" | sort | vim -
+find build/ -not -type d -not -name "*.P" -not -name "*.cmd" -not -name "*.force" -not -name "*.sig" -not -name "*.order" -not -name "*.mod" -not -name "*.tree" -not -name "*.d" -not -name "*.o" -not -name "*.c" -not -name "*.h" | sort | vim -
 ```
+
+Also, take a look at the `scripts/copy_artifacts.sh` script
+that copied the needed build artifacts to the designated place.
 
 
 SDK Upgrade
