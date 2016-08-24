@@ -303,6 +303,13 @@ cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libappl_dpp_ui_ppd.a        $
 
 
 ################################################################################
+# Copy Linux Kernel modules
+#
+cp -p $BCM_SDK/systems/linux/user/x86-smp_generic-2_6/linux-user-bde.ko        $DST_DIR/deploy
+cp -p $BCM_SDK/systems/linux/user/x86-smp_generic-2_6/linux-kernel-bde.ko      $DST_DIR/deploy
+
+
+################################################################################
 # Add meta-data
 #
 cp -p $BCM_SDK/RELEASE $DST_DIR
