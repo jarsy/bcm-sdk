@@ -6,9 +6,33 @@ https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
 
 Build
 =====
+Two basic variables should be available for the compilation scripts:
+ - `TOOLCHAIN_DIR`
+ - `KERNDIR`
+
+Hence, export them before running the build script:
+```
+export KERNDIR=FULL_PATH_TO_COMPILED_LINUX_KERNEL
+export TOOLCHAIN_DIR=FULL_PATH_TO_TOOLCHAIN_BIN_DIRECTORY
+```
+
+For example:
+```
+export KERNDIR=~/root-fs-x86/src/linux/
+export TOOLCHAIN_DIR=~/clovis_2015_lk4_4/buildtools/i686-nptl-linux-gnu
+```
+
 Run `scripts/build.sh <Scripts dir> <BCM SDK path> <Install dir path>`.
 For example:
 ```
+scripts/build.sh ./scripts . /tmp/bcm_sdk_artifacts
+```
+
+The full example is:
+```
+cd ~/projects/bcm_sdk
+export KERNDIR=~/root-fs-x86/src/linux/
+export TOOLCHAIN_DIR=~/clovis_2015_lk4_4/buildtools/i686-nptl-linux-gnu
 scripts/build.sh ./scripts . /tmp/bcm_sdk_artifacts
 ```
 
