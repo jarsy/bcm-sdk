@@ -1,7 +1,12 @@
 #!/bin/bash
 
+# Name script parameters
 BCM_SDK=$1
 DST_DIR=$2
+
+# Remove trailing slashes in directory path name
+BCM_SDK=$(echo $BCM_SDK | sed 's:/*$::')
+DST_DIR=$(echo $DST_DIR | sed 's:/*$::')
 
 
 ################################################################################
