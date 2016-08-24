@@ -26,7 +26,7 @@ if [ -z $BCM_SDK ] ; then
 fi
 
 if [ -z $DST_DIR ] ; then
-	echo "Error: Provide destination directory!"
+	echo "Error: Provide destination directory for build artifacts!"
 	print_usage
 	exit 1;
 fi
