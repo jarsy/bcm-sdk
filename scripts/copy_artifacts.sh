@@ -205,6 +205,13 @@ cp --parents -p $BCM_SDK/include/shared/multicast.h            $DST_DIR
 cp --parents -p $BCM_SDK/include/bcm/stg.h                     $DST_DIR
 cp --parents -p $BCM_SDK/include/appl/diag/dcmn/init_deinit.h  $DST_DIR
 
+# --- includes added in SDK 6.4.11
+cp --parents -p $BCM_SDK/include/shared/swstate/sw_state.h                    $DST_DIR
+cp --parents -p $BCM_SDK/include/soc/hwstate/hw_log.h                         $DST_DIR
+cp --parents -p $BCM_SDK/include/shared/swstate/access/sw_state_access.h      $DST_DIR
+cp --parents -p $BCM_SDK/include/shared/pkt.h                                 $DST_DIR
+cp --parents -p $BCM_SDK/include/shared/swstate/layout/sw_state_defs_layout.h $DST_DIR
+
 # --- OAM headers
 cp --parents -p $BCM_SDK/include/bcm/oam.h                     $DST_DIR
 cp --parents -p $BCM_SDK/include/bcm_int/dpp/oam.h             $DST_DIR
@@ -297,6 +304,13 @@ cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libsoc_dfe_fe3200.a         $
 cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libsoc_portmod_pms.a        $DST_DIR/x86/
 cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libdiag_portmod.a           $DST_DIR/x86/
 cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libappl_dpp_FecAllocaiton.a $DST_DIR/x86/
+
+# Added libs in SDK 6.4.11
+cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libshared_swstate_access.a   $DST_DIR/x86/
+cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libshared_swstate.a          $DST_DIR/x86/
+cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libshared_swstate_layout.a   $DST_DIR/x86/
+cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libxml.a                     $DST_DIR/x86/
+cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libappl_dpp_FecPerformance.a $DST_DIR/x86/
 
 # Added to support DUNE UI
 cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libappl_dpp_ui.a            $DST_DIR/x86/
