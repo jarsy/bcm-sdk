@@ -30,6 +30,7 @@ fi
 #
 mkdir -p $DST_DIR/include
 mkdir -p $DST_DIR/x86
+mkdir -p $DST_DIR/deploy
 
 echo "BCM SDK directory:     [$BCM_SDK]"
 echo "Destination directory: [$DST_DIR]"
