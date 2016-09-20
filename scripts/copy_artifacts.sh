@@ -327,6 +327,11 @@ cp -p $BCM_SDK/build/unix-user/x86-smp_generic-2_6/libappl_dpp_ui_ppd.a        $
 #
 cp -p $BCM_SDK/systems/linux/user/x86-smp_generic-2_6/linux-user-bde.ko        $DST_DIR/deploy
 cp -p $BCM_SDK/systems/linux/user/x86-smp_generic-2_6/linux-kernel-bde.ko      $DST_DIR/deploy
+cp -p $BCM_SDK/rc/arad_dram.soc                                                $DST_DIR/deploy
+cp -p $BCM_SDK/rc/arad.soc                                                     $DST_DIR/deploy
+cp -p $BCM_SDK/rc/config.bcm                                                   $DST_DIR/deploy
+cp -p $BCM_SDK/rc/dfe.soc                                                      $DST_DIR/deploy
+cp -p $BCM_SDK/rc/rc.soc                                                       $DST_DIR/deploy
 
 
 ################################################################################
