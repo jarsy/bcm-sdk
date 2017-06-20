@@ -23,7 +23,7 @@ export TOOLCHAIN_DIR=$HOME/clovis_2015/buildtools/i686-nptl-linux-gnu
 export PATH=/usr/bin:$TOOLCHAIN_DIR/bin:$PATH
 export CROSS_COMPILE=i686-nptl-linux-gnu-
 export LDFLAGS="-L $TOOLCHAIN_DIR/lib"
-export OPT_CFLAGS=" -m32 -DMRV_STANDALONE" 
+export OPT_CFLAGS=" -m32 -DMRV_STANDALONE"
 # Add flag for kernel driver link with 32 bit
 export MODULE_LDFLAGS=" -m elf_i386"
 cd $SDK/systems/linux/user/x86-smp_generic-2_6

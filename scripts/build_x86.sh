@@ -5,8 +5,8 @@ function make_bcm()
 	source env_x86_4_mrv
 	export ARCH=x86
 	#ib_console -c bcm_sdk
-	export MRV_STANDALONE=1 
-	make 
+	export MRV_STANDALONE=1
+	make
 	#-j 11
     if [ $? != 0 ]
     then
