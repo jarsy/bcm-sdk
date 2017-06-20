@@ -1,0 +1,76 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+			   Notes on CFAPINIT
+		 Curt McDowell, Broadcom Corp. 06-20-02
+			 Last Updated: 06-20-02
+------------------------------------------------------------------------------
+
+1. Overview
+
+The CBP (Cell Buffer Pool) consists of five tables, CBPHEADER and
+CBPDATA0-3.  These tables are always addressed in parallel and contain
+0x1000 or 0x2000 indexes depending on the chip.
+
+The CFAP (Cell Free Address Pool) is a chip memory that contains a
+linked list of free indexes in the CBP.
+
+The CFAP table is initialized automatically by hardware when the chip is
+reset by external hardware reset or by software CPS reset (BCM "init
+soc" command).
+
+2. CFAP bit errors
+
+In the case where there is a known bad memory location in the CBPHEADER
+or CBPDATA0-3 memories, internally-generated CRC errors may result while
+switching traffic.
+
+If the index of the bad location(s) are known, sometimes they may be
+mapped out of the CFAP by removing it from the free list before
+switching begins.  Then the chip can switch properly with slightly
+reduced memory capacity.
+
+Of course, chips with any sort of error should never be used in
+products.  However, during initial chip sampling where yield has been a
+problem, some chips have no problems other than a few bit errors in the
+CBP.  The goal is to be able to use as many of these chips as possible
+for software development and hardware debugging.
+
+3. Software CFAPINIT
+
+The BCM command "cfapinit" performs a memory test on the CBP memories
+and maps out any bad locations that are found.  The cfapinit command
+should normally never be run except under conditions described above.
+
+Bad entries are swapped out for good entries at the end of the table,
+and the CFAP pool size is decremented accordingly.
+
+4. Running CFAPINIT automatically
+
+The rc.soc will run cfapinit automatically if the "cfap_tests" property
+is set.  This can be done as follows:
+
+	BCM.0> config add cfap_tests=0x30
+	BCM.0> config save
+	BCM.0> reset
+
+The value 0x30 in this case indicates that the Checkerboard and Inverse
+checkerboard memory tests should be run.  The value is the logical OR of
+any of the following:
+
+	0x1		All zeroes pattern
+	0x2		All ones pattern
+	0x4		All 5s pattern
+	0x8		All As pattern
+	0x10		Checkerboard pattern
+	0x20		Inverted checkerboard
+	0x40		Data=Address pattern
+	0x80		Pseudo-random pattern
+
+Running additional tests may catch more errors, but it may also
+dramatically slow down the execution of rc.soc since there is a lot of
+memory to be tested.

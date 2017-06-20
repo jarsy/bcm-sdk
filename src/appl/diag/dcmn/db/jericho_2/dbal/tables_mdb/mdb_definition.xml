@@ -1,0 +1,1655 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL MDB Logical Tables:
+    This xml contains the MDB logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    Aligned to Arch version: 
+    //depot2/Jericho2/A0/docs/ARCH-specs/Packet-Processing/Datapath_program/Standard_1/JR2.Standard_1.MDB_AppDBs_compiled.xml
+    #60
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="mdb_schema.xsd">
+
+    <AppDB Name="IN_AC_C_VLAN_DB"> <!-- IN_AC_C_VLAN_DB -->
+        <OneLineDescription>Ingress AC C_VLAN mapping to LIF DB</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="C_VLAN" Size="12"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ISEM_1</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IN_AC_S_VLAN_DB"> <!-- IN_AC_S_VLAN_DB -->
+        <OneLineDescription>Ingress AC S_VLAN mapping to LIF DB</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="S_VLAN" Size="12"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ISEM_1</PhyDb>
+            <AppDbId>1</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IN_AC_S_C_VLAN_DB"> <!-- IN_AC_S_C_VLAN_DB -->
+        <OneLineDescription>Ingress AC S_VLAN x C_VLAN mapping to LIF DB</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="S_VLAN" Size="12"/>
+                <Field Name="C_VLAN" Size="12"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ISEM_1</PhyDb>
+            <AppDbId>2</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MPLS_TERMINATION_SINGLE_LABEL_DB"> <!-- MPLS_TERMINATION_SINGLE_LABEL_DB -->
+        <OneLineDescription>MPLS label mapping to LIF DB</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="MPLS_LABEL" Size="20"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>ISEM_2</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MPLS_TERMINATION_CONTEXT_SPECIFIC_LABEL_DB"> <!-- MPLS_TERMINATION_CONTEXT_SPECIFIC_LABEL_DB -->
+        <OneLineDescription>MPLS Context-Specific label mapping to LIF DB.
+        The context for the label lookup is given by the "Extended-FoDO" (24b),
+        which is either the In-LIF or another label (in case of upstream assignment)
+        </OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="MPLS_EXTENDED_FODO" Size="24"/>
+                <Field Name="MPLS_LABEL_2" Size="20"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>ISEM_2</PhyDb>
+            <AppDbId>1</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="BIER_BFER_TERM_SUBDOMAIN_ONLY"> <!-- BIER_BFER_TERM_SUBDOMAIN_ONLY -->
+        <OneLineDescription>Lookup {Forwarding-Domain(22b)} in ISEM.
+        The result is the BIER-LIF containing FoDo for IPv4/IPv6/Eth forwarding lookup, and Learn-Information</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="BIER_FODO" Size="22"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>ISEM_2</PhyDb>
+            <AppDbId>2</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+  
+    <AppDB Name="BIER_BFER_TERMINATION"> <!-- BIER_BFER_TERMINATION -->
+        <OneLineDescription>Lookup BFIR-ID and FoDo to map LIF.
+        Lookup {BFIR-ID(16b),Forwarding-Domain(22b)} in ISEM.
+        The result is the BIER-LIF containing FoDo for IPv4/IPv6/Eth forwarding lookup, and Learn-Information
+        </OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="BFIR_ID" Size="16"/>
+                <Field Name="BIER_FODO" Size="22"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>ISEM_2</PhyDb>
+            <AppDbId>3</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv4_VRF_DIP_TUNNEL_TYPE_TO_LIF_OR_VTEP_IDX"> <!-- IPv4_VRF_DIP_TUNNEL_TYPE_TO_LIF_OR_VTEP_IDX -->
+        <OneLineDescription>
+        IPv4 {VRF,DIP,Additional_Header type} (1) tunnel termination, or,(2) VTEP_IDX
+        VTEP IDX is later used in for {SIP, VTEP_IDX} tunnel termination lookups
+        </OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VRF" Size="16"/>
+                <Field Name="IPV4_DIP" Size="32"/>
+                <Field Name="IPV4_ADDITIONAL_HEADER_1" Size="4"/>
+                <Field Name="IPV4_ADDITIONAL_HEADER_2" Size="4"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF_VTEP_IDX_PAYLOAD_TYPE" Size="2"/>
+                <Field Name="IN_LIF_VTEP_IDX_PAYLOAD_DATA" Size="20"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>ISEM_2</PhyDb>
+            <AppDbId>4</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv4_VRF_SIP_DIP_TUNNEL_TYPE_TO_LIF"> <!-- IPv4_VRF_SIP_DIP_TUNNEL_TYPE_TO_LIF -->
+        <OneLineDescription>IPv4 {VRF,SIP,DIP,Additional_Header type} to LIF</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VRF" Size="16"/>
+                <Field Name="IPV4_SIP" Size="32"/>
+                <Field Name="IPV4_DIP" Size="32"/>
+                <Field Name="IPV4_ADDITIONAL_HEADER_1" Size="3"/>
+                <Field Name="IPV4_ADDITIONAL_HEADER_2" Size="2"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>ISEM_2</PhyDb>
+            <AppDbId>0</AppDbId> <!-- ? (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv4_VRF_DIP_TUNNEL_TYPE_TO_LIF"> <!-- IPv4_VRF_DIP_TUNNEL_TYPE_TO_LIF -->
+        <OneLineDescription>IPv4 {VRF,DIP,Additional_Header type} to LIF</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VRF" Size="16"/>
+                <Field Name="IPV4_DIP" Size="32"/>
+                <Field Name="IPV4_ADDITIONAL_HEADER_1" Size="4"/>
+                <Field Name="IPV4_ADDITIONAL_HEADER_2" Size="4"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>ISEM_2</PhyDb>
+            <AppDbId>0</AppDbId> <!-- ? (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPV4_SIP_VTEP_IDX_TUNNEL_TERMINATION"> <!-- IPV4_SIP_VTEP_IDX_TUNNEL_TERMINATION -->
+        <OneLineDescription>IPv4 {SIP,VTEP_IDX} Tunnel Termination</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="SCRATCH_PAD" Size="20"/>
+                <Field Name="IPV4_SIP" Size="32"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>ISEM_2</PhyDb>
+            <AppDbId>5</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+<!-- Missing tables (XXX):
+    INGRESS_OAM_LIF_DB
+    INGRESS_OAM_ACC_MEP_DB
+    EGRESS_OAM_LIF_DB
+    EGRESS_OAM_ACC_MEP_DB
+-->
+
+    <AppDB Name="IPV4_TUNNEL_TERMINATION_B"> <!-- IPV4_TUNNEL_TERMINATION_B -->
+        <OneLineDescription>IPv4 Tunnel Termination TCAM Key:{VRF, DIP, SIP, IPv4_Additional_Header, Next_Layer_Type}</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="TCAM">
+            <Key>
+                <Field Name="VRF" Size="17"/> <!-- (XXX) in Arch it is 18 -->
+                <Field Name="IPV4_DIP" Size="32"/>
+                <Field Name="IPV4_SIP" Size="32"/>
+                <Field Name="IPV4_ADDITIONAL_HEADER_1" Size="4"/>
+                <Field Name="IPV4_ADDITIONAL_HEADER_2" Size="4"/>
+                <Field Name="LAYER_TYPE" Size="5"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>TCAM</PhyDb>
+            <AppDbId>0</AppDbId> <!-- ? (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="VNI2FODO"> <!-- VNI2FODO -->
+        <OneLineDescription>VxLAN-GPE VNI translation to Forwarding-Domain</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="TCAM">
+            <Key>
+                <Field Name="NEXT_LAYER_NETWORK_DOMAIN" Size="9"/>
+                <Field Name="VNI" Size="24"/>
+                <Field Name="LAYER_TYPE" Size="5"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="FORWARDING_DOMAIN" Size="18"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>ISEM_2</PhyDb>
+            <AppDbId>6</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="TNI2FODO"> <!-- TNI2FODO -->
+        <OneLineDescription>NVGRE TNI translation to Forwarding-Domain</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="TCAM">
+            <Key>
+                <Field Name="NEXT_LAYER_NETWORK_DOMAIN" Size="9"/>
+                <Field Name="TNI" Size="24"/>
+                <Field Name="LAYER_TYPE" Size="5"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="FORWARDING_DOMAIN" Size="18"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>ISEM_2</PhyDb>
+            <AppDbId>7</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IN_AC_INFO_DB"> <!-- In_Lif_0 -->
+        <OneLineDescription></OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IN_LIF" Size="20"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="IN_LIF_FORMAT_AC_P2P" Description="AC In-LIF for P2P, standard entry"/> <!-- format: IN_LIF_FORMAT_AC_P2P -->
+                    <Field Name="GLOB_IN_LIF" Size="22"/>
+                    <Field Name="OAM_LIF_SET" Size="1"/>
+                    <Field Name="GLOB_OUT_LIF" Size="22"/>
+                    <Field Name="IN_LIF_PROFILE" Size="8"/>
+                    <Field Name="QOS_PROFILE" Size="8"/>
+                    <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+                    <Field Name="VLAN_EDIT_PCP_DEI_PROFILE" Size="6"/>
+                    <Field Name="VLAN_EDIT_VID_1" Size="12"/>
+                    <Field Name="VLAN_EDIT_VID_2" Size="12"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="IN_LIF_FORMAT_AC_MP" Description="AC In-LIF for Multipoint, standard entry"/> <!-- format: IN_LIF_FORMAT_AC_MP -->
+                    <Field Name="GLOB_IN_LIF" Size="22"/>
+                    <Field Name="OAM_LIF_SET" Size="1"/>
+                    <Field Name="IN_LIF_PROFILE" Size="8"/>
+                    <Field Name="QOS_PROFILE" Size="6"/>
+                    <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+                    <Field Name="VLAN_EDIT_PCP_DEI_PROFILE" Size="6"/>
+                    <Field Name="VLAN_EDIT_VID_1" Size="12"/>
+                    <Field Name="VLAN_EDIT_VID_2" Size="12"/>
+                    <Field Name="LEARN_ENABLE" Size="1"/>
+                    <Field Name="LEARN_PAYLOAD_CONTEXT" Size="4"/>
+                    <Field Name="LEARN_INFO" Size="21"/>
+                    <Field Name="FORWARDING_DOMAIN_ASSIGNMENT_MODE" Size="2"/>
+                    <Field Name="FORWARDING_DOMAIN" Size="17"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="IN_LIF_FORMAT_AC_P2P_LARGE" Description="AC In-LIF for P2P, Larger entry"/> <!-- format: IN_LIF_FORMAT_AC_P2P_LARGE -->
+                    <Field Name="GLOB_IN_LIF" Size="22"/>
+                    <Field Name="OAM_LIF_SET" Size="1"/>
+                    <Field Name="GLOB_OUT_LIF" Size="22"/>
+                    <Field Name="IN_LIF_PROFILE" Size="8"/>
+                    <Field Name="QOS_PROFILE" Size="10"/>
+                    <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+                    <Field Name="VLAN_EDIT_PCP_DEI_PROFILE" Size="6"/>
+                    <Field Name="VLAN_EDIT_VID_1" Size="12"/>
+                    <Field Name="VLAN_EDIT_VID_2" Size="12"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="STAT_OBJECT_ID" Size="20"/>
+                    <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                    <Field Name="ECN_MAPPING_PROFILE" Size="2"/>
+                    <Field Name="PROPAGATION_PROF" Size="3"/>
+                    <Field Name="PROTECTION_POINTER" Size="14"/>
+                    <Field Name="PROTECTION_PATH" Size="1"/>
+                    <Field Name="LIF_GENERIC_DATA" Size="13"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="IN_LIF_FORMAT_AC_MP_LARGE" Description="AC In-LIF for Multipoint, Larger entry"/> <!-- format: IN_LIF_FORMAT_AC_MP_LARGE -->
+                    <Field Name="GLOB_IN_LIF" Size="22"/>
+                    <Field Name="OAM_LIF_SET" Size="1"/>
+                    <Field Name="IN_LIF_PROFILE" Size="8"/>
+                    <Field Name="QOS_PROFILE" Size="10"/>
+                    <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+                    <Field Name="VLAN_EDIT_PCP_DEI_PROFILE" Size="6"/>
+                    <Field Name="VLAN_EDIT_VID_1" Size="12"/>
+                    <Field Name="VLAN_EDIT_VID_2" Size="12"/>
+                    <Field Name="LEARN_ENABLE" Size="1"/>
+                    <Field Name="LEARN_PAYLOAD_CONTEXT" Size="4"/>
+                    <Field Name="LEARN_INFO" Size="21"/>
+                    <Field Name="FORWARDING_DOMAIN_ASSIGNMENT_MODE" Size="2"/>
+                    <Field Name="FORWARDING_DOMAIN" Size="17"/>
+                    <Field Name="STAT_OBJECT_ID" Size="20"/>
+                    <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                    <Field Name="ECN_MAPPING_PROFILE" Size="2"/>
+                    <Field Name="PROPAGATION_PROF" Size="3"/>
+                    <Field Name="PROTECTION_POINTER" Size="14"/>
+                    <Field Name="PROTECTION_PATH" Size="1"/>
+                    <Field Name="LIF_GENERIC_DATA" Size="11"/>
+                </Result>
+            </MultipleResults>
+        <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>INLIF_1</PhyDb>
+<!--
+            <MultipleResultsMapping>
+                <Result LogicalValue="IN_LIF_FORMAT_AC_P2P" Value="" Priority=""/>
+                <Result LogicalValue="IN_LIF_FORMAT_AC_MP" Value="" Priority=""/>
+                <Result LogicalValue="IN_LIF_FORMAT_AC_P2P_LARGE" Value="" Priority=""/>
+                <Result LogicalValue="IN_LIF_FORMAT_AC_MP_LARGE" Value="" Priority=""/>
+            </MultipleResultsMapping>
+-->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IN_LIF_NON_AC_INFO_DB"> <!-- In_Lif_0 -->
+        <OneLineDescription></OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IN_LIF" Size="20"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="IN_LIF_FORMAT_LSP" Description="LSP In-LIF format"/> <!-- format: IN_LIF_FORMAT_LSP -->
+                    <Field Name="GLOB_IN_LIF" Size="22"/>
+                    <Field Name="OAM_LIF_SET" Size="1"/>
+                    <Field Name="IN_LIF_PROFILE" Size="8"/>
+                    <Field Name="QOS_PROFILE" Size="8"/>
+                    <Field Name="FORWARDING_DOMAIN_ASSIGNMENT_MODE" Size="2"/>
+                    <Field Name="FORWARDING_DOMAIN" Size="17"/>
+                    <Field Name="TERMINATION_TYPE" Size="3"/>
+                    <Field Name="ACTION_PROFILE_INDEX" Size="3"/>
+                    <Field Name="SERVICE_TYPE" Size="3"/>
+                    <Field Name="STAT_OBJECT_ID" Size="20"/>
+                    <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                    <Field Name="ECN_MAPPING_PROFILE" Size="2"/>
+                    <Field Name="PROPAGATION_PROF" Size="3"/>
+                    <Field Name="PROTECTION_POINTER" Size="14"/>
+                    <Field Name="PROTECTION_PATH" Size="1"/>
+                    <Field Name="NEXT_PARSER_CONTEXT" Size="5"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="IN_LIF_FORMAT_DRCH" Description="DRCH In-LIF format"/> <!-- format: IN_LIF_FORMAT_DRCH -->
+                    <Field Name="GLOB_IN_LIF" Size="22"/>
+                    <Field Name="OAM_LIF_SET" Size="1"/>
+                    <Field Name="IN_LIF_PROFILE" Size="8"/>
+                    <Field Name="QOS_PROFILE" Size="8"/>
+                    <Field Name="ECN_MAPPING_PROFILE" Size="2"/>
+                    <Field Name="PROPAGATION_PROF" Size="3"/>
+                    <Field Name="FORWARDING_DOMAIN_ASSIGNMENT_MODE" Size="2"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="IN_LIF_FORMAT_BIER" Description="BIER In-LIF format"/> <!-- format: IN_LIF_FORMAT_BIER -->
+                    <Field Name="GLOB_IN_LIF" Size="22"/>
+                    <Field Name="OAM_LIF_SET" Size="1"/>
+                    <Field Name="IN_LIF_PROFILE" Size="8"/>
+                    <Field Name="QOS_PROFILE" Size="8"/>
+                    <Field Name="FORWARDING_DOMAIN_ASSIGNMENT_MODE" Size="2"/>
+                    <Field Name="FORWARDING_DOMAIN" Size="17"/>
+                    <Field Name="STAT_OBJECT_ID" Size="20"/>
+                    <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                    <Field Name="LEARN_INFO" Size="48"/>
+                    <Field Name="LEARN_ENABLE" Size="1"/>
+                    <Field Name="LEARN_PAYLOAD_CONTEXT" Size="4"/>
+                    <Field Name="NEXT_PARSER_CONTEXT" Size="5"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="IN_LIF_FORMAT_IPV4_TUNNEL" Description="IPv4 Tunnel In-LIF format"/> <!-- format: IN_LIF_FORMAT_IPv4_Tunnel -->
+                    <Field Name="GLOB_IN_LIF" Size="22"/>
+                    <Field Name="IN_LIF_PROFILE" Size="8"/>
+                    <Field Name="QOS_PROFILE" Size="10"/>
+                    <Field Name="LEARN_INFO" Size="32"/>
+                    <Field Name="LEARN_ENABLE" Size="1"/>
+                    <Field Name="FORWARDING_DOMAIN_ASSIGNMENT_MODE" Size="2"/>
+                    <Field Name="FORWARDING_DOMAIN" Size="18"/>
+                    <Field Name="PROPAGATION_PROF" Size="3"/>
+                    <Field Name="TERMINATION_TYPE" Size="3"/>
+                    <Field Name="ACTION_PROFILE_INDEX" Size="3"/>
+                    <Field Name="SERVICE_TYPE" Size="3"/>
+                    <Field Name="STAT_OBJECT_ID" Size="20"/>
+                    <Field Name="STAT_OBJECT_CMD" Size="5"/>
+                    <Field Name="ECN_MAPPING_PROFILE" Size="2"/>
+                    <Field Name="NEXT_LAYER_NETWORK_DOMAIN" Size="9"/>
+                    <Field Name="LEARN_PAYLOAD_CONTEXT" Size="4"/>
+                    <Field Name="LIF_GENERIC_DATA" Size="16"/>
+                    <Field Name="NEXT_PARSER_CONTEXT" Size="5"/>
+                </Result>
+            </MultipleResults>
+        <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>INLIF_1</PhyDb>
+<!--
+            <MultipleResultsMapping>
+                <Result LogicalValue="IN_LIF_FORMAT_LSP" Value="" Priority=""/>
+                <Result LogicalValue="IN_LIF_FORMAT_DRCH" Value="" Priority=""/>
+                <Result LogicalValue="IN_LIF_FORMAT_BIER" Value="" Priority=""/>
+                <Result LogicalValue="IN_LIF_FORMAT_IPV4_TUNNEL" Value="" Priority=""/>
+            </MultipleResultsMapping>
+-->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ING_VSI_INFO"> <!-- ING_VSI_Info_DB -->
+        <OneLineDescription></OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="1" Value="BASIC_FORMAT" Description="Empty"/> <!-- format: VSI_FORMAT_BASIC -->
+                    <Field Name="STP_TOPOLOGY_ID" Size="8"/>
+                    <Field Name="MY_MAC" Size="10"/>
+                    <Field Name="MY_MAC_PREFIX" Size="6"/>
+                    <Field Name="VRID_BITMAP" Size="16"/>
+                    <Field Name="VRF" Size="16"/>
+                    <Field Name="QOS_PROFILE" Size="4"/>
+                    <Field Name="VSI_PROFILE" Size="6"/>
+                    <Field Name="PROPAGATION_PROF" Size="2"/>
+                    <Field Name="DA_NOT_FOUND_DEST" Size="21"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="1" Value="WITH_STATS" Description="Empty"/> <!-- format: VSI_FORMAT_WITH_STATS -->
+                    <Field Name="STP_TOPOLOGY_ID" Size="8"/>
+                    <Field Name="MY_MAC" Size="10"/>
+                    <Field Name="MY_MAC_PREFIX" Size="2"/>
+                    <Field Name="VRF" Size="16"/>
+                    <Field Name="QOS_PROFILE" Size="4"/>
+                    <Field Name="VSI_PROFILE" Size="6"/>
+                    <Field Name="DA_NOT_FOUND_DEST" Size="21"/>
+                    <Field Name="STAT_OBJECT_ID" Size="20"/>
+                    <Field Name="STAT_OBJECT_CMD" Size="2"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>IVSI</PhyDb>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ESEM_OUT_AC"> <!-- ESEM_OUT_AC(format=ETPS_FORMAT_AC_BASIC) -->
+        <OneLineDescription>Lookup VD x VSI in the ESEM to detrmine the OutAC</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_EDIT_VID_1" Size="12"/>
+                <Field Name="VLAN_EDIT_VID_2" Size="12"/>
+                <Field Name="ACTION_PROFILE" Size="2"/>
+                <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+                <Field Name="NWK_QOS_IDX" Size="11"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+                <Field Name="QOS_MODEL" Size="3"/>
+                <Field Name="OAM_LIF_SET" Size="1"/>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                <Field Name="PROTECTION_PATH" Size="1"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="STAT_OBJECT_CMD" Size="5"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EG_VSI_INFO"> <!-- EGR_VSI_Info_DB -->
+        <OneLineDescription>Egress VSI Information, Result in this AppDB is hard coded no ARR</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="STP_TOPOLOGY_ID" Size="8"/>
+                <Field Name="MY_MAC" Size="10"/>
+                <Field Name="MY_MAC_PREFIX" Size="6"/>
+                <Field Name="STAT_OBJECT_PROF" Size="5"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>EVSI</PhyDb>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MPLS_FWD"> <!-- MPLS_FWD -->
+        <OneLineDescription> MPLS ILM table, for MPLS labels which are per Platform assigned </OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="T_ID" Size="6"/>
+                <Field Name="MPLS_LABEL" Size="20"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="FWD_DEST_OUTLIF" Description="empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="GLOB_OUT_LIF" Size="22"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="FWD_DEST_EEI" Description="empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="EEI" Size="24"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="FWD_DEST_OUTLIF_STAT" Description="empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="GLOB_OUT_LIF" Size="22"/>
+                    <Field Name="STAT_MPLS" Size="25"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="FWD_DEST_EEI_STAT" Description="empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="EEI" Size="24"/>
+                    <Field Name="STAT_MPLS" Size="25"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb>
+            <AppDbId>0</AppDbId>
+<!--
+            <MultipleResultsMapping>
+                <Result LogicalValue="FWD_DEST_OUTLIF" Value="" Priority=""/>
+                <Result LogicalValue="FWD_DEST_EEI" Value="" Priority=""/>
+                <Result LogicalValue="FWD_DEST_OUTLIF_STAT" Value="" Priority=""/>
+                <Result LogicalValue="FWD_DEST_EEI_STAT" Value="" Priority=""/>
+            </MultipleResultsMapping>
+-->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MPLS_FWD_PER_IF_UA"> <!-- MPLS_FWD -->
+        <OneLineDescription> MPLS ILM table, for MPLS labels which per I/F of Upstream assigned </OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="T_ID" Size="6"/>
+                <Field Name="MPLS_LABEL" Size="20"/>
+                <Field Name="MPLS_EXTENDED_FODO" Size="20"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="FWD_DEST_OUTLIF" Description="empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="GLOB_OUT_LIF" Size="22"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="FWD_DEST_EEI" Description="empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="EEI" Size="24"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="FWD_DEST_OUTLIF_STAT" Description="empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="GLOB_OUT_LIF" Size="22"/>
+                    <Field Name="STAT_MPLS" Size="25"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="FWD_DEST_EEI_STAT" Description="empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="EEI" Size="24"/>
+                    <Field Name="STAT_MPLS" Size="25"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb>
+            <AppDbId>1</AppDbId>
+<!--
+            <MultipleResultsMapping>
+                <Result LogicalValue="FWD_DEST_OUTLIF" Value="" Priority=""/>
+                <Result LogicalValue="FWD_DEST_EEI" Value="" Priority=""/>
+                <Result LogicalValue="FWD_DEST_OUTLIF_STAT" Value="" Priority=""/>
+                <Result LogicalValue="FWD_DEST_EEI_STAT" Value="" Priority=""/>
+            </MultipleResultsMapping>
+-->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MACT"> <!-- FWD_MACT -->
+        <OneLineDescription>Lookup FID X MAC Address in the MACT to detrmine the destination interface ot interface group</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="FID" Size="17"/>
+                <Field Name="L2_MAC" Size="48"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="1" Value="NO_OUTLIF" Description="Empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="ENTRY_GROUPING" Size="8"/>
+                    <Field Name="MAC_STRENGTH" Size="2"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="1" Value="SINGLE_OUTLIF" Description="Empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="GLOB_OUT_LIF" Size="22"/>
+                    <Field Name="ENTRY_GROUPING" Size="8"/>
+                    <Field Name="MAC_STRENGTH" Size="2"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb>
+            <AppDbId>2</AppDbId>
+<!--
+            <MultipleResultsMapping>
+                <Result LogicalValue="NO_OUTLIF" Value="" Priority=""/>
+                <Result LogicalValue="SINGLE_OUTLIF" Value="" Priority=""/>
+            </MultipleResultsMapping>
+-->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MACT_IVL"> <!-- FWD_MACT_IVL -->
+        <OneLineDescription>Lookup {VID,FID} X MAC Address in the MACT to detrmine the destination interface ot interface group</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_ID" Size="12"/>
+                <Field Name="FID" Size="17"/>
+                <Field Name="L2_MAC" Size="48"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="1" Value="NO_OUTLIF" Description="Empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="ENTRY_GROUPING" Size="8"/>
+                    <Field Name="MAC_STRENGTH" Size="2"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="1" Value="SINGLE_OUTLIF" Description="Empty"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="GLOB_OUT_LIF" Size="22"/>
+                    <Field Name="ENTRY_GROUPING" Size="8"/>
+                    <Field Name="MAC_STRENGTH" Size="2"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb>
+            <AppDbId>3</AppDbId>
+<!--
+            <MultipleResultsMapping>
+                <Result LogicalValue="NO_OUTLIF" Value="" Priority=""/>
+                <Result LogicalValue="SINGLE_OUTLIF" Value="" Priority=""/>
+            </MultipleResultsMapping>
+-->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv4_MULTICAST_PRIVATE_LPM_FORWARD"> <!-- IPv4_MULTICAST_PRIVATE_LPM_FORWARD -->
+        <OneLineDescription> {VRF,G,S,InLif0} in KAPS </OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="LPM">
+            <Key>
+                <Field Name="VRF" Size="17"/>
+                <Field Name="IPV4_GROUP" Size="28"/>
+                <Field Name="IPV4_SIP" Size="32"/>
+                <Field Name="GLOB_IN_LIF" Size="22"/>
+            </Key>
+            <Result>
+                <Field Name="KAPS_RESULT" Size="20"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LPM_PRIVATE</PhyDb>
+            <AppDbId>0</AppDbId> <!-- TODO (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv4_MULTICAST_PUBLIC_LPM_FORWARD"> <!-- IPv4_MULTICAST_PUBLIC_LPM_FORWARD -->
+        <OneLineDescription> {G,S,InLif0} in KAPS </OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="LPM">
+            <Key>
+                <Field Name="IPV4_GROUP" Size="28"/>
+                <Field Name="IPV4_SIP" Size="32"/>
+                <Field Name="GLOB_IN_LIF" Size="22"/>
+            </Key>
+            <Result>
+                <Field Name="KAPS_RESULT" Size="20"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LPM_PUBLIC</PhyDb>
+            <AppDbId>0</AppDbId> <!-- TODO (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv4_MULTICAST_EM_FORWARD"> <!-- IPv4_MULTICAST_EM_FORWARD -->
+        <OneLineDescription> {VRF,G,InLif0} in LEM </OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VRF" Size="17"/>
+                <Field Name="IPV4_GROUP" Size="28"/>
+                <Field Name="GLOB_IN_LIF" Size="22"/>
+            </Key>
+            <Result>
+                <Field Name="DESTINATION" Size="21"/> <!-- 22 in Arch (XXX) -->
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb>
+            <AppDbId>4</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv4_MULTICAST_TCAM_FORWARD"> <!-- IPv4_MULTICAST_TCAM_FORWARD -->
+        <OneLineDescription> {VRF G,S,InLif0} in TCAM </OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="TCAM">
+            <Key>
+                <Field Name="VRF" Size="16"/>
+                <Field Name="IPV4_GROUP" Size="28"/>
+                <Field Name="IPV4_SIP" Size="32"/>
+                <Field Name="GLOB_IN_LIF" Size="22"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="DESTINATION" Size="21"/> <!-- 22 in Arch (XXX) -->
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>TCAM</PhyDb>
+            <AppDbId>0</AppDbId> <!-- TODO (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv4_UNICAST_PRIVATE_LPM_FORWARD"> <!-- IPv4_UNICAST_PRIVATE_LPM_FORWARD -->
+        <OneLineDescription> IPV4 private routing entries table.</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="LPM">
+            <Key>
+                <Field Name="VRF" Size="16"/>
+                <Field Name="IPV4" Size="32"/>
+            </Key>
+            <Result>
+                <Field Name="KAPS_RESULT" Size="20"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LPM_PRIVATE</PhyDb>
+            <AppDbId>0</AppDbId> <!-- TODO (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPV4_UNICAST_PRIVATE_HOST"> <!-- IPv4_Unicast_Private_Host -->
+        <OneLineDescription> IPV4 host tables</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VRF" Size="16"/>
+                <Field Name="IPV4" Size="32"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="6" Value="DEST_OUTLIF" Description="Destination and Out LIF"/> <!-- format DEST_Outlif -->
+                    <Field Name="DESTINATION"/>
+                    <Field Name="GLOB_OUT_LIF"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="6" Value="DEST_OUTLIF_WITH_STAT" Description="Destination and Out LIF with statistic."/> <!-- (XXX) Missing format -->
+                    <Field Name="DESTINATION"/>
+                    <Field Name="GLOB_OUT_LIF"/>
+                    <Field Name="STAT_OBJECT_ID"/>
+                    <Field Name="STAT_OBJECT_CMD"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="6" Value="DEST_MPLS_OUT_WITH_STAT" Description="Destination with MPLS out label with statistic."/> <!-- (XXX) Missing format -->
+                    <Field Name="DESTINATION"/>
+                    <Field Name="GLOB_OUT_LIF"/>
+                    <Field Name="MPLS_OUT_CMD"/>
+                    <Field Name="MPLS_OUT"/>
+                    <Field Name="STAT_OBJECT_ID"/>
+                    <Field Name="STAT_OBJECT_CMD"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="6" Value="DEST_MPLS_OUT" Description="Destination with MPLS out label"/> <!-- (XXX) Missing format -->
+                    <Field Name="DESTINATION"/>
+                    <Field Name="GLOB_OUT_LIF"/>
+                    <Field Name="MPLS_OUT_CMD"/>
+                    <Field Name="MPLS_OUT"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="6" Value="DESTINATION_ONLY" Description="Only destination"/> <!-- (XXX) Missing format -->
+                    <Field Name="DESTINATION"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb>
+            <AppDbId>6</AppDbId> <!-- TODO -->
+<!--
+            <MultipleResultsMapping>
+                <Result LogicalValue="DEST_OUTLIF" Value="" Priority=""/>
+                <Result LogicalValue="DEST_OUTLIF_WITH_STAT" Value="" Priority=""/>
+                <Result LogicalValue="DEST_MPLS_OUT_WITH_STAT" Value="" Priority=""/>
+                <Result LogicalValue="DEST_MPLS_OUT" Value="" Priority=""/>
+                <Result LogicalValue="DESTINATION_ONLY" Value="" Priority=""/>
+            </MultipleResultsMapping>
+-->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPV6_UNICAST_PRIVATE_HOST"> <!-- IPv6_Unicast_Private_Host -->
+        <OneLineDescription> IPV6 host tables</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VRF" Size="16"/>
+                <Field Name="IPV6" Size="128"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="6" Value="DEST_OUTLIF" Description="Destination and Out LIF"/> <!-- format DEST_Outlif -->
+                    <Field Name="DESTINATION"/>
+                    <Field Name="GLOB_OUT_LIF"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="6" Value="DEST_OUTLIF_WITH_STAT" Description="Destination and Out LIF with statistic."/> <!-- (XXX) Missing format -->
+                    <Field Name="DESTINATION"/>
+                    <Field Name="GLOB_OUT_LIF"/>
+                    <Field Name="STAT_OBJECT_ID"/>
+                    <Field Name="STAT_OBJECT_CMD"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="6" Value="DEST_MPLS_OUT_WITH_STAT" Description="Destination with MPLS out label with statistic."/> <!-- (XXX) Missing format -->
+                    <Field Name="DESTINATION"/>
+                    <Field Name="GLOB_OUT_LIF"/>
+                    <Field Name="MPLS_OUT_CMD"/>
+                    <Field Name="MPLS_OUT"/>
+                    <Field Name="STAT_OBJECT_ID"/>
+                    <Field Name="STAT_OBJECT_CMD"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="6" Value="DEST_MPLS_OUT" Description="Destination with MPLS out label"/> <!-- (XXX) Missing format -->
+                    <Field Name="DESTINATION"/>
+                    <Field Name="GLOB_OUT_LIF"/>
+                    <Field Name="MPLS_OUT_CMD"/>
+                    <Field Name="MPLS_OUT"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="6" Value="DESTINATION_ONLY" Description="Only destination"/> <!-- (XXX) Missing format -->
+                    <Field Name="DESTINATION"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb>
+            <AppDbId>7</AppDbId> <!-- TODO (XXX) -->
+<!--
+            <MultipleResultsMapping>
+                <Result LogicalValue="DEST_OUTLIF" Value="" Priority=""/>
+                <Result LogicalValue="DEST_OUTLIF_WITH_STAT" Value="" Priority=""/>
+                <Result LogicalValue="DEST_MPLS_OUT_WITH_STAT" Value="" Priority=""/>
+                <Result LogicalValue="DEST_MPLS_OUT" Value="" Priority=""/>
+                <Result LogicalValue="DESTINATION_ONLY" Value="" Priority=""/>
+            </MultipleResultsMapping>
+-->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv6_UNICAST_PRIVATE_LPM_FORWARD"> <!-- IPv6_UNICAST_PRIVATE_LPM_FORWARD -->
+        <OneLineDescription> IPV6 private routing entries table</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="LPM">
+            <Key>
+                <Field Name="VRF" Size="16"/>
+                <Field Name="IPV6" Size="128"/>
+            </Key>
+            <Result>
+                <Field Name="KAPS_RESULT" Size="20"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LPM_PRIVATE</PhyDb>
+            <AppDbId>0</AppDbId> <!-- TODO (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv4_UNICAST_PUBLIC_LPM_FORWARD"> <!-- IPv4_UNICAST_PUBLIC_LPM_FORWARD -->
+        <OneLineDescription> IPV4 public routing entries table</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="LPM">
+            <Key>
+                <Field Name="IPV4" Size="32"/>
+            </Key>
+            <Result>
+                <Field Name="KAPS_RESULT" Size="20"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LPM_PUBLIC</PhyDb>
+            <AppDbId>0</AppDbId> <!-- TODO (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv6_UNICAST_PUBLIC_LPM_FORWARD"> <!-- IPv6_UNICAST_PUBLIC_LPM_FORWARD -->
+        <OneLineDescription> IPV6 public routing entries table</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="LPM">
+            <Key>
+                <Field Name="IPV6" Size="128"/>
+            </Key>
+            <Result>
+                <Field Name="KAPS_RESULT" Size="20"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LPM_PUBLIC</PhyDb>
+            <AppDbId>0</AppDbId> <!-- TODO (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FEC"> <!-- (XXX) Cant find in ARCH, should be removed? -->
+        <OneLineDescription></OneLineDescription>
+        <MaturityLevel>0</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FEC"/>
+            </Key>
+            <Result>
+                <Field Name="DESTINATION"/>
+                <Field Name="GLOB_OUT_LIF"/>
+                <Field Name="GLOB_OUT_LIF_2ND"/>
+            </Result>
+            <TableLabels>L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>FEC_1</PhyDb>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv4_VRF_DB_TCAM"> <!-- IPv4_VRF_DB_TCAM -->
+        <OneLineDescription> {IPV4 "ACL" in TCAM with result New-VRF} </OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="TCAM">
+            <Key>
+                <Field Name="GLOB_IN_LIF" Size="22"/>
+                <Field Name="VRF" Size="16"/>
+                <Field Name="IPV4_SIP" Size="32"/>
+                <Field Name="IPV4_DIP" Size="32"/>
+                <Field Name="IPV4_PROTOCOL" Size="8"/>
+                <Field Name="IPV4_TOS" Size="8"/>
+                <Field Name="L4_DEST_PORT" Size="16"/>
+                <Field Name="L4_SRC_PORT" Size="16"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VRF" Size="16"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>TCAM</PhyDb>
+            <AppDbId>0</AppDbId> <!-- TODO (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IPv6_VRF_DB_TCAM"> <!-- IPv6_VRF_DB_TCAM -->
+        <OneLineDescription>IPV6 "ACL" in TCAM with result New-VRF. SIP is taken 96msb - in order to fit into less than 320n entry</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="TCAM">
+            <Key>
+                <Field Name="GLOB_IN_LIF" Size="22"/>
+                <Field Name="VRF" Size="16"/>
+                <Field Name="IPV6_SIP" Size="96" Offset="32"/>
+                <Field Name="IPV6_DIP" Size="128"/>
+                <Field Name="IPV6_PROTOCOL" Size="8"/>
+                <Field Name="IPV6_TOS" Size="8"/>
+                <Field Name="L4_DEST_PORT" Size="16"/>
+                <Field Name="L4_SRC_PORT" Size="16"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VRF" Size="16"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>TCAM</PhyDb>
+            <AppDbId>0</AppDbId> <!-- TODO (XXX) -->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="BIER_TI_FORWARD"> <!-- BIER_TI_FORWARD -->
+        <OneLineDescription>Lookup BIER header parameters in Lem to resolve Destination (BIFT-Base-Address)</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="BIER_SUB_DOMAIN" Size="8"/>
+                <Field Name="BIER_SI" Size="10"/>
+                <Field Name="BIER_BIT_STRING_LENGTH" Size="4"/>
+            </Key>
+            <Result>
+                <Field Name="DESTINATION" Size="21"/> <!-- 22 in Arch (XXX) -->
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb>
+            <AppDbId>5</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+<!-- Missing tables (XXX):
+    SUPER_FEC_1st_Hierarchy
+    SUPER_FEC_2nd_Hierarchy
+-->
+
+    <AppDB Name="GLOBAL_LIF_EM"> <!-- Global_LIF_EM -->
+        <OneLineDescription>Mapping Global-Out-LIF into Local-Out-LIF</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="GLOB_OUT_LIF" Size="22"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF" Size="20"/>
+                <Field Name="ERPP_OUT_LIF_PROFILE" Size="1"/>
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>GLEM_1</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETM_PP_DESCRIPTOR_EXPANSION"> <!-- ETM_PP_DESCRIPTOR_EXPANSION -->
+        <OneLineDescription>Expanding PP-CUD-MC Pointer and PP-CUD-ACL Pointer</OneLineDescription>
+        <MaturityLevel>0</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="PP_CUD" Size="22"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="1" Value="MC_1_CUD" Description="Empty"/>
+                    <Field Name="GLOB_OUT_LIF" Size="22"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="1" Value="MC_2_CUD" Description="Empty"/>
+                    <Field Name="GLOB_OUT_LIF" Size="22"/>
+                    <Field Name="GLOB_OUT_LIF_2ND" Size="22"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb> <!-- PPMC (XXX) -->
+            <AppDbId>8</AppDbId>
+<!--
+            <MultipleResultsMapping>
+                <Result LogicalValue="MC_1_CUD" Value="" Priority=""/>
+                <Result LogicalValue="MC_2_CUD" Value="" Priority=""/>
+            </MultipleResultsMapping>
+-->
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="RIF_BASIC"> <!-- EEDB_1 (format=ETPS_FORMAT_RIF_BASIC) -->
+        <OneLineDescription>RIF basic table</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OUT_LIF"/>
+            </Key>
+            <Result>
+                <Field Name="FORWARDING_DOMAIN" Size="17"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+                <Field Name="MTU_PROFILE" Size="3"/>
+                <Field Name="ACTION_PROFILE" Size="2"/>
+            </Result>
+            <TableLabels>L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>EEDB_1</PhyDb>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ARP_BASIC"> <!-- EEDB_4 (format=ETPS_FORMAT_ARP_BASIC) -->
+        <OneLineDescription>ARP table</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OUT_LIF"/>
+            </Key>
+            <Result>
+                <Field Name="ENCAP_DEST" Size="48"/>
+                <Field Name="ACTION_PROFILE" Size="2"/>
+            </Result>
+            <TableLabels>L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>EEDB_4</PhyDb>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EEDB_OUT_AC"> <!-- EEDB_4 (format=ETPS_FORMAT_AC_BASIC) -->
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OUT_LIF"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_EDIT_VID_1" Size="12"/>
+                <Field Name="VLAN_EDIT_VID_2" Size="12"/>
+                <Field Name="ACTION_PROFILE" Size="2"/>
+                <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+                <Field Name="NWK_QOS_IDX" Size="11"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+                <Field Name="QOS_MODEL" Size="3"/>
+                <Field Name="OAM_LIF_SET" Size="1"/>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                <Field Name="PROTECTION_PATH" Size="1"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="STAT_OBJECT_CMD" Size="5"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>EEDB_4</PhyDb>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+<!-- Not mapped ETPS formats
+    <AppDB Name="ESEM_OUT_AC_SMALL">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_EDIT_VID_1" Size="12"/>
+                <Field Name="VLAN_EDIT_VID_2" Size="12"/>
+                <Field Name="ACTION_PROFILE" Size="2"/>
+                <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+                <Field Name="NWK_QOS_IDX" Size="11"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+                <Field Name="QOS_MODEL" Size="3"/>
+                <Field Name="OAM_LIF_SET" Size="1"/>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_AC_SMALL_FROM_ESEM">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_EDIT_VID_1" Size="12"/>
+                <Field Name="ACTION_PROFILE" Size="2"/>
+                <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+                <Field Name="QOS_MODEL" Size="3"/>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_MPLS_1">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                <Field Name="ENCAP_DEST" Size="20"/>
+                <Field Name="TTL_IDX" Size="9"/>
+                <Field Name="NWK_QOS_IDX" Size="3"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+                <Field Name="QOS_MODEL" Size="3"/>
+                <Field Name="TTL_MODEL" Size="2"/>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE" Size="5"/>
+                <Field Name="VLAN_MEMBERSHIP_IF" Size="9"/>
+                <Field Name="MTU_PROFILE" Size="3"/>
+                <Field Name="ACTION_PROFILE" Size="2"/>
+                <Field Name="ESEM_CMD" Size="3"/>
+                <Field Name="ESEM_NAME_SPACE" Size="9"/>
+                <Field Name="OAM_LIF_SET" Size="1"/>
+                <Field Name="PROTECTION_PATH" Size="1"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="STAT_OBJECT_ID" Size="20"/>
+                <Field Name="STAT_OBJECT_CMD" Size="5"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_MPLS_2">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                <Field Name="ENCAP_DEST" Size="40"/>
+                <Field Name="TTL_IDX" Size="9"/>
+                <Field Name="NWK_QOS_IDX" Size="3"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+                <Field Name="QOS_MODEL" Size="3"/>
+                <Field Name="TTL_MODEL" Size="2"/>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE" Size="5"/>
+                <Field Name="VLAN_MEMBERSHIP_IF" Size="9"/>
+                <Field Name="MTU_PROFILE" Size="3"/>
+                <Field Name="ACTION_PROFILE" Size="2"/>
+                <Field Name="ESEM_CMD" Size="3"/>
+                <Field Name="ESEM_NAME_SPACE" Size="9"/>
+                <Field Name="OAM_LIF_SET" Size="1"/>
+                <Field Name="PROTECTION_PATH" Size="1"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="LIF_STATISTICS_OBJ_CMD" Size="5"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_MPLS_1_TANDEM">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                <Field Name="ENCAP_DEST" Size="20"/>
+                <Field Name="TTL_IDX" Size="9"/>
+                <Field Name="NWK_QOS_IDX" Size="3"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+                <Field Name="QOS_MODEL" Size="3"/>
+                <Field Name="TTL_MODEL" Size="2"/>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE" Size="5"/>
+                <Field Name="VLAN_MEMBERSHIP_IF" Size="9"/>
+                <Field Name="MTU_PROFILE" Size="3"/>
+                <Field Name="ACTION_PROFILE" Size="2"/>
+                <Field Name="ESEM_CMD" Size="3"/>
+                <Field Name="ESEM_NAME_SPACE" Size="9"/>
+                <Field Name="OAM_LIF_SET" Size="1"/>
+                <Field Name="PROTECTION_PATH" Size="1"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="LIF_STATISTICS_OBJ_ID" Size="20"/>
+                <Field Name="LIF_STATISTICS_OBJ_CMD" Size="5"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_MPLS_2_TANDEM">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                <Field Name="ENCAP_DEST" Size="40"/>
+                <Field Name="TTL_IDX" Size="9"/>
+                <Field Name="NWK_QOS_IDX" Size="3"/>
+                <Field Name="REMARK_PROFILE" Size="5"/>
+                <Field Name="QOS_MODEL" Size="3"/>
+                <Field Name="TTL_MODEL" Size="2"/>
+                <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE" Size="5"/>
+                <Field Name="VLAN_MEMBERSHIP_IF" Size="9"/>
+                <Field Name="MTU_PROFILE" Size="3"/>
+                <Field Name="ACTION_PROFILE" Size="2"/>
+                <Field Name="ESEM_CMD" Size="3"/>
+                <Field Name="ESEM_NAME_SPACE" Size="9"/>
+                <Field Name="OAM_LIF_SET" Size="1"/>
+                <Field Name="PROTECTION_PATH" Size="1"/>
+                <Field Name="PROTECTION_POINTER" Size="18"/>
+                <Field Name="LIF_STATISTICS_OBJ_CMD" Size="5"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_BIER_MPLS_64">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                <Field Name="ENCAP_DEST" Size="36"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_BIER_MPLS_128">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                <Field Name="ENCAP_DEST" Size="36"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_BIER_MPLS_256">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                <Field Name="ENCAP_DEST" Size="36"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_BIER_TI_64">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_BIER_TI_128">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_BIER_TI_256">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ETPS_FORMAT_BIER_TI_METADATA">
+        <OneLineDescription>Empty</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="OUT_LIF_PROFILE" Size="6"/>
+                <Field Name="ENCAP_DEST" Size="50"/>
+            </Result>
+            <TableLabels>MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+-->
+
+<!-- Not mapped FEC_ENTRY_FORMAT
+    FEC_ENTRY_FORMAT_DESTINATION
+    FEC_ENTRY_FORMAT_DESTINATION_LIF0
+    FEC_ENTRY_FORMAT_DESTINATION_LIF0_MC_RPF
+    FEC_ENTRY_FORMAT_DESTINATION_LIF0_17BIT_LIF1
+-->
+
+</AppDbCatalog>

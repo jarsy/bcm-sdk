@@ -1,0 +1,486 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+-------------------------------------------------------------------------
+                     Port to SDK 5 TX and RX APIs
+                            Broadcom Corp.
+                     Last Updated: March 10, 2004
+-------------------------------------------------------------------------
+
+
+Contents
+
+    (1) Overview
+
+    (2) Related Documents
+
+    (3) The BCM TX API
+        (3.1) Allocating the bcm_pkt_t Structure
+        (3.2) Packet Buffer Allocation and Setup
+        (3.3) Simultaneous Structure and Buffer Allocation
+        (3.4) Asynchronous Transmit Operations
+        (3.5) Setting the Destination Ports
+        (3.6) CRC Settings
+        (3.7) Initializing and Configuring the TX API.
+        (3.8) The Fast Path Option
+        (3.9) Setting up the HiGig Header
+        (3.10) Transmitting Multiple Packets
+
+    (4) The BCM RX API
+        (4.1) Comparison Between PMUX and RX
+        (4.2) Initializing and Configuring the RX API
+        (4.3) Changes to Callback Functions
+        (4.4) Registering To Receive Packets
+        (4.5) Interrupt vs Non-interrupt Context
+        (4.6) Received Packet Formats
+        (4.7) The RX Pool Option
+
+    (5) Some Examples
+
+
+(1) Overview
+
+    This document describes how to port from the BCM packet send and
+    PMUX APIs to the BCM TX and RX APIs.
+
+
+(2) Related Documents
+
+    In the directory $SDK/doc, see also txrx.txt and pkt.txt.
+
+
+(3) The BCM TX API
+
+    The function bcm_tx replaces various versions of bcm_packet_send
+    including:
+
+        bcm_packet_send_async,
+        bcm_packet_send_ipm_pbmp[_async],
+        bcm_packet_send_port[_async], and
+        bcm_packet_send_pbmp[_async].
+
+    These have been replaced by bcm_tx and two other functions to be
+    described below.
+
+    The bcm_tx API call is simple:
+
+        int bcm_tx(int unit, bcm_pkt_t *pkt, void *cookie);
+
+    Most of the controlling information exists in the bcm_pkt_t
+    structure, pkt, and so this structure must be carefully setup
+    prior to the bcm_tx call.
+
+
+(3.1) Allocating the bcm_pkt_t Structure
+
+    In order to call bcm_tx, a bcm_pkt_t structure is required.
+
+    This structure may be on the stack (declared at the beginning of
+    the function definition).  Alternatively you may implement a pool
+    of TX packet structures to avoid run time allocation, especially
+    if asynchronous callbacks are used (see below.)  See
+    $SDK/src/appl/cputrans/cputrans.c for an example of this.  Another
+    option is to call bcm_pkt_alloc; see below.
+
+    Once allocated the structure itself needs to be properly
+    initialized.  If the structure is on the stack, it should be
+    zeroed out with a call like sal_memset(pkt, 0, sizeof(bcm_pkt_t));
+    Most importantly, the data must be linked into the buffer.  See
+    3.2 below.
+
+    The most important data members of the structure include:
+
+        unit      - Physical unit on which the packet will go out.
+        cos       - Class of service/queue to associate packet to.
+        tx_pbmp   - Port bitmap on which to send packet.
+        tx_upbmp  - Untagged ports (subset of tx_pbmp).
+        flags     - Indicates which tags are present and CRC choices.
+                    Setting to BCM_TX_CRC_APPEND usually works.
+        pkt_data and blk_count
+                  - These control the data buffer which may exist in
+                    multiple segments.  Porting from bcm_packet_send
+                    will not require direct manipulation of these.
+
+
+(3.2) Packet Buffer Allocation and Setup
+
+    Usually, the same data buffer that was used in the bcm_packet_send
+    routine can be used with bcm_tx.  If the data was a standard
+    tagged ethernet frame going out on FE or non-SL stacked GE ports,
+    no changes are required to the data itself.  Other cases are
+    discussed below.
+
+    The packet data needs to be linked into the packet structure
+    correctly.  The easiest way to do this is with a call to the
+    macro:
+
+        BCM_PKT_ONE_BUF_SETUP(pkt, data_buf, length);
+
+        pkt       - Pointer to the bcm_pkt_t structure.
+        data_buf  - Data buffer that will be transmitted.
+        length    - Number of bytes to be sent from data_buf.
+
+    Note that it may be easiest to do this step last.
+
+    The information in the data buffer should be a standard ethernet
+    packet, usually tagged:
+
+         (destination MAC, source MAC, TPID, VLAN tag, ....)
+
+    If the packet will be sent out an XGS fabric chip, care must be
+    taken to properly set up the HiGig header information.  See (3.9)
+    below for more details.
+
+    bcm_tx supports linking multiple data buffers together to form a
+    single packet.  See pkt.txt and txrx.txt for more information.
+
+
+(3.3) Simultaneous Structure and Buffer Allocation
+
+    When both the packet structure and the data buffer need to be
+    allocated, bcm_pkt_alloc may be called:
+
+        pkt_ptr = bcm_pkt_alloc(unit, bytes, flags);
+
+    The unit number may be BCM_UNIT_ANY in most systems.  The
+    parameter bytes should be large enough to hold the packet data and
+    CRC (and HiGig header if being added manually).
+
+    These packets must be freed by calling
+
+        bcm_pkt_free(unit, pkt_ptr);
+
+    upon completion.
+
+    
+(3.4) Asynchronous Transmit Operations
+
+    Asynchronous operations (where the TX call returns immediately and
+    a callback is made when the packet has been transmitted) are
+    controlled by whether or not the pkt->call_back member is
+    non-NULL.
+
+    If you were using a packet send "_async" call, set pkt->call_back
+    to the callback function and pkt->cookie to the to desired data
+    (passed to the callback).  Otherwise, make certain pkt->call_back
+    is set to NULL.
+
+    
+(3.5) Setting the Destination Ports
+
+    If bcm_packet_send_pbmp was being used, then the parameter pbm can
+    be put into the packet with a call such as
+
+        BCM_PBMP_ASSIGN(pkt->tx_pbmp, pbm);
+
+    Similarly for the untagged bitmap.
+
+    If the packet was being sent to a specific port, try
+
+        BCM_PBMP_PORT_SET(pkt->tx_pbmp, port);
+
+    
+(3.6) CRC Settings
+
+    This is a simple matter of setting the packet flags properly.
+    Assuming the flags were initialized as desired (probably just to
+    0) do the following.
+
+        To append a CRC:     pkt->flags |= BCM_TX_CRC_APPEND;
+        To replace a CRC:    pkt->flags |= BCM_TX_CRC_REGEN;
+
+
+(3.7) Initializing and Configuring the TX API.
+
+    The function bcm_tx_init is called by bcm_init and no further
+    initialization or configuration is required.
+
+
+(3.8) The Fast Path Option
+
+    If:
+
+        A. The packet is setup correctly
+        B. No manipulations of the VLAN, SL or HiGig tags is required
+        C. the CRC is present in the packet (REGEN may be selected)
+        D. No padding of the packet is required
+
+    then the BCM_TX_FAST_PATH flag may be set in pkt->flags.  This
+    bypasses various checks and reorganizations required to support
+    extra tags.
+
+
+(3.9) Setting up the HiGig Header
+
+    There are three ways to set up the HiGig header for packets.
+
+    Note for 1 and 2, unless BCM_PKT_F_NO_VTAG is set in pkt->flags,
+    the code assumes a VLAN tag is present in the body of the packet.
+    This is important in calculating pointers into the packet
+    properly.
+
+    1.  [Easiest].  Use the packet structure's members.
+
+        A.  Place the HiGig header information in the appropriate
+            packet members such as pkt->opcode, pkt->dest_mod,
+            pkt->dest_port, etc.
+
+        B.  Call bcm_pkt_hghdr_setup(pkt) before sending the packet.
+
+        C.  Call the macro BCM_PKT_HGHDR_REQUIRE(pkt) which sets the
+            BCM_PKT_F_HGHDR flag.
+
+    2.  Specify the header directly into pkt->_higig.
+
+        A.  Setup the header desired in the 12 byte array pkt->_higig.
+
+        B.  Call the macro BCM_PKT_HGHDR_REQUIRE(pkt) which sets the
+            BCM_PKT_F_HGHDR flag.
+
+    3.  Place the HiGig header at the beginning of the data buffer and
+        use fast path.  This by passes all other DMA setup processing
+        of the data buffer (eg, for padding or CRC allocation).  See
+        (3.8), above.
+
+        A.  Setup the header desired in the data buffer.
+
+        B.  Set the BCM_TX_FAST_PATH flag in pkt->flags.
+
+
+(3.10) Transmitting Multiple Packets
+
+    The function bcm_tx_list allows a linked list of packets to be
+    transmitted.  The packets are linked together using the packet
+    structure member pkt->next.
+
+    The function bcm_tx_array takes a pointer to an array of packet
+    structures, but otherwise operates like bcm_tx_list.
+
+    It is highly recommended that per-packet callbacks NOT be used
+    and asynchronous calls be done by passing a single callback to
+    bcm_tx_list (or bcm_tx_array).
+
+
+(4) The BCM RX API
+
+    The BCM PMUX (packet multiplexing) API has been replaced by the
+    BCM RX API in SDK 5.0.0.  The RX API uses the same packet
+    structure as the TX API.  In addition, it provides greater
+    configurability.
+
+
+(4.1) Comparison Between PMUX and RX
+
+    BCM RX follows the same general philosophy as BCM PMUX.
+
+    Similarities:
+
+        Both control the DMA interface between physical devices and
+        the software using the SOC layer.
+
+        Applications register callbacks with a priority.
+
+        Callbacks are executed until one returns either "HANDLED" or
+        "HANDLED_OWNED".
+
+        Both require buffer management (allocation/deallocation).
+
+        Both require configuration, initialization and "start"
+        operations. 
+
+    Differences:
+
+        RX allows registering in interrupt or non-interrupt mode; PMUX
+        had a single switch for all callbacks.
+
+        PMUX required different registration for "info" functions and
+        "non-info" functions.  RX always uses the bcm_pkt_t structure
+        to pass packet data and meta-data (such as receive port).
+
+        Rate settings for RX are per COS and allow burst settings and
+        maximum queue length settings.
+
+        Rate limiting in RX is implemented by a standard token bucket
+        mechanism.
+
+        RX provides provisioning of multiple receive channels.
+
+        RX may be integrated with TX more easily.
+
+        RX provides the option of maintaining a buffer pool.
+
+    Although packet buffers may be "stolen" by the application, the
+    bcm_pkt_t structures are always owned by RX.  Never deallocate a
+    packet structure passed back from RX.
+
+    Packet buffers that are "stolen" by the application should only be
+    deallocated by calling bcm_rx_free.
+        
+
+(4.2) Initializing and Configuring the RX API
+
+    Because of the greater configurability of the RX API, you may need
+    to change the default configuration.  RX is configured using the
+    bcm_rx_cfg_t structure in include/bcm/rx.h.
+
+    If you only need to change a few parameters (say the global
+    packets/second setting) it is easiest to "get" the current
+    settings and make updates before starting RX.
+
+        bcm_rx_cfg_t local_cfg;
+
+        bcm_rx_cfg_get(unit, &local_cfg);
+        local_cfg.global_pps = APP_RX_GLOBAL_PPS;
+        bcm_rx_start(unit, &local_cfg);
+
+    Alternatively, declare and complete a bcm_rx_cfg_t structure as
+    required.  See src/appl/diag/rxmon.c for an example of this.
+
+    Note that each RX channel is configured independently with a
+    bcm_rx_chan_cfg_t structure.  It is imporant that all COS values
+    be associated with some active channel.
+
+    COS bits are "positive", so the bit must be set for channel to
+    accept that COS.  Typically 0xff is used as the cos_bmp.  However,
+    if multiple channels are used, a given COS must only be accepted
+    by a single channel.
+
+
+(4.3) Changes to Callback Functions
+
+    First, the callback prototype must be changed to match
+    bcm_rx_cb_f:
+
+        bcm_rx_t callback(int unit, bcm_pkt_t *pkt, void *cookie);
+
+    To access the packet data, use BCM_PKT_IEEE(pkt) or
+    BCM_PKT_DMAC(pkt) (see (4.6) below).
+
+    The callback must now return one of:
+
+        BCM_RX_NOT_HANDLED     - Continue callbacks
+        BCM_RX_HANDLED         - Discontinue callbacks
+        BCM_RX_HANDLED_OWNED   - Discontinue callbacks and mark packet
+                                 buffer as stolen.
+
+    If the callback returns HANDLED_OWNED, it is responsible for later
+    calling bcm_rx_free on the packet buffer.  If the RX Pool code is
+    being used (see (4.7) below) the call to bcm_rx_free may be done
+    with the data pointer or with pkt->alloc_ptr.  Other restrictions
+    may apply if the application sets up a different allocation/free
+    mechanism.
+
+    Note that the bcm_pkt_t structure (pkt) may not be "stolen"; only
+    the data buffer it points to is controlled when HANDLED_OWNED is
+    returned.
+
+    For PMUX, the callback function parameters provided information
+    about the packet.  Now that information is included in the
+    bcm_pkt_t structure.  These data members of bcm_pkt_t include:
+
+        PMUX           RX             DESCRIPTION
+        unit           pkt->rx_unit   The BCM unit number from which
+                                      the packet was delivered to the
+                                      CPU. 
+        source_port    pkt->rx_port   The physical port on which the
+                                      packet arrived on rx_unit.
+        reason         pkt->rx_reason The reason code (from the SOC
+                                      layer) that the packet was sent
+                                      to the CPU. 
+        packet_length  pkt->pkt_len   The length of the packet data
+                                      returned.
+
+
+    In addition, for XGS, the packet structure contains other
+    important information which was not available to PMUX.
+
+        pkt->rx_cpu_cos  - The COS queue in which the packet arrived
+        pkt->opcode      - The module header opcode of the packet.
+        pkt->src_mod     - The source module ID on which the packet
+                           originally ingressed into the system.
+        pkt->src_port    - The source port on src_mod on which the
+                           packet originally ingressed into the
+                           system.
+        pkt->dest_mod    - The destination module ID determined at
+                           ingress. 
+        pkt->dest_port   - The destination port for dest_mod
+                           determined at ingress.
+
+
+(4.4) Registering To Receive Packets
+
+    Like PMUX, applications register a callback, a cookie and a
+    priority.  Priorities are between 0 and 255, with 255 being the
+    highest priority.
+
+    In addition, flags may be specified to indicate whether the
+    callback should be made in interrupt mode and for which COS the
+    callback should be made.  It is strongly suggested that
+    application callbacks do not register in interrupt mode.
+
+    The COS bits in the flags are "positive", so the bit must be set
+    for the callback to be made for that COS.  If no COS is specified,
+    a warning will be printed if enabled.
+
+
+(4.5) Interrupt vs Non-interrupt Context
+
+    If BCM_RCO_F_INTR is set in the flags on a call to
+    bcm_rx_register, then the callback will be made in interrupt
+    context.  As noted, this is not recommended.  Callbacks occurring
+    in interrupt context must use a minimum of execution time, must
+    not take a mutex or semaphor and should not attempt to do I/O.
+
+    Usually, a callback will register for non-interrupt context.  RX
+    maintains a thread to provide this context and users of a debugger
+    or examing the vxWorks task list will see this thread as bcmRX.
+    Although not in interrupt context, this thread should not be
+    unduly blocked.  Complex operations should steal and enqueue the
+    packet and operate in their own context.
+
+
+(4.6) Received Packet Formats
+
+    As mentioned, RX provides a bcm_pkt_t structure on callback.  This
+    structure contains a pointer to the data buffer which can be
+    accessed through the macro BCM_PKT_IEEE(pkt) or BCM_PKT_DMAC(pkt)
+    which return a (uint8 *) pointer to the first byte of the packet.
+
+    The packet is in standard tagged ethernet format.
+
+        Note: some chips may support alternative tagging formats.
+        Currently RX is not aware of these formats and will only
+        handle a single VLAN tag.
+
+    Unless otherwise configured, HiGig headers will have been parsed
+    into packet members (such as pkt->opcode) and removed from the
+    data buffer.
+
+
+(4.7) The RX Pool Option
+
+    In src/bcm/esw/rx_pool.c is code to manage a buffer pool.  By
+    default, this is the pool used by RX and provides the buffers
+    returned by bcm_rx_alloc.  To use an alternative allocation and
+    free manager, change the rx_alloc and rx_free pointers in the
+    bcm_rx_cfg structure before calling bcm_rx_start.
+
+    The pool may be configured by calling bcm_rx_pool_setup before
+    calling bcm_rx_start.  Here, the packet size and number of packets
+    in the pool may be specified.
+
+
+(5) Some Examples
+
+    The receive packet test in firmware/orion/src/test/rpacket.c was
+    ported to use the TX and RX APIs.  The new code is in
+    sdk/src/appl/test/rpacket.c
+
+    Similarly, the traffic test in src/appl/test/traffic.c was ported
+    to the TX API.  The code is in the same directories in traffic.c.
+
+    The packet watcher code in src/appl/diag/pcktwatch.c contained
+    implementations of both PMUX and RX in SDK 4.2.

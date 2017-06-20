@@ -1,0 +1,174 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+		   Notes on StrataSwitch Counter API
+		 Curt McDowell, Broadcom Corp. 11-03-99
+			 Last Updated: 12-02-01
+------------------------------------------------------------------------------
+
+1. Overview
+
+StrataSwitch counters comprise a set of statistics registers located in
+the ingress/egress modules of the StrataSwitch PIC blocks.  For example,
+on BCM5600, there are 49 statistics per fast ethernet port and 40 per
+gigabit ethernet port, totaling 1256.
+
+The statistics registers have various widths including 12, 16, 20, 24,
+and 32 bits.  On the XGS family, all counters are 32 bits except for the
+10 gig counters, which are 64 bits.
+
+2. Counter Collection
+
+The StrataSwitch driver implements a counter collection mechanism to
+implement 64-bit "virtual," or "software" counters.  The collection
+mechanism runs at a programmable interval, performing a periodic
+collection cycle.
+
+A collection cycle processes each counter.  For each counter, it:
+
+  1. Reads the hardware counter value.
+
+  2. Subtracts the counter values read during the previous cycle to find
+     out the increments since the last cycle.
+
+  3. Takes into account counter overflow wrap-around, a condition which
+     applies if the new value is less than the previous value.
+
+  4. Adds the increment to 64-bit software counter values.
+
+  5. Sets a per-counter flag whenever a counter is modified by
+     incrementing or clearing.
+
+The driver maintains state in the driver control structure (soc_control)
+including the software counter values and counter previous values.
+
+3. Counter Clearing
+
+The software accumulation counters are cleared by simultaneously setting
+the hardware and software counters to zero.
+
+The current API actually allows the counter (hardware and software) to
+be set to any arbitrary value.
+
+4. Counter DMA
+
+BCM56xx family chips support the automatic, transparent transfer of
+counter values directly from the chip into the host CPU memory via DMA.
+
+This is helpful because the numerous counters otherwise have to be read
+individually over the S-Channel bus.  Doing so results in a cost to read
+all counters from approximately 15 milliseconds (best case with polling
+register reads) to 45 milliseconds (interrupt-driven register reads) on
+a 200 MHz PPC603 processor.
+
+Counter DMA is a feature of the CMIC.  When counter DMA is active, the
+CMIC periodically reads all the counters at an interval selectable from
+0 to 1048512 usec in increments of 64 usec.  (If a longer interval is
+desired, the software can single-trigger individual counter DMA cycles).
+
+During the counter read process, the CMIC issues S-Channel read
+operations to the EPIC and/or GPIC blocks.  The S-Channel access is
+properly shared with normal CPU access, with the CPU receiving higher
+priority.
+
+After the transfer of all counters is complete, the CMIC interrupts the
+driver so the driver can perform counter collection and processing.
+
+5. Counter Thread
+
+When counter collection is enabled in the driver, the driver starts a
+counter processing thread.  If requested, it also enables the hardware
+counter DMA mode with appropriate parameters and interrupt setup.
+
+When the CMIC sends the completion interrupt, the interrupt handler
+wakes up the counter thread, which then performs a collection cycle on
+the contents of the DMA buffer.
+
+6. Aliasing effects
+
+Because the software collection process maintains state about the
+previous value of a counter, changing the counter value without going
+through the Counter API can confuse the collection process.
+
+For example, if the value of a 20-bit counter is changed from 1 to 0,
+software has no other choice than to assume the counter has wrapped all
+the way around, and therefore it adds 2^20-1 to the software counter
+value.
+
+If, for seemingly inexplicable reasons, a counter increments by huge
+amounts in the vicinity of 2^20, 2^24, or 2^32, the most likely
+explanation is that a counter register is being written to directly.
+That might result from invalid use of the BCM "setreg" command, Tcl "soc
+setreg" command, or a soc_reg_write() API routine.
+
+Always use a proper API routine to change the value of a
+software-maintained counter, such as the BCM "clear counters" command,
+Tcl "soc counter <name> <value>" command, or a soc_counter_set() API
+routine.
+
+7. Counter API
+
+The driver includes a set of routines for counter management at the
+lowest level.  Upper-layer applications (or higher-level APIs such as
+the BCM API) should be built on these routines.
+
+Some of the more important routines are described below.  Refer to the
+Device Driver Writer's Guide for more information.
+
+7.1. int soc_counter_start(int unit, uint32 flags, int interval, pbmp_t pbmp)
+
+Starts the counter collection thread.  If the flags specify to use
+counter DMA, configures the thread to use counter DMA.  A counter
+collection is run every 'interval' microseconds.  Counters are collected
+only for the ports specified in the pbmp port bitmap.
+
+7.2. int soc_counter_stop(int unit)
+
+Stops the counter collection thread, and cancels counter DMA if in use.
+
+7.3. int soc_counter_get(int unit, soc_port_t port,
+			soc_reg_t ctr_reg, uint64 *val)
+     int soc_counter_get32(int unit, soc_port_t port,
+			   soc_reg_t ctr_reg, uint32 *val)
+
+Returns the value of a specified software counter.  The 32-bit version
+truncates the value to 32 bits.  The desired counter is specified by
+giving a port and a counter register as defined in socregs
+(e.g. TVLANr).  The routine is very fast since it just reads out of a
+memory buffer.
+
+7.4. int soc_counter_set(int unit, soc_port_t port,
+			 soc_reg_t ctr_reg, uint64 val)
+     int soc_counter_set32(int unit, soc_port_t port,
+			   soc_reg_t ctr_reg, uint32 val)
+
+Sets the value of a specified software counter.  The desired counter is
+specified by giving a port and a counter register as defined in socregs
+(e.g. TVLANr).
+
+The routine also sets the hardware counter to the same value, modulo the
+counter size, and records it as the previous value so the next read pass
+will not register a change.  This routine is primarily used to zero a
+counter.
+
+7.5. int soc_counter_set_by_port(int unit, pbmp_t pbmp, uint64 val)
+     int soc_counter_set32_by_port(int unit, pbmp_t pbmp, uint32 val)
+
+For each port in the port bitmap pbmp, calls soc_counter_set (or
+soc_counter_set32) for each counter associated with that port.
+
+This routine is primarily used to zero all counters for a given port,
+group of ports, or all ports (PBMP_ALL).
+
+7.6. int soc_counter_set_by_reg(int unit, soc_reg_t ctr_reg, uint64 val)
+     int soc_counter_set32_by_reg(int unit, soc_reg_t ctr_reg, uint32 val)
+
+Calls soc_counter_set (or soc_counter_set32) to set the value of a
+specified counter for all applicable ports.
+
+This routine is primarily used to zero a specified counter for all
+applicable ports.

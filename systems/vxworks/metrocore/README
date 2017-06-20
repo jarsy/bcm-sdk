@@ -1,0 +1,38 @@
+/*  
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+
+            VxWorks BSP for NSX (BCM1125) Card
+		  Broadcom Corp 6/10/2004
+
+This directory contains the VxWorks BSP for running VxWorks on the
+BCM1125 processor card.  This BSP was originally derived from
+the SiByte SWARM BSP for BCM1250.
+
+Broadcom Common Firmware Environment (CFE) is used as the boot ROM
+to boot VxWorks image directly from on board flash or over network.
+CFE is modified to emulate VxWorks boot ROM.
+
+Simple flash filesystem based on DOSFS 2.0, with 15 MB usable space
+on the "flash:" device, CLI commands are provided for common file
+operations.
+
+                *  *  *  *  *  *  *
+
+This file documents BSP interface changes from previous software or
+hardware versions, and notifies the user of serious caveats that
+must be noted before using this BSP.  Additionally, the target
+board's manual page entry (e.g., man bcm1250) provides board-specific
+information necessary to run VxWorks.  The target manual page should
+be read fully before this BSP is used.
+
+-----------------------------------------------------------------------
+
+RELEASE 1.0/0
+
+    Released from Wind River for Tornado 2.1, VxWorks 5.4 and Tornado
+    2.2, VxWorks 5.5  
+

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+  <AppDB Name="SAME_INTERFACE_FILTER_TABLE">
+    <OneLineDescription>Same interface filtering table</OneLineDescription>
+    <MaturityLevel>2</MaturityLevel>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="SAME_INTERFACE_FILTER_BY_FWD_CONTEXT" Size="2"/>
+        <Field Name="SAME_INTERFACE_FILTER_BY_OUTLIF_PROFILE" Size="2"/>
+        <Field Name="LIFS_EQUAL" Size="1"/> 
+        <Field Name="OUTLIF_IS_PORT" Size="1"/>
+        <Field Name="INLIF_IS_PORT" Size="1"/> 
+        <Field Name="SYS_PORT_EQUAL" Size="1"/> 
+        <Field Name="SAME_INTERFACE_FILTER_BY_INLIF_PROFILE" Size="2"/>                             
+      </Key>
+      <Result>
+        <Field Name="SAME_INTERFACE_FILTER" Size="1"/>
+      </Result>
+      <TableLabels>PP_PORT</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="SAME_INTERFACE_FILTER">
+          <Access>
+            <Memory Name="ERPP_CFG_SAME_INTERFACE_FILTERm">
+              <EntryOffset EncodeType="DIVIDE" Value="32"/>
+              <HwField Name="CFG_SAME_INTERFACE_FILTERf"/>
+              <DataOffset EncodeType="MODULO" Value="32"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+</AppDbCatalog>
+

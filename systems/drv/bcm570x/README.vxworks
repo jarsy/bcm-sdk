@@ -1,0 +1,151 @@
+/*  
+ * $Id: README.vxworks,v 1.2 Broadcom SDK $
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+
+BCM570x/SENS Driver (VxWorks 5.4.x / Tornado 2.0)
+------------------------------
+Last updated: 06/05/02 by Jimmy Blair <jblair@broadcom.com>
+Previously updated: 09/10/01 by James Dougherty <jfd@broadcom.com>
+
+
+I. Overview
+-----------
+
+The BCM570x END driver is ported from the b57um module for Linux 3.0.2;
+the driver uses the same underlying tigon3 driver and implements the
+Middle-Module (MM) to interface to the END interface defined in bcm570xEnd.
+
+
+II. Configuration
+-----------------
+
+In your BSP there will typically be two files that configure the
+ethernet driver.  They are: 
+    sysBcm570xEnd.c
+    configNet.h
+
+See the template files in this directory for an example configuration.
+
+
+III. Build rules
+-----------------
+
+Here are a couple of examples of build rules for the driver.  These
+came from actual working BSP Makefiles. :)  You may want to integrate these
+rules, or something very similar, into your own BSP Makefile.
+
+    PPC running a 5701 at 10/100:
+
+# Broadcom BCM570x Gigabit Ethernet Driver
+
+BCM570X_SRC_DIR = ../../drv/bcm570x
+
+BCM570x_OBJS = bcm570x/bcm570xEnd.o bcm570x/tigon3.o bcm570x/autoneg.o \
+               bcm570x/5701rls.o
+
+BCM570X_FLAGS = -DINCLUDE_5701_AX_FIX=1 -DVXWORKS -DDBG=0
+
+bcm570x/%.o : $(BCM570X_SRC_DIR)/%.c
+        $(CC) -I$(BCM570X_SRC_DIR) $(CFLAGS) $(BCM570X_FLAGS) -O0 -c $< -o $@
+
+You don't need to define BIG_ENDIAN_HOST in the build flags.  The driver
+knows what endianness you are by looking the the VxWorks headers.
+   
+#############################################################################
+
+   MIPS, big endian:
+#
+#  N.B.:  BE Mips has one more define than PPC -- BIG_ENDIAN_PCI
+#
+BCM570X_SRC_DIR = ../../drv/bcm570x
+
+BCM570X_FLAGS = -DINCLUDE_5701_AX_FIX=1 -DBIG_ENDIAN_PCI=1 -DDBG=0
+
+bcm570x/%.o : $(BCM570X_SRC_DIR)/%.c
+        $(CC) -I$(BCM570X_SRC_DIR) $(CFLAGS) $(BCM570X_FLAGS) -c $< -o $@
+
+
+This driver seems to build and work OK at either -O2 or -O0.  Wind River
+usually builds there drivers at -O0, but you might want to take your chances.
+
+There are plenty more flags that can be defined on the build line.  See
+the driver source, bcm570xEnd.c for a description.
+
+#############################################################################
+
+Also in this directory you'll find an example Makefile.  You can build the
+driver here if you don't want to incorporate new build rules into your
+existing Makefile.  Please see the Makefile for more information before
+you build.  If you just type "make" in this directory, it's not going to work!
+
+IV. Platform Specifics
+----------------------
+
+1) This version of the END driver was tested on VxWorks 5.4.x on a Broadcom
+board with a PPC 8245, and another Broadcom board with an IDT RC32364.
+Earlier versions of this driver did not work on MIPS zero-copy transmit
+enabled.  This has been fixed.  For MIPS platforms that don't have
+bus snooping, make sure that the following function pointers are
+defined in your BSP:
+  
+    cacheDmaFuncs.flushRtn = cacheLib.flushRtn;
+    cacheDmaFuncs.invalidateRtn = cacheLib.invalidateRtn;
+
+2) Initial Packet Buffer pools are reserved by the driver of sizes defined in
+the bcm570xEnd.h header file. In particular, you may need to experiment with:
+
+#define	BCM570X_END_CLBUFS     512	    /* Cluster Buffers */
+#define	BCM570X_END_CLBLKS     512	    /* Total Cluster Headers */
+#define	BCM570X_END_MBLKS      512	    /* Total Packet Headers */
+#define	BCM570X_END_PK_SZ      2048	    /* Maximum Packet Size */
+
+to find the optimal values for your platform.  You may wonder why
+the packet size is defined much greater than the typical ethernet MTU.
+It needs to be big enough such that there's at least an extra cache-line's
+work of space at the end of each buffer.  2048 is, of course, really big.
+That is in there because earlier versions of the driver used netTupleGet,
+which only functions properly when buffer sizes are a power of 2.
+You may want to reduce the number of buffers -- 512 is also absurdly large.
+If you do, keep in mind that the
+number of clusters must be greater than the number of
+preallocated receive buffer, which is DEFAULT_STD_RCV_DESC_COUNT in
+tigon3.h.  Also, if you aren't using zero copy transmit then you also
+need to allow for some transmit buffers.
+
+Take a look at some of the macros defined in mm.h if you're having
+problems with endianness, zero-copy, etc.
+
+
+V. From the WindShell
+---------------------
+
+When properly configured, you should be able to run WindShell and
+use the ifShow() and muxShow() VxWorks API routines to see your
+driver bound to the stack and the IP configuration in use.
+
+-> muxShow()
+Device: bc Unit: 0
+Description: Broadcom BCM570x Gigabit Ethernet SENS Driver
+Protocol: Wind Debug Agent      Type: 257       Recv 0x1d58c4   Shutdown 0x0
+Protocol: IP 4.4 ARP    Type: 2054      Recv 0x1e9ccc   Shutdown 0x1e9f90
+Protocol: IP 4.4 TCP/IP Type: 2048      Recv 0x1e9ccc   Shutdown 0x1e9ec8
+value = 0 = 0x0
+
+-> ifShow("bc0")
+bc (unit number 0):
+     Flags: (0x8063) UP BROADCAST MULTICAST ARP RUNNING 
+     Type: ETHERNET_CSMACD
+     Internet address: 172.16.41.11
+     Broadcast address: 172.16.47.255
+     Netmask 0xffff0000 Subnetmask 0xfffff000
+     Ethernet address is 00:10:18:01:0a:94
+     Metric is 0
+     Maximum Transfer Unit size is 1500
+     6 packets received; 7 packets sent
+     1 multicast packets received
+     1 multicast packets sent
+     0 input errors; 0 output errors
+     0 collisions; 0 dropped

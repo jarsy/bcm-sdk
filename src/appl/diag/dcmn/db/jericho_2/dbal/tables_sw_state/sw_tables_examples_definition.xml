@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="sw_state_schema.xsd">
+
+    <AppDB Name="SW_STATE_TABLE_EXAMPLE_1">
+        <OneLineDescription>sw state table example 1</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IN_LIF" Size="12"/>
+            </Key>
+            <Result>
+                <Field Name="GPORT_FOR_LEARNING"/>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="ENUM_TEST"/>
+            </Result>
+            <TableLabels>L2 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SW_STATE_SUB_FIELD_EXAMPLE">
+        <OneLineDescription>sw state sub field table</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="IN_LIF" Size="4"/>
+                <Field Name="VRF" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="DESTINATION" Size="21"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="150"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="SW_STATE_TABLE_EXAMPLE_2">
+        <OneLineDescription>sw state table example 2</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="EXT_STAT_DATA" Size="21" Offset="9"/>
+            </Key>
+            <Result>
+                <Field Name="L2_MAC" Size="10" Offset="38"/>
+                <Field Name="GPORT_FOR_LEARNING" Size="15" Offset="4"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="GLOBAL_INLIF_INFO_EXAMPLE">
+        <OneLineDescription>sw state table multiple results example</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IN_LIF"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="1" Value="VPLS" Description="description vpls"/>
+                    <Field Name="GPORT_FOR_LEARNING"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="1" Value="VPWS" Description="description vpws"/>
+                    <Field Name="PEER_GPORT"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L2 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="SW_RESULT_TYPE_EXAMPLE">
+        <OneLineDescription>sw state table multiple results example</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="RT1" Description="result type 1"/>
+                    <Field Name="GPORT_FOR_LEARNING"/>
+                    <Field Name="DESTINATION" Size="21"/>
+                    <Field Name="PEER_GPORT"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="RT2" Description="result type 2"/>
+                    <Field Name="VLAN_DOMAIN" Size="9"/>
+                    <Field Name="ESEM_ACCESS_CMD" Size="4"/>
+                    <Field Name="TX_OUTER_TAG_VALID" Size="1"/>
+                    <Field Name="TX_OUTER_TAG_VID" Size="12"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="RT3" Description="result type 3"/>
+                    <Field Name="PEER_GPORT"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L2 MPLS VXLAN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>
+

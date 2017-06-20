@@ -1,0 +1,51 @@
+# $Id: 56725_inline_tm.soc,v 1.1 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Sirius Inline TM 
+#
+# HumV+ fabric configuration for Tr2+Sirius+HumV where 
+# Sirius is configured for inline TM
+#
+
+s cpu_control_1 0xffffffff
+ 
+mod port 9 4 higig2=1
+ 
+m EGR_PORT.hg2 HIGIG2=1
+m EGR_PORT.hg3 HIGIG2=1
+m EGR_PORT.hg4 HIGIG2=1
+m EGR_PORT.hg5 HIGIG2=1
+ 
+m XPORT_CONFIG.hg2 HIGIG2_MODE=1
+m XPORT_CONFIG.hg3 HIGIG2_MODE=1
+m XPORT_CONFIG.hg4 HIGIG2_MODE=1
+m XPORT_CONFIG.hg5 HIGIG2_MODE=1
+ 
+m MAC_TXCTRL.hg2 HIGIG2MODE=1
+m MAC_TXCTRL.hg3 HIGIG2MODE=1
+m MAC_TXCTRL.hg4 HIGIG2MODE=1
+m MAC_TXCTRL.hg5 HIGIG2MODE=1
+ 
+m MAC_rXCTRL.hg2 HIGIG2MODE=1
+m MAC_rXCTRL.hg3 HIGIG2MODE=1
+m MAC_rXCTRL.hg4 HIGIG2MODE=1
+m MAC_rXCTRL.hg5 HIGIG2MODE=1
+ 
+
+mod vlan 0x276 1 PORT_BITMAP=0x7ff81,HIGIG_TRUNK_OVERRIDE=0,VALID=1,STG=1,FID_ID=0,VLAN_PROFILE_PTR=0,VRF_ID=0,CLASS_ID=0,VLAN_CLASS_ID=0,L2_ENTRY_KEY_TYPE=0
+ 
+mod egr_vlan 0x276 1 UT_BITMAP=0,UT_PORT_BITMAP=0,PORT_BITMAP=0x7ff81,STG=1,VALID=1,OUTER_TPID_INDEx=0
+ 
+ 
+ 
+mod modport_map 2306 1 HIGIG_PORT_BITMAP=0x0800
+mod modport_map 2562 1 HIGIG_PORT_BITMAP=0x1000
+mod modport_map 2818 1 HIGIG_PORT_BITMAP=0x0200
+mod modport_map 3074 1 HIGIG_PORT_BITMAP=0x0400
+ 
+mod modport_map 2304 1 HIGIG_PORT_BITMAP=0x0800
+mod modport_map 2560 1 HIGIG_PORT_BITMAP=0x1000
+mod modport_map 2816 1 HIGIG_PORT_BITMAP=0x0200
+mod modport_map 3072 1 HIGIG_PORT_BITMAP=0x0400
+

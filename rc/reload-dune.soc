@@ -1,0 +1,8 @@
+#
+# $Id: reload-dune.soc,v 1.1 Broadcom SDK $
+#
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+
+setenv warmboot 1
+rcload rc.soc

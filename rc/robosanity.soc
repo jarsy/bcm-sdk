@@ -1,0 +1,87 @@
+# $Id: robosanity.soc,v 1.2 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Script to run all available tests as quickly as possible.
+# For testing basic sanity of new drivers, simulators, chips, etc.
+
+echo "testsuite: started: sanity"
+rcload robo.soc
+counter off
+l2mode off
+
+# We need to print out port status since any cabling effects results.
+*:ps
+
+
+local done 'echo "   Done"'
+
+
+
+# Set run command script not to fail on errors reported by commands
+# this allows the script to continue if a test fails
+set rcerror=false
+
+# Set up test mode: don't stop on errors, show progress on each test
+tm -stoponerror +progress
+# Unselect all
+ts -*
+
+#Display some useful information
+ver
+soc
+
+# Tests Start Here
+echo Running CPU benchmarks ...
+tr 21
+$done
+
+echo Running counter width verification test ...
+tr 30
+$done
+
+echo Running counter read/write test ...
+tr 31
+$done
+
+#Internal snake Loopback
+echo "Running internal snake on all ports, PHY loopback ..."
+tr 39 loopbackmode=phy
+$done
+
+#Packet TX tests
+echo "Running Packet TX Performance test..."
+tr 40
+$done
+
+#Packet RX tests
+echo "Running Packet RX Performance test..."
+tr 41
+$done
+
+#Do re-init after tr 41
+rcload robo.soc
+counter off
+l2mode off
+
+#--------- PHY Loopback V2 ---------
+echo "Running PHY loopback V2 on all ports ..."
+tr 49
+$done
+
+#Traffic Test
+echo "Running Traffic Test in PHY mode ..."
+tr 72 RM=PHY 
+$done
+
+# Show status
+tl 
+local returnCode $?
+
+echo Tests Complete.  Reinitializing ...
+rcload robo.soc
+
+# We want to show the return code from the tl command which
+# lists the results. The automated test infrastructure keys off of this 
+# value
+echo "testsuite: finished: sanity: $returnCode"

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_PORT_STP">
+        <OneLineDescription>Ingress STG state per PP port and STG-ID</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="STG_ID" Size="8"/>
+            </Key>
+            <Result>
+                <Field Name="STP_STATE" Size="2"/>
+            </Result>
+            <TableLabels>STG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STP_STATE">
+                    <Access>
+                        <Memory Name="IPPA_STP_TABLEm"> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="PP_PORT"/>
+                            <HwField Name="PER_PORT_STP_STATEf"/>
+                            <DataOffset EncodeType="MULTIPLE" Field="STG_ID" Value="2"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGRESS_PORT_STP">
+        <OneLineDescription>Egress STG state per PP port and STG-ID</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="STG_ID" Size="8"/>
+            </Key>
+            <Result>
+                <Field Name="STP_STATE" Size="1"/>
+            </Result>
+            <TableLabels>STG</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STP_STATE">
+                    <Access>
+                        <Memory Name="ETPPB_STP_STATEm"> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="STG_ID"/>
+                            <HwField Name="STP_STATE_DATAf"/>
+                            <DataOffset EncodeType="MULTIPLE" Field="PP_PORT" Value="1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

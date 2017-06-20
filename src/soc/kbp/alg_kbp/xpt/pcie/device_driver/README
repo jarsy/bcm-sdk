@@ -1,0 +1,118 @@
+KBP Device Driver instructions
+==============================
+
+The KBP device driver identifies any PCIE capable KBP devices
+connected to the root complex and prepares them for use by the
+software API's. Devices discovered are populated as files under
+/proc/kbp/pcie<id>. The driver also allocates the required system
+memory to enable DMA operations between the KBP SDK and the chip.
+
+The rest of this document provides sample commands/steps to configure the
+system to load the driver.
+
+Driver components
+-----------------
+
+The device driver directory contains the following files
+
+ ->     README        (Instructions and documentation)
+ ->     kbp_driver.c  (Device driver implementation)
+ ->     kbp_driver.h  (interface between driver and SDK)
+ ->     Makefile      (Sample Makefile)
+
+Compilation
+-----------
+
+The provided Makefile needs to be modified to point to the
+appropriate toolchains and kernel sources. On typing make
+the driver module kbp_driver.ko will be built.
+
+Usage
+-----
+
+$ insmod kbp_driver.ko [verbose=] [req_q_size=] [resp_q_size=]
+
+  req_q_size:       The size of DMA buffer for transfers from software to KBP.
+                    Acceptable values are between 0x1 and 0xE. The default is
+                    0x1 and the customer is not expected to change this.
+
+  resp_q_size:      The size of DMA buffer for responses from KBP to software.
+                    Acceptable values are between 0x1 and 0xE. The default is
+                    0x1 and the customer is not expected to change this.
+
+  verbose:          Setting this to 0 will cause the driver to emit only critical
+                    messages. Default is 1 where additional details are printed
+                    by the driver
+
+  pcie_bus_mapping: Specify the bus mapping to KBP PCIE id in the following
+                    string format
+
+                    "<bus_number>,<id>|<bus_number>,<id>"
+
+                    Please note this mapping needs to be specified as a string
+                    to the driver, and care must be taken the quotes get passed
+                    down properly all the way to the driver command line and
+                    not eaten by the shell or scripts. For example the option
+                    can be used as
+
+                    insmod kbp_driver.ko pcie_bus_mapping='"0000:01:00.1,100|0000:04:00.0,13"'
+
+                    Please note the extra quotes.
+
+
+Querying status of device after installation
+--------------------------------------------
+
+After the driver is installed one proc file is created for every discovered
+device under /proc/kbp
+
+$ ls /proc/kbp
+  pcie0 pcie1 pcie2 pcie3
+
+Each of the files can be queried for status.
+
+$ cat /proc/kbp/pcie0
+Device Type    : Direct PCIE connect to DUT
+Driver Version : KBP_PCIE_DRIVER_1.6
+Status         : Available
+PCI Device     : 0000:01:00.0
+       config.register_map_base_phys = 0xf0100000
+       config.register_map_size = 4096
+ioctl the /proc file from your process to obtain the virtual
+address of the register map
+=======================================================
+Driver Assigned DMA memory
+=======================================================
+DMA Memory: 0x0000000000080000  |  size: 0x00004180
+DMA REQUEST Q OFFSETS: base: 0x0, size: 1024, head: 0x4040, tail: 0x4080
+DMA RESPONSE Q OFFSETS: base: 0x2000, size: 1024, head: 0x40c0, tail: 0x4100
+....
+....
+
+Controlling enumeration order
+-----------------------------
+
+The device driver assigns a device ID starting from zero to each KBP
+discovered in the order in which the kernel notifies the driver. If the
+customer requires controlling the assignment of ID to the KBP this can
+be done by specifying the bus number to KBP PCIE ID mapping on the
+driver command line or by modifying kbp_driver.c as shown below
+
+insmod kbp_driver.ko pcie_bus_mapping='"0000:01:00.1,100|0000:04:00.0,13"'
+
+In the following case the following mapping would be created
+
+   "0000:01:00.1" --> /proc/kbp/pcie100
+   "0000:04:00.0" --> /proc/kbp/pcie13
+
+Any devices outside of the table will get assigned ID's
+starting after the largest ID in the table above. In the above case
+the first ID assigned would be 101
+
+Alternately the file kbp_driver.c can be modified and the string above
+can be assigned to the variable
+
+static char *pcie_bus_mapping="0000:01:00.1,100|0000:04:00.0,13"
+
+
+

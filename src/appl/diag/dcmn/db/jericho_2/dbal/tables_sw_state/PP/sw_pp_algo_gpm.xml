@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL GPM SW state:
+    This xml contains the sw staate logical DB for the DBAL.
+    ******************************************************
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../sw_state_schema.xsd">
+
+    <AppDB Name="SW_STATE_GPORT_TO_FORWARDING_INFO">
+        <OneLineDescription>sw state gport to pre-FEC forwarding resolution</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="LOGICAL_GPORT"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="DEST_ONLY" Description="Destination"/>
+                    <Field Name="DESTINATION"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="DEST_OUTLIF" Description="Destination and outlif"/>
+                    <Field Name="DESTINATION"/>
+                    <Field Name="OUT_LIF"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="DEST_EEI" Description="Destination with EEI"/>
+                    <Field Name="DESTINATION"/>
+                    <Field Name="EEI"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L2 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="2000"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    
+</AppDbCatalog>
+

@@ -1,0 +1,10 @@
+#configuration for legacy devices(arad,jericho,qax,....) goes here
+import config-dcmn.bcm
+
+#configuration for jer2 goes here
+import config-jer2.bcm
+
+#configuration for ramon goes here
+import config-ramon.bcm
+
+

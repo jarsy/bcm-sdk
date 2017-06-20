@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_PORT">
+        <OneLineDescription>Ingress PP Port actions</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="PORT_VID" Size="12"/>
+                <Field Name="DEFAULT_LIF" Size="20"/>
+                <Field Name="VLAN_MEMBERSHIP_IF" Size="9"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <Memory Name="IPPA_VTT_IN_PP_PORT_CONFIGm"> 
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PORT_VID">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm"> 
+                            <HwField Name="DEFAULT_INITIAL_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DEFAULT_LIF">
+                    <Access>
+                        <Memory Name="IPPA_VTT_IN_PP_PORT_CONFIGm">
+                            <HwField Name="DEFAULT_PORT_LIFf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_IF">
+                    <Access>
+                        <Memory Name="IPPA_MAP_PORT_TO_MEMBERSHIP_IF_VECm">
+                            <HwField Name="VLAN_MEMBERSHIP_IFf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_PORT">
+        <OneLineDescription>Egress PP port actions</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="ESEM_ACCESS_CMD" Size="4"/>
+                <Field Name="TX_OUTER_TAG_VALID" Size="1"/>
+                <Field Name="TX_OUTER_TAG_VID" Size="12"/>
+                <Field Name="VLAN_MEMBERSHIP_IF" Size="9"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm"> 
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_ACCESS_CMD">
+                    <Access>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm"> 
+                            <HwField Name="PORT_EM_ACC_CMDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                 <Field Name="TX_OUTER_TAG_VALID">
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm"> 
+                            <HwField Name="TX_TAG_ENABLEf"/>
+                        </Memory>
+                    </Access>   
+                </Field>
+                <Field Name="TX_OUTER_TAG_VID">
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm"> 
+                            <HwField Name="TX_TAG_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBERSHIP_IF">
+                    <Access>
+                        <Memory Name="ETPPC_EDITING_PER_PORT_TABLEm"> 
+                            <HwField Name="VLAN_MEMBERSHIP_INTERFACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ESEM_ACCESS_CMD_PROP">
+        <OneLineDescription>Properties per ESEM access command. The access command is a port property.</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ESEM_ACCESS_CMD" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="DEFAULT_AC_PROF"/>
+                <Field Name="ESEM_ACCESS_VALID"/>                
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DEFAULT_AC_PROF">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm"> 
+                            <HwField Name="ESEM_1_DEFAULT_RESULT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ESEM_ACCESS_VALID">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm"> 
+                            <HwField Name="ESEM_1_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+</AppDbCatalog>
+

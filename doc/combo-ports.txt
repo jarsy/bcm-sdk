@@ -1,0 +1,569 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+                Notes on Copper/Fiber Combination Ports
+                 Curt McDowell, Broadcom Corp. 11-27-02
+                         Last Updated: 02-18-04
+------------------------------------------------------------------------------
+
+1) Combination Ports
+
+Combination (combo) ports are those which support more than one medium
+type, such as copper and fiber, on the same switch port.  Of course,
+only one medium type may be active at a time because they share the same
+switch port.
+
+1.1) PHYs Supporting Combo Ports
+
+The BCM5421S, BCM5461S and BCM5464S are PHYs which support copper/fiber
+combo ports.  Boards using these PHYs can be built with gigabit ports
+that simultaneously have an RJ45 and fiber module, or an RJ45 and a
+GBIC.
+
+These PHYs also support automatic detection of signal/energy on each
+medium.  A user can plug or unplug either medium type and the PHY (and
+software driver) can automatically switch the medium type.  In case both
+medium types are active, one medium is selected based on a configurable
+priority, the default being fiber.
+
+1.2) Automatic Medium Selection
+
+Automatic medium selection is optional.  Ports may also be forced to one
+mode or the other by the application using the API calls to disable the
+inactive medium (this enable value is provided in the bcm_phy_config_t
+structure as discussed later).
+
+If only the copper side is plugged in, the combo port driver will detect
+it and link up copper.
+
+If only the fiber side is plugged in, the combo port driver will detect
+it and link up fiber.
+
+If both sides are plugged in, only the medium that is configured as the
+'preferred medium' (see below) will link up.
+
+If fiber is the preferred medium and linked up, then plugging and
+unplugging the copper side will not have any effect on the fiber side.
+
+If copper is the preferred medium and linked up, then plugging and
+unplugging the fiber side will not have any effect on the copper side.
+
+1.3) Port Signal/Energy Detect Considerations
+
+It is important to note that certain situations may result in link
+behavior that does not seem intuitive, but is unavoidable.  These cases
+are discussed individually below.
+
+1.3.1) Auto Medium with Fiber Preferred
+
+In Auto Medium mode with Fiber Preferred, when fiber link is active the
+copper TX is powered down to prevent false link on copper remote link
+partner.
+
+When the fiber link is inactive, both fiber and copper TX are enabled to
+permit selection of interface that has receive energy.  This allows
+connection between two Auto Medium combo ports.  Medium selection is
+based on receive energy, and the link partner TX provides this.  To
+enable an Auto Medium combo port to connect properly to another Auto
+Medium combo port, the TX energy to the remote link must be active.
+
+Fiber TX energy is always active to permit an Auto Medium combo port to
+connect to another Auto Medium combo port.
+
+1.3.2) Auto Medium with Copper Preferred
+
+In Auto Medium mode with Copper Preferred, when the copper link is
+active the fiber autonegotiation is not active.  This prevents false
+link on the fiber remote link partner.  However, the fiber TX may
+provide energy to remote link partner and result in false link if
+autonegotiation is disabled on remote link partner.
+
+When the copper link is inactive, both fiber and copper TX are enabled
+to permit selection of interface that has receive energy.  The BCM5464
+will be in pass-through mode to permit fiber interface to perform
+autonegotiation.  This allows connection between two Auto Medium combo
+ports.  Medium selection is based on receive energy, and the link
+partner TX provides this.  To enable an Auto Medium combo port to
+connect properly to another Auto Medium combo port, the TX from the
+remote partner should be active.
+
+Copper TX energy is always active to permit an Auto Medium combo port to
+connect to another Auto Medium combo port.
+
+1.3.3) Copper Forced Mode
+
+In this mode the fiber interface should be inactive.  However, a fiber
+link partner with autonegotiation disabled may still see link up due to
+energy provided by the fiber interface.
+
+1.3.4) Fiber forced mode.
+
+In this mode, only the fiber interface is active.  The copper TX is
+powered down to prevent false link up on copper link partner.
+
+2) Control Properties
+
+The soc_property mechanism is used to make certain driver configurations
+related to the combo ports.  Please see the sal_config_set()/get() APIs
+and the $SDK/rc/config.bcm configuration file.
+
+As with all port-based properties, the property name can be suffixed
+with an underscore and a port number.  If it is, the property will only
+apply to a single port.  The suffixes are:
+
+        _feX            Zero-based FE port number X
+        _geX            Zero-based GE port number X
+        _xeX            Zero-based 10-GE port number X
+        _hgX            Zero-based Higig port number X
+        _portY          One-based switch port number Y (any port type)
+
+Also as with all port-based properties, the property name can be
+suffixed with a period (.) and a SOC unit (device) number.  If it is,
+the property will only apply to that specific unit.  The unit number
+suffix, if any, must come after the port suffix.  See below for
+examples.
+
+2.1) General
+
+2.1.1) phy_5690
+
+If a port is wired directly from a BCM5690 to a fiber module and there
+is no external PHY, no property setting is needed.  The code in
+phyident.c will detect that there is no external PHY and automatically
+default to direct-attached fiber.
+
+However, on the 24-port 5690 SDK boards there is a 5434 or 5464 PHY and
+there is a resistor stuffing option that can be used to bypass the PHY
+or not.  Please refer to the SDK user guide and schematics for more
+information.
+
+Even if the PHY is bypassed, it is still present on the MDIO bus and the
+software will be fooled into trying to use it.  To get around this, set
+the following property so that the probing procedure in phyident.c will
+ignore the PHY detected on the MII bus and assume a direct connection
+from BCM5690 to the fiber module:
+
+        phy_5690_ge10=1
+        phy_5690_ge11=1
+
+2.1.2) phy_automedium
+
+If the PHY is to be used in automatic medium selection mode, the
+following properties should be used (example assumes a 5690 with three
+attached 5464s):
+
+        phy_automedium_ge8.1=0
+        phy_automedium_ge9.1=0
+        phy_automedium_ge10.1=1
+        phy_automedium_ge11.1=1
+
+For 5464, the default is off (0).  See phy_5464S property.
+For 5464S, the default is on (1).  See phy_5464S property.
+
+2.1.3) phy_fiber_pref
+
+If the PHY is used in automatic medium selection mode, then the priority
+medium is selected to be fiber or copper by setting the phy_fiber_pref
+property.
+
+If the PHY is NOT used in automatic medium selection mode, then this
+property indicates the fixed fiber or copper operation mode of the PHY
+(example assumes a 5690 with three attached 5464s):
+
+        phy_fiber_pref_ge8.1=0
+        phy_fiber_pref_ge9.1=0
+        phy_fiber_pref_ge10.1=1
+        phy_fiber_pref_ge11.1=1
+
+For 5464, the default is copper (0).  See phy_5464S property.
+For 5464S, the default is fiber (1).  See phy_5464S property.
+
+2.1.4) if_tbi
+
+This property applies to any PHY used in TBI mode.  The BCM5421S may be
+used in TBI + fiber mode but not TBI + copper mode.  See comments in the
+PHY driver for more information (example assumes a 5645 with two
+attached 5421s):
+
+        if_tbi_ge0.0=1          (Or if_tbi_port25.0=1)
+        if_tbi_ge1.0=1          (Or if_tbi_port26.0=1)
+
+TBI is a deprecated mode and GMII should be used instead.
+
+2.2) BCM5464S
+
+The following properties apply specifically to BCM5464S.
+
+2.2.1) phy_5464S
+
+If the PHY is a BCM5464S, then this property must be set.  This is
+because 5464 and 5464S have the same PHY ID and the software can not
+determine the chip type from the PHY ID alone.  For example, if ports 9
+through 12 on unit 1 are 5464S, the properties should be set as:
+
+        phy_5464S_ge8.1=1
+        phy_5464S_ge9.1=1
+        phy_5464S_ge10.1=1
+        phy_5464S_ge11.1=1
+
+It is necessary to declare all four ports of a Quad PHY as 5464S so that
+the errata workarounds execute correctly for certain revisions.  If
+5464S is being used for copper only, this property is actually
+unnecessary since 5464S is a superset of 5464.  Automedium must be
+disabled for 5464/5464S to work as copper-only, otherwise a floating
+fiber-detect input pin could cause the port to switch to fiber mode.
+
+2.3) BCM5421S
+
+The following properties apply specifically to BCM5421S.
+
+2.3.1) phy_fiber_deglitch_usecs
+
+Some problematic GBICs may cause a brief fiber energy detect signal when
+inserted, even without a link.  If fiber is the preferred medium, this
+could cause the copper link to be dropped temporarily.
+
+For ports with this issue, an energy detect de-glitch is provided.  The
+property phy_fiber_deglitch_usecs may be set to the de-glitch time in
+usec.  The PHY driver ignores transitions of the Energy Detect signal
+from false to true unless they are present for at least the number of
+microseconds specified by this property.
+
+        phy_fiber_deglitch_usecs_ge0=2000000
+        phy_fiber_deglitch_usecs_ge1=2000000
+
+2.4) Recommended settings
+
+2.4.1) 24-port 5690 SDK with Fiber-Direct resistors
+
+On these boards, unit 1 can be configured so the last two ports of the
+last quad-PHY (ports 11 and 12) bypass the 5434/5464 PHY device.
+
+In this configuration, the settings are
+
+        phy_5690_ge10.1=1
+        phy_5690_ge11.1=1
+
+In this case the 5434/5464 drivers are not used for those ports and the
+internal SERDES driver (phy5690) is used instead.
+
+2.4.2) 24-port 5690 SDK with all ports copper 5434 or 5464
+
+In this configuration, no settings are necessary.  The default will be
+copper on all ports.
+
+2.4.3) 24-port 5690 SDK with ports 23 and 24 as 5464 combo ports
+
+If the boards are configured without Fiber-Direct (as above) then the
+last two ports of the last quad PHY may be used as forced copper or
+fiber, or automedium detection.
+
+2.4.3.1) Forced Copper or Fiber
+
+The phy_5464S property needs to be set to tell the driver that the last
+quad PHY is a 5464S.  However, the first two quad PHYs can be left as
+5464 even if they are 5464S without causing any problem.  This is
+because the 5464 is a subset of the 5464S.  Also, if they are not left
+as 5464 you would have to set phy_automedium and phy_fiber_pref
+properties explicitly for them.
+
+It is necessary to declare all four ports of a Quad PHY as 5464S so that
+the errata workarounds execute correctly.
+
+        phy_5464S_ge8.1=1
+        phy_5464S_ge9.1=1
+        phy_5464S_ge10.1=1
+        phy_5464S_ge11.1=1
+
+        phy_automedium_ge8.1=0
+        phy_automedium_ge9.1=0
+        phy_automedium_ge10.1=0
+        phy_automedium_ge11.1=0
+
+        phy_fiber_pref_ge8.1=0
+        phy_fiber_pref_ge9.1=0
+
+        phy_fiber_pref_ge10.1=0 # Use this for forced copper
+        phy_fiber_pref_ge10.1=1 # Use this for forced fiber
+
+        phy_fiber_pref_ge11.1=0 # Use this for forced copper
+        phy_fiber_pref_ge11.1=1 # Use this for forced fiber
+
+2.4.3.2) Automatic Medium Selection
+
+Note that automedium actually defaults to 1 for 5464S, so it must be
+explicitly turned off for ports 9 and 10.  In automedium mode, the
+phy_fiber_pref property determines which medium to use if BOTH media are
+active.
+
+        phy_5464S_ge8.1=1
+        phy_5464S_ge9.1=1
+        phy_5464S_ge10.1=1
+        phy_5464S_ge11.1=1
+
+        phy_automedium_ge8.1=0
+        phy_automedium_ge9.1=0
+        phy_automedium_ge10.1=1
+        phy_automedium_ge11.1=1
+
+        phy_fiber_pref_ge10.1=0 # Use this to prefer copper
+        phy_fiber_pref_ge10.1=1 # Use this to prefer fiber (default)
+
+        phy_fiber_pref_ge11.1=0 # Use this to prefer copper
+        phy_fiber_pref_ge11.1=1 # Use this to prefer fiber (default)
+
+3) Medium Configuration Parameters
+
+Medium Configuration Parameters include:
+
+    enable              PHY enable state
+    preferred           True if the medium is the preferred one
+    autoneg_enable      Autoneg enable state
+    autoneg_advert      Advertisement values for when autoneg is enabled
+    force_speed         Forced speed for when autoneg is disabled
+    force_duplex        Forced duplex for when autoneg is disabled
+    master              Master/slave mode for 1000TX
+    mdix                Auto-MDIX setting
+
+These configuration parameters are kept in a bcm_phy_config_t structure
+(same as soc_phy_config_t at the SOC layer).
+
+Combo PHY drivers keep one set of configuration parameters per medium
+type.  When the PHY callouts, and correspondingly the bcm_port API
+calls, are used on the combo port, only the set of parameters for the
+active medium are updated.
+
+Whenever the medium type changes, the driver's link_get routine restores
+the set of parameters corresponding to the new media type.
+
+Each combo PHY driver has a medium_config_set/get routine.  The BCM API
+calls bcm_port_medium_config_set()/get() API calls can be used to
+retrieve, modify, and write back this set of parameters, on a
+per-medium-type basis.
+
+It is not necessary to deal with the parameters for multiple medium
+types if not desired.  Instead, a medium change callback can be
+installed using the bcm_port_medium_status_register()/unregister() API
+calls to be notified of a change in medium type.  The callback occurs
+after the saved parameters are restored to the PHY, hence the user's
+callback routine may overwrite any of the parameters if any changes are
+needed.
+
+4) Diagnostics 'combo' command
+
+The 'combo' command reveals the bcm_port_medium_config_set()/get() API
+calls (see below for more detail) to the diagnostics command shell.  The
+command allows access to the parameter set that is maintained for each
+media type.  Parameters can be viewed and updated, even for the media
+which are not currently active.  The combo command also shows the
+currently-active medium type.
+
+Usage (COMBO): Parameters: <ports> [copper|fiber [<option>=<value>]]
+        Display or update operating parameters of copper/fiber combo PHY.
+        Note: the 'port' command operates on the currently active medium.
+        Example: combo ge1 fiber autoneg_enable=1 autoneg_advert=1000,pause
+
+4.1) Displaying the combo port medium configuration
+
+For example, on a dual-BCM5690 combo SDK, the 23rd and 24th front panel
+ports are combo ports.  These correspond to 5690 unit 1, ports 11 and 12
+(numbering from 1).  Thus, the following command displays the settings
+for the 23rd front panel port:
+
+  BCM.1> combo 11
+  Port 11 BCM5464:
+      Copper:
+          enable=1 preferred=0 force_speed=1000 force_duplex=1
+          autoneg_enable=1 autoneg_advert=100,10,pause(0xc0f) master=Auto
+     *Fiber:
+          enable=1 preferred=1 force_speed=1000 force_duplex=1
+          autoneg_enable=1 autoneg_advert=1000full,pause(0xc20) master=None
+
+Here, the fiber connection shows as currently active.
+
+The command "combo 11 fiber" displays only the fiber information for the
+same port while the command "combo 11 copper" displays only the copper
+information, for example:
+
+  BCM.1> combo 11 fiber
+  Port 11 BCM5464:
+     *Fiber:
+          enable=1 preferred=1 force_speed=1000 force_duplex=1
+          autoneg_enable=1 autoneg_advert=1000full,pause(0xc20) master=None
+
+4.2) Changing the combo port medium configuration
+
+When the 'port' command is used to modify a port parameter, the medium
+parameters corresponding to the active medium are updated.
+
+When the parameters for the active medium are changed using the 'combo'
+command, they are immediately reflected in the PHY (possibly causing a
+link down and re-autonegotiation).
+
+If the parameters are changed for an inactive medium, they will not take
+effect until that medium becomes active.  The 'combo' command is the
+only way to change parameters for an inactive medium.
+
+Any of the parameters shown in the combo port status display can be
+changed simply by specifying the changes on the command line as
+"parameter=value", for example:
+
+  BCM.1> combo 11-12 fiber autoneg_enable=0
+  BCM.1> combo 11-12 copper autoneg_enable=1 autoneg_advert=1000full,pause
+  BCM.1> combo 11-12 copper autoneg_enable=1 autoneg_advert=100,10
+  BCM.1> combo 11-12 copper preferred=1; combo 11-12 fiber preferred=0
+
+When setting the autoneg advertisement the port mode is parsed from the
+following list:
+
+    String      soc_port_mode_t         Equivalent string
+    ------      ---------------         -----------------------
+    full        SOC_PM_FD               1000full,100full,10full
+    half        SOC_PM_HD               1000half,100half,10half
+    1000        SOC_PM_1000MB           1000full,1000half
+    1000full    SOC_PM_1000MB_FD        1000full
+    1000half    SOC_PM_1000MB_HD        1000half
+    100         SOC_PM_100MB            100full,100half
+    100full     SOC_PM_100MB_FD         100full
+    100half     SOC_PM_100MB_HD         100half
+    10          SOC_PM_10MB             10full,10half
+    10full      SOC_PM_10MB_FD          10full
+    10half      SOC_PM_10MB_HD          10half
+    pause       SOC_PM_PAUSE            pause_tx,pause_rx
+    pause_tx    SOC_PM_PAUSE_TX         pause_tx
+    pause_rx    SOC_PM_PAUSE_RX         pause_rx
+
+5) Using the PHY drivers
+
+5.1) Debug Messages
+
+To save space, the phy5421S.c and phy5464.c drivers incorporate debug
+messages into the binary only if compiled with
+
+        #define DPRINTF_ENABLE          1
+
+This is the default.  If debug messages are compiled in, they will
+display only when DK_PHY is enabled (from the BCM command line:
+"debug +phy").
+
+Additional debugging information is displayed when DK_VERBOSE is
+enabled.  Generally, this is the information from routines which are
+called on every iteration of linkscan, such as the link_get and
+media_check routines.  This can result in a lot of output.  It may be
+useful to run linkscan at a slow rate (such as
+"linkscan interval=5000000" for every 5 seconds).
+
+5.2) Medium control functions
+
+BCM API support for multiple media types is available in releases SDK
+4.2.3 and later although this informational file was not updated in SDK
+4.2.3.
+
+5.2.1) Medium types
+
+The medium types are enumerated as bcm_port_medium_t:
+
+        BCM_PORT_MEDIUM_NONE
+        BCM_PORT_MEDIUM_COPPER
+        BCM_PORT_MEDIUM_FIBER
+
+5.2.2) Medium Status Retrieval
+
+The routine to determine whether the current port is currently operating
+in fiber or copper mode is:
+
+        int bcm_port_medium_get(int unit,
+                                bcm_port_t port,
+                                bcm_port_medium_t *medium);
+
+The current medium is also available in the bcm_port_info_t structure
+that is retrieved by bcm_port_info_get()-type API calls.
+
+The current medium is also available on each link up event, in the
+bcm_port_info_t structure that is passed to callback routines registered
+with the linkscan task via bcm_linkscan_register().
+
+5.2.3) Medium Configuration Retrieval
+
+The medium configuration parameters for a specified port and medium type
+may be retrieved all at once using the following API routine:
+
+        int bcm_port_medium_config_get(int unit,
+                                       bcm_port_t port,
+                                       bcm_port_medium_t medium,
+                                       bcm_phy_config_t *config);
+
+Please see the if_combo() routine in diag/if.c for example usage.
+
+5.2.4) Medium Configuration Update
+
+The medium configuration parameters for a specified port and medium type
+may be updated all at once using the following API routine:
+
+        int bcm_port_medium_config_set(int unit,
+                                       bcm_port_t port,
+                                       bcm_port_medium_t medium,
+                                       bcm_phy_config_t *config);
+
+For best operation, it is recommended that the caller use
+bcm_port_medium_config_get(), then update the required fields in the
+configuration structure, then use bcm_port_medium_config_set().
+
+This API will update the parameters for a specified medium even if the
+medium is not active.  If the active medium is updated, the changes will
+take effect immediately, which may cause autonegotiation to restart.
+
+Please see the if_combo() routine in diag/if.c for example usage.
+
+5.2.5) Medium Status Change Callback
+
+A callback is available for when the active medium type changes.
+Whenever the active medium type changes, the configuration parameters
+for the new medium type are written to the PHY, and then the callback
+(if any) is made.
+
+If desired, this callback could be used to reprogram port parameters
+(via the bcm_port API) and potentially override the values written by
+from the medium configuration structure.  In fact, the entire concept of
+multiple sets of parameters per medium could be ignored, although we do
+not prefer that be done.  The problem is that a medium may link up after
+the medium change, but before the application is notified via callback.
+Then link may go back down and up when the application adjusts the
+parameters.
+
+The type for the callback routine is:
+
+        typedef void (*bcm_port_medium_status_cb_t)
+                (int unit,
+                 bcm_port_t port,
+                 bcm_port_medium_t medium,
+                 void *user_arg);
+
+extern int bcm_port_medium_status_unregister(
+    int                          unit,
+    bcm_port_t                   port,
+    bcm_port_medium_status_cb_t  callback,
+    void                        *user_data);
+
+The routine to register a callback function is:
+
+        int bcm_port_medium_status_register
+                (int unit,
+                 bcm_port_t port,
+                 bcm_port_medium_status_cb_t callback,
+                 void *user_arg);
+
+The routine to unregister a callback function is:
+
+        int bcm_port_medium_status_unregister
+                (int unit,
+                 bcm_port_t port,
+                 bcm_port_medium_status_cb_t callback,
+                 void *user_arg);
+
+The callback and user_arg must also match when unregistering.  Only one
+function may be registered at a time.

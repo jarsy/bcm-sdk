@@ -1,0 +1,10 @@
+#
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Filename Make.local.thunderbolt
+FEATURE_LIST=CINT L3 I2C BCMX BCMX_DIAG MEM_SCAN EDITLINE BCM_SAL_PROFILE CUSTOMER TEST CHASSIS MSTP RCPU
+BCM_PTL_SPT=1
+BCM_53280_A0=1
+BCM_53280_B0=1
+BCM_TK371X_A0=1

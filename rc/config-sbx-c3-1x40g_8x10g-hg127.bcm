@@ -1,0 +1,189 @@
+#
+# $Id: config-sbx-c3-1x40g-8x10g-hg127.bcm,v 1.1.2.1 Broadcom SDK $
+# $Id$
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+# Example configuration file for C3 SBX 10x10G setup
+#
+
+# run g3p1 ucode 
+diag_emulator_partial_init=0
+#lrp_bypass=2
+load_firmware=0x1
+
+line_pr_buffer_profile=1
+
+# Default microcode is g3p1
+# - g3p1 linecard Caladan3/Sirius
+# - g3p1a lincard Caladan3/Arad
+bcm88030_ucode.0=g3p1
+
+# ucode port definition
+ucode_num_ports.0=9
+ucode_port.port1.0=clport0.xle.0.0:clport1.hg126.0.0
+ucode_port.port5.0=clport0.xe.1.0:clport1.hg126.0.1
+ucode_port.port6.0=clport0.xe.1.1:clport1.hg126.0.2
+ucode_port.port7.0=clport0.xe.1.2:clport1.hg126.0.3
+ucode_port.port8.0=clport0.xe.1.3:clport1.hg126.0.4
+ucode_port.port9.0=clport0.xe.2.0:clport1.hg126.0.5
+ucode_port.port10.0=clport0.xe.2.1:clport1.hg126.0.6
+ucode_port.port11.0=clport0.xe.2.2:clport1.hg126.0.7
+ucode_port.port12.0=clport0.xe.2.3:clport1.hg126.0.8
+
+
+# C3 Line side
+# 40G xe port lane map
+xgxs_rx_lane_map_xe0=0x1230
+xgxs_rx_lane_map_xe1=0x1032
+xgxs_rx_lane_map_xe5=0x1230
+
+xgxs_tx_lane_map_xe0=0x1032
+xgxs_tx_lane_map_xe1=0x3210
+xgxs_tx_lane_map_xe5=0x1032
+
+# 40G xe rx/tx polarity
+phy_xaui_rx_polarity_flip_xe0=0x0009
+phy_xaui_rx_polarity_flip_xe1=0x0001
+phy_xaui_rx_polarity_flip_xe2=0x0001
+phy_xaui_rx_polarity_flip_xe3=0x0001
+phy_xaui_rx_polarity_flip_xe4=0x0001
+phy_xaui_rx_polarity_flip_xe5=0x0001
+phy_xaui_rx_polarity_flip_xe6=0x0001
+phy_xaui_rx_polarity_flip_xe7=0x0000
+phy_xaui_rx_polarity_flip_xe8=0x0001
+
+phy_xaui_tx_polarity_flip_xe0=0x0003
+phy_xaui_tx_polarity_flip_xe1=0x0001
+phy_xaui_tx_polarity_flip_xe2=0x0001
+phy_xaui_tx_polarity_flip_xe3=0x0001
+phy_xaui_tx_polarity_flip_xe4=0x0001
+phy_xaui_tx_polarity_flip_xe5=0x0000
+phy_xaui_tx_polarity_flip_xe6=0x0000
+phy_xaui_tx_polarity_flip_xe7=0x0001
+phy_xaui_tx_polarity_flip_xe8=0x0001
+
+#C3 Fabric side in lane swap
+xgxs_rx_lane_map_core0_hg0=0x1032
+xgxs_rx_lane_map_core1_hg0=0x3210
+xgxs_rx_lane_map_core2_hg0=0x1032
+
+xgxs_tx_lane_map_core0_hg0=0x1032
+xgxs_tx_lane_map_core1_hg0=0x3210
+xgxs_tx_lane_map_core2_hg0=0x1032
+
+higig2_hdr_mode_hg0=1
+
+#C3 Fabric side no pority swap
+
+#2x1G XC ports tx/rx swap
+xgxs_tx_lane_map_ge=0x3120
+xgxs_rx_lane_map_ge=0x3110
+
+# KBP bus
+esm_serdes_rx_polarity_flip=0xffffff
+esm_serdes_rx_lane_map_core0=0x1032
+esm_serdes_rx_lane_map_core2=0x1032
+esm_serdes_tx_lane_map_core1=0x1032
+esm_serdes_tx_lane_map_core4=0x1032
+ext_tcam_tx_lane_swap=1
+ext_tcam_rx_lane_swap=1
+
+# DDR auto tune
+ddr3_auto_tune=0
+
+ddr3_tune_rd_dq_wl1_rp_ci8.0=0x84848484,0x84848484,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_wr_dq_wl0_ci4.0=0x96969696,0x96969696,0x95959595,0x95959595
+ddr3_tune_vref_ci10.0=0x0000075d
+ddr3_tune_wr_dq_wl1_ci2.0=0x95959595,0x95959595,0x95959595,0x95959595
+ddr3_tune_wr_dq_ci6.0=0x80808080
+ddr3_tune_rd_dq_wl0_rn_ci6.0=0x84848484,0x84848484,0x8b8b8b8b,0x8b8b8b8b
+ddr3_tune_rd_dq_wl1_rp_ci10.0=0x82828282,0x82828282,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_rd_dqs_ci8.0=0x98989494,0x9a9a9595
+ddr3_tune_vref_ci6.0=0x0000079e
+ddr3_tune_rd_dq_wl0_rp_ci14.0=0x89898989,0x89898989,0x8c8c8c8c,0x8c8c8c8c
+ddr3_tune_rd_en_ci10.0=0x00a5a7a4,0x00a1a59e
+ddr3_tune_rd_data_dly_ci4.0=0x00000404
+ddr3_tune_addrc_ci8.0=0x000000b5
+ddr3_tune_rd_dq_wl0_rp_ci2.0=0x89898989,0x89898989,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_rd_dqs_ci10.0=0x98989393,0x9b9b9393
+ddr3_tune_rd_en_ci2.0=0x00a2a2a2,0x00a4a6a2
+ddr3_tune_wr_dq_wl0_ci12.0=0x96969696,0x96969696,0x95959595,0x95959595
+ddr3_tune_rd_dq_wl1_rn_ci4.0=0x83838383,0x83838383,0x8c8c8c8c,0x8c8c8c8c
+ddr3_tune_addrc_ci10.0=0x000000b4
+ddr3_tune_wr_dq_wl0_ci6.0=0x96969696,0x96969696,0x95959595,0x95959595
+ddr3_tune_vref_ci12.0=0x0000079e
+ddr3_tune_rd_dq_wl0_rn_ci10.0=0x81818181,0x81818181,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_wr_dq_wl1_ci4.0=0x95959595,0x95959595,0x96969696,0x96969696
+ddr3_tune_wr_dq_ci8.0=0x80808080
+ddr3_tune_rd_dq_wl1_rp_ci0.0=0x84848484,0x84848484,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_wr_dq_wl1_ci10.0=0x95959595,0x95959595,0x94949494,0x94949494
+ddr3_tune_rd_dq_wl0_rn_ci8.0=0x84848484,0x84848484,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_rd_dq_wl1_rp_ci12.0=0x8a8a8a8a,0x8a8a8a8a,0x8c8c8c8c,0x8c8c8c8c
+ddr3_tune_wr_dq_ci10.0=0x80808080
+ddr3_tune_vref_ci8.0=0x0000079e
+ddr3_tune_rd_en_ci12.0=0x00a0a0a1,0x00999b97
+ddr3_tune_rd_data_dly_ci6.0=0x00000404
+ddr3_tune_rd_dq_wl0_rp_ci4.0=0x83838383,0x83838383,0x89898989,0x89898989
+ddr3_tune_rd_dqs_ci12.0=0x96969b9b,0x9a9a9a9a
+ddr3_tune_rd_dqs_ci0.0=0x94949595,0x97979595
+ddr3_tune_rd_en_ci4.0=0x009d9d9e,0x00989b95
+ddr3_tune_rd_data_dly_ci10.0=0x00000404
+ddr3_tune_addrc_ci0.0=0x000000b4
+ddr3_tune_wr_dq_wl0_ci14.0=0x95959595,0x95959595,0x96969696,0x96969696
+ddr3_tune_rd_dq_wl1_rn_ci6.0=0x8b8b8b8b,0x8b8b8b8b,0x8b8b8b8b,0x8b8b8b8b
+ddr3_tune_addrc_ci12.0=0x000000b5
+ddr3_tune_wr_dq_wl0_ci8.0=0x96969696,0x96969696,0x96969696,0x96969696
+ddr3_tune_vref_ci14.0=0x0000079e
+ddr3_tune_rd_dq_wl0_rn_ci12.0=0x8a8a8a8a,0x8a8a8a8a,0x89898989,0x89898989
+ddr3_tune_wr_dq_wl1_ci6.0=0x96969696,0x96969696,0x95959595,0x95959595
+ddr3_tune_rd_dq_wl1_rp_ci2.0=0x89898989,0x89898989,0x8b8b8b8b,0x8b8b8b8b
+ddr3_tune_wr_dq_wl1_ci12.0=0x95959595,0x95959595,0x96969696,0x96969696
+ddr3_tune_rd_dq_wl1_rp_ci14.0=0x89898989,0x89898989,0x8c8c8c8c,0x8c8c8c8c
+ddr3_tune_wr_dq_ci12.0=0x80808080
+ddr3_tune_wr_dq_ci0.0=0x80808080
+ddr3_tune_rd_en_ci14.0=0x009a999b,0x009d9f9b
+ddr3_tune_rd_dq_wl0_rn_ci0.0=0x83838383,0x83838383,0x84848484,0x84848484
+ddr3_tune_rd_data_dly_ci8.0=0x00000404
+ddr3_tune_rd_dq_wl0_rp_ci6.0=0x84848484,0x84848484,0x8b8b8b8b,0x8b8b8b8b
+ddr3_tune_rd_dqs_ci14.0=0x9b9b9898,0x9b9b9999
+ddr3_tune_rd_dqs_ci2.0=0x99999898,0x99999898
+ddr3_tune_rd_en_ci6.0=0x009b9d9a,0x00979996
+ddr3_tune_rd_data_dly_ci12.0=0x00000404
+ddr3_tune_vref_ci0.0=0x000007df
+ddr3_tune_addrc_ci2.0=0x000000b3
+ddr3_tune_rd_dq_wl1_rn_ci8.0=0x84848484,0x84848484,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_addrc_ci14.0=0x000000b6
+ddr3_tune_rd_dq_wl1_rn_ci10.0=0x82828282,0x82828282,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_rd_dq_wl0_rn_ci14.0=0x89898989,0x89898989,0x8c8c8c8c,0x8c8c8c8c
+ddr3_tune_wr_dq_wl1_ci8.0=0x95959595,0x95959595,0x95959595,0x95959595
+ddr3_tune_rd_dq_wl1_rp_ci4.0=0x83838383,0x83838383,0x8c8c8c8c,0x8c8c8c8c
+ddr3_tune_wr_dq_wl1_ci14.0=0x97979797,0x97979797,0x95959595,0x95959595
+ddr3_tune_wr_dq_wl0_ci0.0=0x96969696,0x96969696,0x95959595,0x95959595
+ddr3_tune_wr_dq_ci14.0=0x80808080
+ddr3_tune_wr_dq_ci2.0=0x80808080
+ddr3_tune_rd_dq_wl0_rn_ci2.0=0x89898989,0x89898989,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_rd_dq_wl0_rp_ci8.0=0x84848484,0x84848484,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_rd_dqs_ci4.0=0x9a9a9393,0x9b9b9393
+ddr3_tune_rd_en_ci8.0=0x009a9b99,0x009b9e99
+ddr3_tune_rd_data_dly_ci14.0=0x00000404
+ddr3_tune_vref_ci2.0=0x0000079e
+ddr3_tune_rd_dq_wl0_rp_ci10.0=0x81818181,0x81818181,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_rd_data_dly_ci0.0=0x00000404
+ddr3_tune_addrc_ci4.0=0x000000b5
+ddr3_tune_rd_dq_wl1_rn_ci12.0=0x8a8a8a8a,0x8a8a8a8a,0x8c8c8c8c,0x8c8c8c8c
+ddr3_tune_rd_dq_wl1_rn_ci0.0=0x84848484,0x84848484,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_rd_dq_wl1_rp_ci6.0=0x8b8b8b8b,0x8b8b8b8b,0x8b8b8b8b,0x8b8b8b8b
+ddr3_tune_wr_dq_wl0_ci2.0=0x95959595,0x95959595,0x95959595,0x95959595
+ddr3_tune_wr_dq_wl1_ci0.0=0x95959595,0x95959595,0x96969696,0x96969696
+ddr3_tune_wr_dq_ci4.0=0x80808080
+ddr3_tune_rd_dq_wl0_rn_ci4.0=0x83838383,0x83838383,0x89898989,0x89898989
+ddr3_tune_rd_dqs_ci6.0=0x9b9b9494,0x97979c9c
+ddr3_tune_vref_ci4.0=0x0000079e
+ddr3_tune_rd_dq_wl0_rp_ci12.0=0x8a8a8a8a,0x8a8a8a8a,0x89898989,0x89898989
+ddr3_tune_rd_data_dly_ci2.0=0x00000404
+ddr3_tune_addrc_ci6.0=0x000000b6
+ddr3_tune_rd_dq_wl0_rp_ci0.0=0x83838383,0x83838383,0x84848484,0x84848484
+ddr3_tune_rd_dq_wl1_rn_ci14.0=0x89898989,0x89898989,0x8c8c8c8c,0x8c8c8c8c
+ddr3_tune_rd_en_ci0.0=0x00a3a4a2,0x009ea19c
+ddr3_tune_wr_dq_wl0_ci10.0=0x95959595,0x95959595,0x96969696,0x96969696
+ddr3_tune_rd_dq_wl1_rn_ci2.0=0x89898989,0x89898989,0x8b8b8b8b,0x8b8b8b8b

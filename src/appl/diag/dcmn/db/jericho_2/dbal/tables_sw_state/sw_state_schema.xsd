@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <xs:include schemaLocation="../dbal_types_definition.xsd" />
+
+    <xs:element name="AppDbCatalog">
+    <xs:complexType>
+    <xs:sequence>
+        <xs:element name="AppDB" maxOccurs="unbounded">
+        <xs:complexType>
+        <xs:sequence>
+            <xs:element name="OneLineDescription" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <xs:element name="MaturityLevel" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                    <xs:minInclusive value="0"/>
+                    <xs:maxInclusive value="2"/>
+                </xs:restriction>
+            </xs:simpleType>
+            </xs:element>
+            
+            <!-- Interface -->
+            <xs:element name="AppDbInterface" type="TableInterfaceType" minOccurs="1" maxOccurs="1"/>
+        
+            <!-- Physical Mapping -->
+            <xs:element name="AppToPhyDbMapping" minOccurs="1" maxOccurs="1">
+            <xs:complexType>
+            <xs:sequence>
+                <xs:element name="CoreMode" type="CroeModeType" minOccurs="1" maxOccurs="1" />
+                <xs:element name="TableProperties" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attribute name="Size" type="xs:integer"/>
+                </xs:complexType>
+                </xs:element>
+
+                <xs:element name="MultipleResultsMapping" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                <xs:sequence>
+                    <xs:element name="Result" minOccurs="1" maxOccurs="16"> <!-- maxOccurs = DBAL_MAX_NUMBER_OF_RESULT_TYPES -->
+                    <xs:complexType>
+                        <xs:attributeGroup ref="ResultIndicatorMappingAttr" />
+                    </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+                </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+            <xs:attributeGroup ref="TableDefinitionAttr" />
+        </xs:complexType>
+        </xs:element>
+        
+    </xs:sequence>
+    </xs:complexType>
+
+        <!-- In AppDBCatalog, AppDB names are unique -->
+        <xs:unique name="UniqueAppDBName">
+            <xs:selector xpath="AppDB" />
+            <xs:field xpath="@Name" />
+        </xs:unique>
+        
+    </xs:element>
+
+</xs:schema>

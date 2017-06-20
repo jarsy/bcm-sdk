@@ -1,0 +1,192 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+                     New COS queue API functions
+                 Joe Dadek, Broadcom Corp. 05-20-2004
+                       Last Updated: 05-20-2004
+------------------------------------------------------------------------------
+
+The BCM API has four new functions defined to allow enhanced
+configuration of the 5665/50/55 family of chips.  These APIs are:
+
+
+/*
+ * Function:
+ *      bcm_cosq_detach
+ * Purpose:
+ *      Discard all COS schedule/mapping state.
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ * Returns:
+ *      BCM_E_XXX
+ */
+
+int bcm_cosq_detach(int unit)
+
+
+/*
+ * Function:
+ *      bcm_cosq_port_sched_weight_max_get
+ * Purpose:
+ *      Retrieve maximum weights for given COS policy.
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      mode - Scheduling mode, one of BCM_COSQ_xxx
+ *	weight_max - (output) Maximum weight for COS queue.
+ *		0 if mode is BCM_COSQ_STRICT.
+ *		1 if mode is BCM_COSQ_ROUND_ROBIN.
+ *		-1 if not applicable to mode.
+ * Returns:
+ *      BCM_E_XXX
+ */
+
+int bcm_cosq_port_sched_weight_max_get(int unit, int mode, int *weight_max)
+
+
+/*
+ * Function:
+ *      bcm_cosq_port_bandwidth_set
+ * Purpose:
+ *      Set bandwidth values for given COS policy.
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *	port - port to configure, -1 for all ports.
+ *      cosq - COS queue to configure, -1 for all COS queues.
+ *      kbits_sec_min - minimum bandwidth, kbits/sec.
+ *      kbits_sec_max - maximum bandwidth, kbits/sec.
+ *      flags - may include:
+ *              BCM_COSQ_BW_EXCESS_PREF
+ *              BCM_COSQ_BW_MINIMUM_PREF
+ * Returns:
+ *      BCM_E_XXX
+ */
+
+extern int bcm_cosq_port_bandwidth_set(int unit,
+                                       bcm_port_t port,  /* -1 for all */
+                                       bcm_cos_queue_t cosQ, /* -1 for all */
+                                       uint32 kbits_sec_min,
+                                       uint32 kbits_sec_max,
+                                       uint32 flags);
+
+
+/*
+ * Function:
+ *      bcm_cosq_port_bandwidth_get
+ * Purpose:
+ *      Retrieve bandwidth values for given COS policy.
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *	port - port to retrieve.
+ *      cosq - COS queue to retrieve
+ *      kbits_sec_min - (OUT) minimum bandwidth, kbits/sec.
+ *      kbits_sec_max - (OUT) maximum bandwidth, kbits/sec.
+ *      flags - (OUT) may include:
+ *              BCM_COSQ_BW_EXCESS_PREF
+ *              BCM_COSQ_BW_MINIMUM_PREF
+ * Returns:
+ *      BCM_E_XXX
+ */
+
+extern int bcm_cosq_port_bandwidth_get(int unit,
+                                       bcm_port_t port,  /* -1 for any */
+                                       bcm_cos_queue_t cosQ, /* -1 for any */
+                                       uint32 *kbits_sec_min,
+                                       uint32 *kbits_sec_max,
+                                       uint32 *flags);
+
+
+
+The allowable scheduling modes now supported are:
+
+BCM_COSQ_STRICT
+BCM_COSQ_ROUND_ROBIN           (formerly BCM_COSQ_WEIGHTED_ROUND_ROBIN)
+BCM_COSQ_WEIGHTED_ROUND_ROBIN  (formerly BCM_COSQ_WEIGHTED_FAIR_ROUND_ROBIN)
+BCM_COSQ_WEIGHTED_FAIR_QUEUING
+BCM_COSQ_BOUNDED_DELAY
+
+Some defines for use in assembling weights:
+
+BCM_COSQ_WEIGHT_STRICT
+BCM_COSQ_WEIGHT_MIN
+
+
+
+Theory of use:
+
+bcm_cosq_port_sched_weight_max_get is applicable on any switch, but
+not fabrics.  It returns the maximum weight specification for a given
+mode.
+
+bcm_cosq_port_bandwidth_set/get are currently only available for the
+5665/50/55 family of chips.  Note that the supplied bandwidth values
+may be rounded up to the nearest value supported by the HW.  The
+available flags are
+
+BCM_COSQ_BW_EXCESS_PREF - Allocate bandwidth above the combined
+minimums to queues with this flag first, up to the maximum for a COS.
+BCM_COSQ_BW_MINIMUM_PREF - Satisfy minimum bandwidth requirement for
+queues with this flag before other queues receive minimum.
+
+The maximum bandwidth setting is applicable to any mode supported on
+5665/50/55.  The minimum bandwidth settings and the preference flags
+are only valid in WEIGHTED_FAIR_QUEUING mode.  The order of the calls
+bcm_cosq_port_bandwidth_set and bcm_cosq_port_sched_set is not
+important.
+
+
+566X PRG to BCM API translation matrix (from pp 77-79 of the
+566X-PG201-R)
+
+Strict Priority
+
+Call bcm_cosq_port_sched_set with mode argument of BCM_COSQ_STRICT.
+Note that this is not implemented as described in the PRG, but as a
+special case of the SP+WFQ combination on p. 79.
+
+
+Round-Robin
+
+Call bcm_cosq_port_sched_set with mode argument of
+BCM_COSQ_ROUND_ROBIN.
+
+
+Weighted Round-Robin
+
+Call bcm_cosq_port_sched_set with mode argument of
+BCM_COSQ_WEIGHTED_ROUND_ROBIN.  Supply non-zero weights in the weights
+array argument.  Note that this is not implemented as described in the
+PRG, but as a special case of the SQ+WRR combination on p. 78.
+
+Weighted Fair Queuing
+
+Call bcm_cosq_port_sched_set with mode argument of
+BCM_COSQ_WEIGHTED_FAIR_QUEUING.  Supply non-zero weights in the
+weights array argument.  Also, call bcm_cosq_port_bandwidth_set to
+specify bandwidth parameters for the WFQ.
+
+SP+RR Combination
+
+Call bcm_cosq_port_sched_set with mode argument of
+BCM_COSQ_WEIGHTED_ROUND_ROBIN.  Supply weights in the weights array
+argument, with BCM_COSQ_WEIGHT_STRICT for strict priority queues and
+BCM_COSQ_WEIGHT_MIN for round robin queues.
+
+SP+WRR Combination
+
+Call bcm_cosq_port_sched_set with mode argument of
+BCM_COSQ_WEIGHTED_ROUND_ROBIN.  Supply weights in the weights array
+argument, with BCM_COSQ_WEIGHT_STRICT for strict priority queues and
+non-zero values for weighted round robin queues.
+
+SP_WFQ Combination
+
+Call bcm_cosq_port_sched_set with mode argument of
+BCM_COSQ_WEIGHTED_FAIR_QUEUING.  Supply weights in the weights array
+argument, with BCM_COSQ_WEIGHT_STRICT for strict priority queues and
+non-zero values for weighted fair queuing queues.  Also, call
+bcm_cosq_port_bandwidth_set to specify bandwidth parameters for the
+WFQ.

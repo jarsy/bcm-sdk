@@ -1,0 +1,143 @@
+# $Id: Make.fast,v 1.9 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+
+REPOS = sdk/systems/ecos
+REPOS = sdk/regress
+REPOS = sdk
+
+REPOS_TOP = $(firstword $(subst /, ,$(REPOS)))
+
+PRISTINE = ../pristine
+
+REMOTE_SITE = xl-sj1-11.sj.broadcom.com
+
+REMOTE_WORK_DIR = /projects/sandburst_scratch/$(LOGNAME)/pristine
+
+REMOTE_CVS_ROOT_DIR = /projects/ntsw-cvs2/swcvs4/minerva
+
+CVS_ARGS = -Ad
+
+domainname := $(shell domainname)
+
+ifeq ($(domainname),mhtb)
+  BSUB = bsub -Is -q mht-car -n9
+  PSERVER = :pserver:$(LOGNAME)@cvsps-sj1-1.sj.broadcom.com:$(REMOTE_CVS_ROOT_DIR)
+endif
+
+ifeq ($(domainname),sanjose)
+  BSUB = bsub -Is -q sj-ntsw -n9
+  PSERVER = $(REMOTE_CVS_ROOT_DIR)
+endif
+
+NEW_CVSROOT = $(PSERVER)
+
+.PHONY: help cvs-co build clean-build
+
+$(PRISTINE):
+	rm -rf $(PRISTINE)-tmp
+	mkdir -p $(PRISTINE)-tmp
+ifeq ($(domainname),sanjose)
+	( cd $(PRISTINE)-tmp && cvs -d $(PSERVER) co $(CVS_ARGS) $(REPOS) )
+else
+	#
+	# Remote cvs checkout and then create tarfile
+	#
+	ssh $(REMOTE_SITE) 'mkdir -p $(REMOTE_WORK_DIR) && cd $(REMOTE_WORK_DIR) && rm -rf $(REPOS) && cvs -d $(REMOTE_CVS_ROOT_DIR) co $(REPOS) && tar -zcf $(REPOS_TOP).tgz $(REPOS)'
+	#
+	# scp tar file locally
+	#
+	scp $(REMOTE_SITE):$(REMOTE_WORK_DIR)/$(REPOS_TOP).tgz $(PRISTINE)-tmp
+	#
+	# untar
+	#
+	( cd $(PRISTINE)-tmp && tar -zxf $(REPOS_TOP).tgz )
+	#
+	# Change CVS/Root files
+	#
+	tools/cvs-newroot $(NEW_CVSROOT) $(PRISTINE)-tmp/$(REPOS_TOP)
+endif
+	#
+	mv $(PRISTINE)-tmp $(PRISTINE)
+
+cvs-co:
+	#
+	# Verify current directory is new area
+	# If src/ exists, area is not new
+	#
+	if [ -d src ] ; then exit 1 ; fi
+	#
+	# Create $(PRISTINE) if not already there
+	#
+	$(MAKE) $(PRISTINE)
+	#
+	# CVS Update $(PRISTINE)/$(REPOS)
+	#
+ifneq ($(domainname),sanjose)
+	( cd $(PRISTINE) && cvs -d $(PSERVER) -fqn up -l $(REPOS) ) || cvs -d $(PSERVER) login
+endif
+	( cd $(PRISTINE) && cvs -d $(PSERVER) -fq up $(CVS_ARGS) $(REPOS) )
+	#
+	# Copy $(PRISTINE) area to here
+	#
+	cp -af $(PRISTINE)/$(REPOS)/* .
+
+help:
+	#
+	# INTRODUCTION:
+	#
+	# A lot of time can be saved by keeping a local copy of a
+	# $(PRISTINE)/$(REPOS) sandbox.  After getting the sandbox
+	# the first time, we'll run cvs update there, instead of
+	# checking out a new sandbox everytime.
+	#
+	# During the build, we'll also save a lot of time by running
+	# compiles in parallel.
+	#
+	# CREATE NEW BUILD AREA:
+	#
+	# To create a new $(REPOS) area, first move the old one:
+	#
+	#   cd ..
+	#   mv $(REPOS) $(REPOS).old
+	#
+	# Then checkout the latest makefiles:
+	#
+	#   cvs -d $(PSERVER) -fq co $(REPOS)/Makefile
+	#   cd $(REPOS)
+	#   cvs -fq up $(CVS_ARGS) -l make
+	#
+	# CVS update $(PRISTINE)/$(REPOS) area and copy to current directory.
+	# If $(PRISTINE)/$(REPOS) doesn't exist, it will checked out first.
+	#
+	#   make cvs-co PRISTINE=$(PRISTINE) FAST=1 -n
+	#
+	# BUILD:
+	#
+	#   make build BUILD=metrocore-2_6 FAST=1 -n
+	#   make build BUILD=gto-2_6 FAST=1 -n
+	#
+	# CLEAN:
+	#
+	#   make clean-build BUILD=metrocore-2_6 FAST=1 -n
+	#   make clean-build BUILD=gto-2_6 FAST=1 -n
+
+BUILD_ENV = \
+	time env \
+	--unset=CROSS_COMPILE \
+	MYSDK=sdktot \
+	SDK=$(CURDIR) \
+	TCL_LIBRARY=$(CURDIR)/src/appl/tcl8.3.3/library 
+
+FAST=1
+
+BUILD=metrocore-2_6
+BUILD=gto-2_6
+BUILD=BUILD_not_set
+
+build:
+	$(BSUB) $(BUILD_ENV) make -C systems/linux/user/$(BUILD) FAST=$(FAST)
+
+clean-build:
+	$(BUILD_ENV) make -C systems/linux/user/$(BUILD) clean
+

@@ -1,0 +1,89 @@
+# $Id: sbx.soc,v 1.23.2.10 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Initialization SBX (run commands) file
+#
+#       These are default commands that are read and executed by default
+#       when BCM boots up.  Typically this file is called sbx.soc and resides
+#       in the flash filesystem, NVRAM, or disk.
+#
+
+
+if $?1 "echo sbx.soc: arguments not supported; exit"
+if !$?unit "echo sbx.soc: no current unit; exit"
+
+# When running as daemon, output can be redirected to diag_log_file
+if !"expr $unit == 0" && $?diag_log_file \
+	"log file=$diag_log_file on;"
+
+expr $units - 1;local num_units $?
+echo "sbx.soc: unit $unit (of $num_units) device $devname"
+local quiet no
+local echo echo
+local rcdone \$sbx$unit
+if !"expr $sbxdone + 0" "local echo noecho; local quiet yes"
+
+# Set convenience local variables
+
+local qe2k_bscrn_lc 1
+echo "sbx.soc: qe2k_bscrn_lc $qe2k_bscrn_lc"
+
+# Board Configuration Setting
+#       This file uses configuration properties to know on which board
+#       it is running.  Currently one of following settings must be made:
+#
+if $?qe2k_bscrn_lc   "\
+   local brdtype 9; \
+   config add qe2k_benchscreen_board=1; \
+"
+
+echo "sbx.soc: brdtype $brdtype"
+
+if !$?brdtype " \
+  echo sbx.soc: no current brdtype; \
+  exit; \
+"
+
+## gsrao 100808
+echo "sbx.soc: unit $unit brdtype $brdtype pcidev $pcidev"
+
+board init type=$brdtype
+
+if $?diag_unit_mask && "expr ((1<<$unit) & $diag_unit_mask)==(1<<$unit)" "echo Skipping units based on diag_unit_mask=$diag_unit_mask.;exit"
+
+deb +Verbose
+
+echo "$unit:init soc"
+init soc
+
+#echo "$unit:init bcm"
+init bcm
+
+echo "$unit:init bcm done"
+
+## gsrao 092408
+## We need to call 'mcinit' since this provisions the fabric. This should
+## always be done after the last device is processed. Otherwise the registers
+## for the initial devices end up getting processed multiple times.
+
+## Use the following to turn on debugging.
+## dbm bcm tx rx pktdata verbose vverbose; \
+## dbm diag test; \
+## echo Running Test TR 112; \
+## attach; \
+## 0: tr 112 usefile=1 infile=/root/TEST/IN_DATA.bin outfile=/root/TEST/OUT_DATA.bin outfile1=/root/TEST/OUT_DATA_1.bin packets=1340 runtime=180 dualka=1; \
+## echo Clearing Counters; \
+## 0: pc clear; \
+## 1: pc clear; \
+
+if !"expr $unit == 1" "\
+  mcinit; \
+  echo Clearing Counters and Errors; \
+  echo; \
+  0: pe clear; \
+  1: pe clear; \
+  0: pc clear; \
+  1: pc clear; \
+"
+

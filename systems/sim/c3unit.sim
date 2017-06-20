@@ -1,0 +1,191 @@
+#!/bin/bash
+#
+# $Id: c3unit.sim,v 1.2.14.2 Broadcom SDK $
+#
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+#
+#   Rudimentary Script to startup a C3 SVK Simulation setup
+#   Uses C3Sim environment to setup soc-level simulation of Caladan3 
+#   Functionality not supported at the soc-level fall back to register level
+#   Currently scripts starts up PCID to emulate C3 hardware for register access
+#
+#   Works with these TDMs:
+#   config-sbx-c3-1x100g-1xhg127.bcm
+#   config-sbx-c3-12x10g-1xhg127.bcm
+#
+
+
+
+function setup_g3p1_unit_tests_soc {
+    echo "init soc"                                  > sbx.soc
+    echo "stable size=0 "                           >> sbx.soc
+    echo "init bcm"                                 >> sbx.soc
+    echo "cd ../../../caladan_ucode/g3p1/test"      >> sbx.soc
+    echo "cint"                                     >> sbx.soc
+}
+
+     
+function sim_start {
+    export SOC_BOOT_FLAGS=0x420000
+    base=${SDK}/../caladan_ucode/g3p1/config
+    if [ $use_eclipse -lt 1 ]; then
+        xterm -title "C3 Simulator" -sb -sl 10000 -iconic -exec script ${USER}."c3sim".`date +%F-%R`.log -c "setenv; cd $base; ./_run.bcmsim.server" &
+    else
+        eclipse_bin=$C3_ECLIPSE_BIN
+        xterm -title "C3 Simulator" -sb -sl 10000 -iconic -exec script ${USER}."c3sim".`date +%F-%R`.log -c "setenv; cd $base; $eclipse_bin" &
+    fi
+    let simpid=$!
+}
+
+# only set PLISIM flag, not BMCSIM flag
+function pci_start {
+    export SOC_BOOT_FLAGS=0x20000
+    xterm -title "Caladan3" -iconic -exec bash -c "./pcid.sim -p $c3port BCM88030_A0" &
+    let c3pid=$!
+}
+
+# sleep is for occasional race condition in which bcmsim is ready before the model,
+# better to have sync mechanism
+function start {
+    pci_start
+    export SOC_BOOT_FLAGS=0x420000
+    sleep 20
+    if [ $autostart -lt 1 ]; then
+        xterm -title "Bcm Diag Shell Env" -exec script ${USER}.`date +%F-%R`.log -c bash &
+    else
+        xterm -title "Bcm Diag Shell" -exec script ${USER}.`date +%F-%R`.log -c "sleep 20 ; ./bcm.sim" &
+    fi
+    let bpid=$!
+}
+    
+function bcm_stop {
+   if [ -z $bpid ]; then
+      echo "BCM Diag is not running." 
+   else
+      echo "Stopping BCM Diag .."
+      kill $bpid 
+      let bpid=0
+   fi
+}
+
+function sim_stop {
+   if [ -z $simpid ]; then
+      echo "C3 Simulator is not running." 
+   else
+      echo "Stopping C3 Simulator ..."
+      kill $simpid 
+      let simpid=0
+   fi
+}
+
+function c3_stop {
+   if [ -z $c3pid ]; then
+      echo "Caladan3 PCID is not running." 
+   else
+      echo "Stopping Caladan3 PCID.."
+      kill $c3pid 
+      let c3pid=0
+   fi
+}
+
+
+function stop {
+    c3_stop
+    bcm_stop
+    sim_stop
+}
+
+
+function sim_status {
+   if [ -z  $simpid ]; then
+      echo "C3 Simulator  is not running"
+      exit 1
+   else
+      echo "C3 Simulator is running"
+   fi
+}
+
+function bcm_status {
+   if [ -z  $bpid ]; then
+      echo "BCM DIAG is not running"
+      exit 1
+   else
+      echo "BCM DIAG is running"
+   fi
+}
+function c3_status {
+   if [ -z  $c3pid ]; then
+      echo "Caladan3 PCID is not running"
+      exit 1
+   else
+      echo "Caladan3 PCID is running"
+   fi
+}
+
+function status {
+    c3_status
+    bcm_status
+    sim_status
+}
+
+if [ "$1" == "" ]; then
+    echo "Usage: $0 <port number> [s]"
+    echo " <port number> - Required parameters, this is the base port number to use"
+    echo " s -> Optional parameter, indicates launch bcm.sim directly"
+    exit 1
+fi
+
+let c3port=$1
+
+
+let autostart=0
+let use_eclipse=0
+
+for var in "$@"
+do
+  if [ "$var" == "s" ]; then
+    echo "autostarting bcmsim"
+    let autostart=1
+  fi
+
+  if [ "$var" == "e" ]; then
+    echo "running sim inside eclipse"
+    let use_eclipse=1
+  fi
+done
+
+
+export SOC_TARGET_PORT=$c3port
+export SOC_TARGET_COUNT=1
+export SOC_BOOT_FLAGS=0x420000
+export SOC_TARGET_SERVER=localhost
+
+setup_g3p1_unit_tests_soc
+sim_start
+start
+
+while true
+do
+    echo -n "Please enter a command (start|stop|status|q): "
+    read cmd
+    case $cmd in
+       start)
+          sim_start
+          start
+       ;;
+       stop)
+          stop
+       ;;
+       status)
+          status
+       ;;
+       q)
+          stop
+          exit 0
+    esac
+done
+
+
+

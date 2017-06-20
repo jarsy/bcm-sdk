@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="EGRESS_DEFAULT_AC_PROF">
+        <OneLineDescription>Egress default AC profile properties, used in case of no match for Out-AC</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="DEFAULT_AC_PROF" Size="4"/>
+            </Key>
+            <Result>
+                <Field Name="ACTION_PROFILE" Size="1"/>
+                <Field Name="OUT_LIF_PROFILE" Size="4"/>
+                <Field Name="OAM_LIF_SET" Size="1"/>
+                <Field Name="NWK_QOS_IDX" Size="4"/>
+                <Field Name="LAYER_TYPE" Size="5"/>
+                <Field Name="QOS_MODEL" Size="1"/>
+                <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+                <Field Name="VLAN_EDIT_VID_1" Size="12"/>
+                <Field Name="VLAN_EDIT_VID_2" Size="12"/>
+            </Result>
+            <TableLabels>VLAN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ACTION_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"> 
+                            <HwField Name="ESEM_DEFAULT_RESULTf"/>
+                            <DataOffset EncodeType="HARD_VALUE" Value="0"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OUT_LIF_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"> 
+                            <HwField Name="ESEM_DEFAULT_RESULTf"/>
+                            <DataOffset EncodeType="HARD_VALUE" Value="1"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="OAM_LIF_SET">
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"> 
+                            <HwField Name="ESEM_DEFAULT_RESULTf"/>
+                            <DataOffset EncodeType="HARD_VALUE" Value="5"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="NWK_QOS_IDX">
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"> 
+                            <HwField Name="ESEM_DEFAULT_RESULTf"/>
+                            <DataOffset EncodeType="HARD_VALUE" Value="30"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAYER_TYPE">
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"> 
+                            <HwField Name="ESEM_DEFAULT_RESULTf"/>
+                            <DataOffset EncodeType="HARD_VALUE" Value="34"/>
+                        </Memory>
+                    </Access>
+                </Field>     
+                <Field Name="QOS_MODEL">
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"> 
+                            <HwField Name="ESEM_DEFAULT_RESULTf"/>
+                            <DataOffset EncodeType="HARD_VALUE" Value="39"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="VLAN_EDIT_PROFILE">
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"> 
+                            <HwField Name="ESEM_DEFAULT_RESULTf"/>
+                            <DataOffset EncodeType="HARD_VALUE" Value="40"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="VLAN_EDIT_VID_1">
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"> 
+                            <HwField Name="ESEM_DEFAULT_RESULTf"/>
+                            <DataOffset EncodeType="HARD_VALUE" Value="6"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+                <Field Name="VLAN_EDIT_VID_2">
+                    <Access>
+                        <Memory Name="ETPPC_ESEM_DEFAULT_RESULT_TABLEm"> 
+                            <HwField Name="ESEM_DEFAULT_RESULTf"/>
+                            <DataOffset EncodeType="HARD_VALUE" Value="18"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

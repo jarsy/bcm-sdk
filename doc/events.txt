@@ -1,0 +1,107 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+
+
+*******************************************************************
+*                 Events & their arguments                        *
+*******************************************************************
+
+This document comes to describe the events and the meaning of their arguments
+to a callback function registered by the application to be notified when one of
+these events occurs.
+In order to be notified when one of the events described bellow has happened, 
+application should use bcm_esw_switch_event_register API to register a callback
+function together with a userdata. Same call back function with different
+userdata is allowed to be registered. 
+
+
+The events chip could generate
+********************************
+
+BCM_SWITCH_EVENT_IO_ERROR     - Error caused by accesing PCI bus.
+BCM_SWITCH_EVENT_PARITY_ERROR - Parity or ECC error during internal memory access.
+BCM_SWITCH_EVENT_THREAD_ERROR - Critical error after witch thread must end its life. 
+BCM_SWITCH_EVENT_ACCESS_ERROR - Illegal acces to any of internal registers or schan operations.
+BCM_SWITCH_EVENT_ASSERT_ERROR - Any time an assert has happened application should be notified. 
+BCM_SWITCH_EVENT_AUTONEG_SPEED_ERROR - Auto negotiated speed is not supported.
+
+
+
+Recommended actions
+********************
+Registered callback function will take an event type and 3 arguments as parameters 
+that mostly should be used by the application to log them and report to Broadcom.
+
+Event - BCM_SWITCH_EVENT_IO_ERROR
+        BCM_SWITCH_EVENT_PARITY_ERROR
+        BCM_SWITCH_EVENT_THREAD_ERROR
+        BCM_SWITCH_EVENT_ACCESS_ERROR
+        BCM_SWITCH_EVENT_ASSERT_ERROR
+--------------------------------------
+If the registered callback for these types of event been called it is mostly recommended
+to reset the chip, otherwise none of any expected behavior can not be guaranteed.
+
+
+
+Event - BCM_SWITCH_EVENT_AUTONEG_SPEED_ERROR
+--------------------------------------------
+If the registered callback for this type of event been called, it is
+recommended to:
+Remove the unsupported speed from AN Advertisement ability and re-start AN,
+so port could auto negotiate into a new speed.
+Or, disable the Serdes/PHY so the peer could be notified link down.
+
+
+
+Arguments meaning for each type of events
+******************************************
+
+Event - BCM_SWITCH_EVENT_THREAD_ERROR
+---------------------------------------
+arg1  - A thread ID, local enum of thread identifier defined in include\soc\error.h file 
+arg2  - A line number this event was generated from. (__LINE__) 
+arg3  - An error return code of operation that triggered the event. 
+
+
+
+Event - BCM_SWITCH_EVENT_ASSERT_ERROR
+---------------------------------------
+arg1  - A pointer to a file in which the assert took place. (__FILE__)
+arg2  - A line number this event was generated from. (__LINE__) 
+arg3  - 0 if 32 bit build is used and upper 32 bits of a pointer to a file in case of 64 bits build.
+
+
+
+Event - BCM_SWITCH_EVENT_ACCESS_ERROR
+---------------------------------------
+arg1  - SCHAN command, word 0 of schan_op 
+arg2  - Address bit of schan_op. (w1 of schan_op)
+arg3  - Failure code. (error info word) 
+
+
+
+Event - BCM_SWITCH_EVENT_IO_ERROR
+---------------------------------------
+arg1  - Internal identifier DMA or CPU 
+arg2  - PCI address that triggered the error. (0xfff if N/A)
+arg3  - Type of IO error parity or fail  
+
+
+
+Event - BCM_SWITCH_EVENT_PARITY_ERROR
+---------------------------------------
+arg1  - Parity or ECC error identifier (soc_switch_data_error_t).
+arg2  - Memory offset. 
+arg3  - Device-specific unique instance identifier.
+
+
+
+Event - BCM_SWITCH_EVENT_AUTONEG_SPEED_ERROR
+---------------------------------------------
+arg1  - Port number
+arg2  - Auto negotiated speed
+arg3  - Failure return code

@@ -1,0 +1,21 @@
+# $Id: config_BCM95302X_switchmacsec.bcm,v 1.2 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+
+# Includes bcm53022, bcm53023, bcm53025
+
+#Enable MACSEC feature on the MACSEC phys.
+macsec_enable=1
+
+#MACSEC device address. MACSEC devices address, used to adress MACSEC core.
+#This is MDIO address that is being assigned to MACSEC core. The MDIO address
+#gets programmed to MACSEC PHY during initialization if MACSEC is enabled.
+#macsec_dev_addr
+macsec_dev_addr_ge4=0x21B
+macsec_dev_addr_ge5=0x21A
+
+#A MACSEC phy could be an integrated PHYs with multiple ports. This property
+#is needed to identify the index of each PHY port.
+#macsec_port_index
+macsec_port_index_ge4=0
+macsec_port_index_ge5=0

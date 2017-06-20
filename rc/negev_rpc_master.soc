@@ -1,0 +1,45 @@
+#
+# $Id: negev_rpc_master.soc,v 1.2 Broadcom SDK $
+#
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+
+local master_mac 00:10:18:7F:F2:68 
+local master_ip 10.184.6.50
+local slave1_mac 00:10:18:7F:F1:50
+local slave1_ip 10.184.6.44
+
+local delay 4
+
+echo Setting up RPC
+echo This unit: Master
+echo master_mac=$master_mac
+echo master_ip=$master_ip
+echo Other unit: Slave
+echo slave1_mac=$slave1_mac
+echo slave1_ip=$slave1_ip
+echo ********************
+ 
+cpudb newdb
+cpudb add key=$master_mac local=t
+cpudb add key=$slave1_mac
+cts atp trans sock server start
+ 
+sleep $delay
+
+cts atp trans sock inst dk=$slave1_mac dip=$slave1_ip
+ 
+sleep $delay
+
+cts atp cos=0 vlan=1
+rpc nonexthop 
+rpc start 
+cte reg mode=atp 
+
+sleep $delay
+
+dispatch attach 1 client 0 $slave1_mac
+
+echo Showing all addressable units, both locally and remotely attached
+dispatch show

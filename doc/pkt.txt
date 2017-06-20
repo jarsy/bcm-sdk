@@ -1,0 +1,287 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+-------------------------------------------------------------------------
+                 Notes on BCM Packet type, bcm_pkt_t
+                            Broadcom Corp.
+                        Last Updated: 05-20-03
+-------------------------------------------------------------------------
+
+
+(1) Overview
+
+    This document describes the bcm_pkt_t structure.
+
+
+(2) Related Documents
+
+    See also $SDK/doc/txrx.txt.
+
+
+(3) Goals:
+
+    1.  Provide meta-data about a packet such as the source port on
+        receive.  This includes the proprietary SL tag and HiGig
+        header.
+    2.  Support scatter/gather blocks.
+    3.  Provide a uniform treatment of packets across both transmit and
+        receive.
+    4.  Support zero-copy transmit and receive paths.
+    5.  Support application specific data through cookies.
+
+
+(4) Packet blocks
+
+    Data is described by the bcm_pkt_blk_t.  This is simply a pair
+    comprised of a data pointer and a length.
+
+        /* BCM packet gather block type */
+        typedef struct bcm_pkt_blk_s {
+            uint8 *data;
+            int len;
+        } bcm_pkt_blk_t;
+
+    The bcm_pkt_t points to an array of these structures and has a count
+    of the number of elements in the array:
+    
+        bcm_pkt_blk_t    *pkt_data;     /* Pointer to array of data blocks */
+        uint8             blk_count;    /* Number of blocks in array */
+
+    In addition, in order that applications do not need to allocate a
+    bcm_pkt_blk_t structure for simple packets with one buffer, the
+    bcm_pkt_t structure contains a single block.  This can be setup
+    with the macro:
+
+        BCM_PKT_ONE_BUF_SETUP(pkt, buf, len);
+
+    where pkt is a pointer to a bcm_pkt_t structure, buf is a pointer
+    to a data buffer and len is the length of that data buffer in
+    bytes. 
+
+
+(5) Packet Macros and Data Members
+
+    Below, pkt is a pointer to a bcm_pkt_t structure.
+
+    BCM_PKT_IEEE_LEN(pkt)
+    pkt->pkt_len
+        Length of the packet according to its current state.  This
+        usually includes the VLAN tag and CRC as well as the MAC
+        addresses and other L2 header information.  It does not
+        include any proprietary headers such as the SL tag or
+        HiGig header.
+
+    BCM_PKT_DMAC(pkt)
+        Returns a pointer to dest MAC in pkt as uint8*.
+
+    BCM_PKT_VLAN_PTR(pkt)
+        Returns a pointer to the VLAN tag in the packet in network
+        byte order.  Note that this may be in the packet data itself,
+        or, if the packet is untagged, the information is stored in an
+        auxiliary buffer in the packet structure.
+
+    The following BCM_PKT_TAG and BCM_PKT_VLAN macros use the
+    BCM_PKT_VLAN_PTR macro, so the notes above apply.
+
+    BCM_PKT_TAG_PROTOCOL(pkt)
+        The protocol (eg 0x8100) bytes of the packet in host byte
+        order. 
+
+    BCM_PKT_VLAN_CONTROL(pkt)
+        The VLAN control tag itself in host byte order.
+
+    BCM_PKT_VLAN_ID(pkt)
+    BCM_PKT_VLAN_PRI(pkt)
+    BCM_PKT_VLAN_CFI(pkt)
+        The VLAN ID, priority and CFI bit respectively extracted from
+        the packet (using the BCM_PKT_VLAN_CONTROL
+
+    BCM_PKT_SL_TAG(pkt)
+        Returns pointer to the SL tag as uint8*.  Note that this is
+        not in the packet data, but in an auxiliary buffer in the
+        packet structure.  The tag is in network byte order.
+
+    BCM_PKT_HG_HDR(pkt)
+        Returns pointer to the HiGig Header as uint8* Note that this
+        is not in the packet data, but in an auxiliary buffer in the
+
+    BCM_PKT_HAS_HGHDR(pkt)
+        Boolean:  Should the packet be treated as having a HiGig
+        header according to the flags in the packet?
+
+    BCM_PKT_HAS_SLTAG(pkt)
+        Boolean:  Should the packet be treated as having an SL tag
+        according to the flags in the packet?
+
+    BCM_PKT_NO_VLAN_TAG(pkt)
+        Boolean:  Should the packet be treated as NOT having a VLAN
+        tag according to the flags in the packet?
+
+    The following data members provide access to HiGig or SL tag
+    information:
+    
+        pkt->src_mod, pkt->src_port, pkt->dest_mod, pkt->dest_port
+            The source and destination module ID and port numbers that
+            indicate the system ingress and egress ports.
+
+        pkt->cos
+            The COS queue in which the packet is transferred.
+
+        pkt->opcode
+            The opcode byte that appears in the HiGig header.
+
+                BCM_HG_OPCODE_CPU    CPU bit is set
+                BCM_HG_OPCODE_UC     Unicast frame
+                BCM_HG_OPCODE_BC     Broadcast frame
+                BCM_HG_OPCODE_MC     Multicast frame
+                BCM_HG_OPCODE_IPMC   IP multicast frame
+
+	    The Higig opcode must be set appropriately when sending
+            unicast, broadcast, multicast, or IPMC packets from a
+            fabric chip.  The BCM_HG_OPCODE_CPU is used to send to the
+            CPU on an adjacent fabric chip.
+
+    The following members are receive specific:
+
+        pkt->rx_reason
+            Provides a bitmap of reasons a packet was forwarded to the
+            CPU.
+
+        pkt->rx_port, pkt->rx_unit
+            The packet was received from a specific unit and port.
+            These indicate which.  Note that this may be different
+            than the system ingress port.
+
+        pkt->rx_cpu_cos
+            When forwarded to the CPU, a packet may be sent on a
+            different COS queue.  This indicates that remapping.
+
+    The following members are transmit specific:
+
+        pkt->tx_pbmp, pkt->tx_upbmp, pkt->tx_l3pbmp
+            Transmit port bitmaps.  May be directly manipulated or
+            indirectly with a call to bcm_tx_pkt_l2_map (to be
+            implemented).
+
+            To send broadcast or multicast packets from a switch chip,
+            just include all the destination ports in the port bitmap
+            and include the appropriate MAC DA in the packet data.
+
+        pkt->call_back, pkt->cookie, pkt->cookie2
+            Callback and two cookies for user.  Note that the decision
+            to send a packet synchronously or asynchronously is made
+            by examining whether or not call_back is NULL.  If
+            call_back is non-NULL, the packet is sent asynchronously.
+
+    Other data members in the packet:
+
+        pkt->pkt_len
+            See BCM_PKT_IEEE_LEN above.
+
+        pkt->unit
+            The local unit number on which the packet is to be sent on
+            for TX.
+
+        pkt->tot_len
+            The actual number of bytes received (for example,
+            including the HiGig header which may have been stripped
+            from the data buffer.)
+
+        pkt->flags
+            State flags
+            BCM_PKT_F_HGHDR          Does the packet have a HiGig tag?
+            BCM_PKT_F_SLTAG          Does the packet have an SL tag?
+            BCM_PKT_F_NO_VTAG        Is the packet lacking a VLAN tag?
+
+            Action flags
+            BCM_TX_CRC_ALLOC         Allocate space for CRC on TX.
+            BCM_TX_CRC_REGEN         Regenerate the CRC on TX.
+            BCM_TX_CRC_APPEND        Append CRC (allocate + regenerate).
+            BCM_TX_NO_PAD            Don't pad runt packets.
+            BCM_TX_FAST_PATH         Raw packet ready to transmit.
+
+            BCM_RX_CRC_STRIP         Don't include CRC in length of an
+                                     RX pkt.
+
+        pkt->next
+            User level "next" pointer for linked lists of packets.
+            This pointer may be used by the BCM RX layer before
+            packets are sent to applications.  So the data in this
+            pointer should only be used when the application "owns"
+            the packet.
+
+    Although scatter/gather is supported, the following is ASSUMED:
+        MAC addresses, the VLAN tag and the CRC do not span
+        bcm_pkt_blk_t boundaries.
+
+    The following functions provide access to the data in the packet.
+    These may not be efficient.
+
+    uint8 *bcm_pkt_byte_index(bcm_pkt_t *pkt, int n, int *len,
+                                 int *blk_idx);
+        Returns pointer to the n-th byte in the packet.  Sets len to
+        the number of bytes remaining in the gather block of that
+        byte.  If blk_idx is non-NULL, it gets the index of the gather
+        block in which the byte indexed resides.
+
+    int bcm_pkt_memcpy(bcm_pkt_t *pkt, int dest_byte, uint8 *src, int len)
+        Copies len bytes from the src buffer into the packet in
+        existing allocation units.  Returns the number of bytes
+        actually copied into the packet which may be less than len if
+        the packet does not have sufficient space in its buffer.
+
+
+(6) Packet manipulation macros and functions
+
+    BCM_PKT_NO_VTAG_REQUIRE(pkt)
+        After this macro is called, the packet will be treated as
+        though it has no VLAN tag in the data buffer.  However, note
+        that the hardware requires a VLAN tag internally.  To send a
+        packet out untagged, manipulate the untagged port bitmap.
+
+    BCM_PKT_HGHDR_REQUIRE(pkt)
+        After this macro is called, the packet will be treated as
+        having a HiGig header.  This should only be used for BCM 5670
+        and related units.  For other XGS devices, the HiGig header
+        information is transferred in the DMA control words, not added
+        to the packet buffer data.
+            NOTE that the HiGig header is never a part of the packet,
+        but is maintained separately.
+
+    BCM_PKT_SLTAG_REQUIRE(pkt)
+        After this macro is called, the packet will be treated as
+        having an SL tag.  This should only be used when the system is
+        running in the SL stacking mode.  In this case, all packets
+        received by and sent by the CPU should have an SL tag.
+            NOTE that the SL tag is never a part of the packet, but is
+        maintained separately.
+
+    bcm_pkt_hghdr_setup(bcm_pkt_t *pkt)
+        Setup the HiGig header to be consistent with the data members
+        in the packet such as src_port and src_mod (see above).  This
+        should be called before bcm_tx for packets that have a HiGig
+        header.
+
+    bcm_pkt_hghdr_extract(bcm_pkt_t *pkt)
+        Extract the HiGig header data into the packet's members such
+        as src_port and src_mod (see above).  This is called by RX on
+        packets that have a HiGig header before application callbacks
+        are called, so pkt->src_mod, etc. are properly set for the
+        application.
+
+    bcm_pkt_sltag_setup(bcm_pkt_t *pkt)
+        To Be Implemented.
+        Setup the SL tag to be consistent with the packet's data
+        members.  This should be called before bcm_tx when the
+        system is in SL stacking mode.
+
+    bcm_pkt_sltag_extract(bcm_pkt_t *pkt)
+        To Be Implemented.
+        Extract the SL tag data into the packet's data members.  This
+        is called by RX on packets that have an SL tag before
+        application callbacks are made.
+
+

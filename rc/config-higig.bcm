@@ -1,0 +1,145 @@
+# $Id: config-higig.bcm,v 1.6 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Example configuration file for SBX Higig Application systems.
+#
+#
+
+os=unix
+
+# Maximum number of COSes
+bcm_num_cos=8
+
+# By default,set this to match the number of cos levels
+# If >1, logical port shaping is enabled in the qe
+# otherwise, per flow shaping is enabled
+qe_queues_per_ingress_shaper=8
+
+# Maximum number of modules in the system (number of XGS + SBX)
+num_modules=10
+
+# Set the FE HiGig application support
+ucode_feature_hg=1
+diag_cosq_init=2
+qe_tme_mode=1
+
+# N:1 mode (2) on spi_1
+qe_spi_0_full_packet_mode=0
+qe_spi_1_full_packet_mode=2
+#spi_1_num_tx_subports=17
+#spi_1_num_rx_subports=17
+qe_spi_1=17
+
+# The maximum number of consecutive timeslots a QE can hold
+# priority for transmitting packets which cross timeslots.
+hold_pri_max_timeslots=1
+
+# Declare the fabric control ports on the BME (Unit 2)
+#
+#               +--- port (one based)
+#               | +--- unit
+#               | | +--- is SCI
+#               | | |
+#               v v v
+port_is_sci.port1.2=1
+
+# By default, run in standalone mode
+diag_chassis=0
+
+# Logging can be pointed to a file:
+#diag_log_file=/var/log/bcm.log
+
+
+# These properties determine the number of SPI channels assigned to
+# each bus in the QE.  The QE (fabric) ports are numbered contiguously
+# across SPI 0 then SPI 1
+qe_spi_0=14
+#qe_spi_1=1
+
+# These properties configure the default high speed channels on each SPI
+qe_spi_0_subport_speed.port13.0=10000
+qe_spi_1_subport_speed.port13.0=10000
+
+# This property must be present for ucode_port properties to be used
+# Otherwise, a default front panel to ucode to system port mapping is used
+#ucode_num_ports.1=1
+
+# The FE-2000 ucode port property values have the form:
+#       fport:sysport
+# Where ports are of the form:
+#       gex.y      GbE ports, x=0,1, y=0-11
+#       xex.y      XG/HG ports, x=0,1, y=0
+#       spix.y     SPI-4.2 ports, x=0-1, y=0-63
+#       pcix       CPU port, x=0
+#
+# The `fport' is the front-side port, and the `sysport' is the
+# system-side port.
+# Most system configurations use a QE-2000 CPU port,
+# so the PCI port is typically not mapped to a microcode port.
+#
+# Note that an attached QE-2000 SPI port mapping must be
+# `synchronized' with the FE-2000 SPI port mapping to ensure
+# consistent SPI port calendars.  If SPI training fails, this
+# is typically because the FE & QE have different calendar
+# lengths.
+#
+# Here is an example configuration with 4 front-side ports
+#
+#qe_spi_0.0=4
+#qe_spi_1.0=0
+#ucode_num_ports.1=4
+#ucode_port.port1.1=ge0.0:spi0.0
+#ucode_port.port2.1=xe0.0:spi0.1
+#ucode_port.port3.1=spi1.0:spi0.2
+#ucode_port.port4.1=pci0:spi0.3
+
+# To map a microcode port to HG port
+#ucode_port.port5.1=hg0:spi0.13
+
+# FE PCI does not deliver an ERH on receive
+rx_parse_erh.1=0
+
+# Set these to indicate the FE-2000 wide memory ports are
+# connected to 2 x18 RAMs.  Otherwise they are assumed to
+# connect to 1 x 36 RAM
+# Broadcom MetroCore FE-2000 reference design uses 2 x18 RAMs
+wide_sram0_x18=1
+wide_sram1_x18=1
+
+# Needed for sbx diags.
+# FE2k reference design uses 4M parts but are only addressable to 2M
+# np, 4Mx18 will look like 2Mx36 (FE reads 36 bits (2x18) in one cycle)
+# wp, 2(4Mx18) will look like 2Mx72 (FE reads 72 (2x36) bits in one cycle)
+wp_addr_width=21
+wp_data_width=36
+np0_data_width=18
+np0_addr_width=21
+np1_data_width=18
+np1_addr_width=21
+
+qe_mvt_old_configuration=0
+
+# To have both XEs as HiGig use
+# remove this line or pbmp_xport_xe 0x0
+pbmp_xport_xe=0x1000000
+
+# This is needed only for 12G HiGig
+xgxs_lcpll_12gbps=1
+
+# memory table configurations
+# These are defaults:
+# NOTE - percentages multiplied by 10 to allow for fractional percentages
+# (i.e. 10 means 1% and 250 means 25%).
+#smac_pyld_percent=250
+#dmac_pyld_percent=250
+#ipv4_sa_pyld_percent=250
+#ipv4_da_pyld_percent=250
+#ipv4mc_sg_pyld_percent=100
+#ipv4mc_g_pyld_percent=100
+
+
+#can control which units should come up
+#diag_unit_mask=0x1f
+#fabric_configuration=2
+#bme_num_esets=128

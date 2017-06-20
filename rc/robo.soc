@@ -1,0 +1,121 @@
+# $Id: robo.soc,v 1.4 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Initialization ROBO (run commands) file
+#
+#       These are default commands that are read and executed by default
+#       when BCM boots up.  Typically this file is called robo.soc and resides
+#       in the flash filesystem, NVRAM, or disk.
+#
+# Board Configuration Setting
+#
+#       This file uses configuration properties to know on which board
+#       it is running.  Currently one of following settings must be made:
+#
+#       BCM953604K          config add BCM953604K=1
+#       BCM953604R          config add BCM953604R=1
+#       BCM989500K          config add BCM989500K=1
+#       BCM989501R          config add BCM989501R=1
+#	
+
+if $?1 "echo rc: arguments not supported; exit"
+if !$?unit "echo rc: no current unit; exit"
+
+
+expr $units - 1;local num_units $?
+echo "robo: unit $unit (of $num_units) device $devname"
+
+echo "rc: unit $unit device $devname"
+local quiet no
+local echo echo
+local rcdone $rc$unit
+
+# Set convenience local variables
+
+# board related
+if $?BCM953604K || $?BCM953604R \
+	"local vo_pbmp 1" 
+
+if $?BCM989501R || $?BCM989500K \
+	"config add port_init_autoneg_ge0=0;\
+	config add port_init_autoneg_ge1=0; \
+	config add port_init_autoneg_ge2=0; \
+	config add port_init_autoneg_ge3=0; \
+	config add port_init_speed_ge0=100; \
+	config add port_init_speed_ge1=100; \
+	config add port_init_speed_ge2=100; \
+	config add port_init_speed_ge3=100; \
+	config add phy_lr_initial_mode_ge0=1; \
+	config add phy_lr_initial_mode_ge1=1; \
+	config add phy_lr_initial_mode_ge2=1; \
+	config add phy_lr_initial_mode_ge3=1; \
+	config add phy_lr_initial_ctrl_ge0=0x140; \
+	config add phy_lr_initial_ctrl_ge1=0x140; \
+	config add phy_lr_initial_ctrl_ge2=0x140; \
+	config add phy_lr_initial_ctrl_ge3=0x140"
+
+# chip related
+if $?BCM953604R \
+	"local PBMP_ALL 0xffffff;\
+	config add pbmp_valid=0x5ffffff; \
+	local vo_led 1"
+if $?BCM953604K \
+	"local PBMP_ALL 0x1affffff"
+
+# Shutdown threads if system is already running
+counter off
+linkscan off
+if $?feature_l2_hashed && !$?simulator \
+    "l2mode off;\
+    $echo rc: stop l2 thread"
+
+if $?feature_field && !$?simulator \
+    "fp thread off;\
+    $echo rc: stop fp thread"
+
+init soc
+
+# Voyager Reference board (BCM953604R) LED configuration
+if $?vo_led \
+	"s led_func0_ctl 0x100; \
+	s led_func1_ctl 0x100; \
+	s led_en_map 0xffffff; \
+	s led_control 0x183"
+
+#
+# Init CLI and BCM API
+#
+# This must be done after the raw register writes to avoid having state
+# clobbered.  NOTE: Tables are cleared by "init bcm" below.  If
+# table modifications are required, put them after "init bcm".  Some
+# registers might also be affected.
+#
+
+if !$?no_bcm \
+	"init bcm; \
+	 $echo rc: BCM driver initialized"
+
+if $?no_bcm \
+	"$echo rc: *** NOT initializing BCM driver ***"
+
+
+if !$?no_bcm && !$?vo_pbmp\
+	"linkscan 250000; \
+	 port e linkscan=on; \
+	 $echo rc: Port modes initialized"
+
+if !$?no_bcm && $?vo_pbmp\
+	 "linkscan 250000; \
+	 port $PBMP_ALL linkscan=on;\
+	 $echo rc: Port modes initialized"
+	 
+# No spanning tree is running, so put ports all in the forwarding state
+# stp support not available for shadow device.
+
+if !$?no_bcm  \
+	"stg stp 1 e forward"	 
+
+if $?no_bcm \
+	"counter Interval=1000 Pbm=all; \
+	 $echo rc: Counter collection enabled"	

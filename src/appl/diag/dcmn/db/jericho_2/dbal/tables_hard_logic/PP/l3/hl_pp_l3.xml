@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+	<AppDB Name="CONTEXT_RES_ATTRIBUTES">
+        <OneLineDescription>Holds all the MyMac prefixes (38b).</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CONTEXT_PROFILE" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_EDIT_CMD_ENABLE"/>
+                <Field Name="LIF_QOS_UPDATE_ENABLE"/>
+                <Field Name="LIF_LERAN_PAYLOAD_ENABLE"/>
+                <Field Name="VSI_LOOKUP_ENABLE"/>
+                <Field Name="VSI_QOS_UPDATE_ENABLE"/>
+                <Field Name="VSI_LEARN_PAYLOAD_ENABLE"/>
+                <Field Name="VSI_LEARN_KEY_ENABLE"/>
+                <Field Name="STP_ENABLE"/>
+                <Field Name="COMPATIBLE_MC_ENABLE"/>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE"/>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE"/>
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE"/>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VLAN_EDIT_CMD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="VLAN_EDIT_CMD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LIF_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="LIF_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field> 
+                <Field Name="LIF_LERAN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="LIF_LERAN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LOOKUP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="VSI_LOOKUP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_QOS_UPDATE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="VSI_QOS_UPDATE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VSI_LEARN_PAYLOAD_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="VSI_LEARN_PAYLOAD_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field> 
+                <Field Name="VSI_LEARN_KEY_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="VSI_LEARN_KEY_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="STP_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="STP_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+               <Field Name="COMPATIBLE_MC_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="COMPATIBLE_MC_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_EXEM_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="MY_MAC_BASED_EXEM_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VRID_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="MY_MAC_BASED_VRID_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_VSI_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="MY_MAC_BASED_VSI_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field> 
+                <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="MY_MAC_BASED_MC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE">
+                    <Access>
+                        <Memory Name="IPPA_VTT_RES_CONTEXT_ENABLERSm"> 
+                            <HwField Name="MY_MAC_BASED_UC_BACKBONE_ENABLEf"/>
+                        </Memory>
+                    </Access>
+                </Field>          
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

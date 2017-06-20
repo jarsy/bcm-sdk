@@ -1,0 +1,20 @@
+#
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Filename Make.local.56160
+FEATURE_LIST=PTP CINT  L3 I2C BCMX BCMX_DIAG MEM_SCAN EDITLINE BCM_SAL_PROFILE  CUSTOMER TEST CHASSIS MSTP RCPU KNET
+BCM_PTL_SPT = 1
+
+BCM_56160_A0 = 1
+
+CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT
+CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT_SW_DUMP
+CFGFLAGS += -DSAL_THREAD_EXPLICIT_PRIO
+
+# workspace:system=56160
+#deprecated
+# linux36-user:system=56160 buildDir=systems/linux/user/iproc-3_6 cpu=iproc
+# linux-user:system=56160 buildDir=systems/linux/user/iproc-3_14 cpu=iproc
+# linux-user:system=56160 buildDir=systems/linux/user/gto cpu=gto
+# linux36-user:system=56160 buildDir=systems/linux/user/rsx-3_6 cpu=rsx

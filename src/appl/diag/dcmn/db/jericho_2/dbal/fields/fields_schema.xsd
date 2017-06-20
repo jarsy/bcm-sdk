@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           elementFormDefault="qualified">
+
+<xs:include schemaLocation="../dbal_types_definition.xsd"/>        
+
+    <xs:element name="FieldDbCatalog">
+    <xs:complexType>
+    <xs:sequence>
+        <xs:element name="Field" maxOccurs="unbounded">
+        <xs:complexType>
+        <xs:sequence>
+            <xs:element name="OneLineDescription" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="FieldDbInterface"  minOccurs="1" maxOccurs="1">
+            <xs:complexType>
+            <xs:sequence>
+                <xs:element name="FieldLabels" type="LabelListType" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="DefaultValue" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+                <xs:choice>
+                    <xs:element name="ChildFields" minOccurs="0" maxOccurs="1">
+                    <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="ChildField" minOccurs="1" maxOccurs="5"> <!-- maxOccurs = DBAL_FIELD_MAX_CHILDS_PER_FIELD -->
+                        <xs:complexType>
+                            <xs:attributeGroup ref="NameAttr"/>
+                        </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    </xs:complexType>
+                    </xs:element>
+                    <xs:element name="EnumValues" minOccurs="0" maxOccurs="1">
+                    <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="EnumVal" minOccurs="1" maxOccurs="31"> <!-- maxOccurs = DBAL_FIELD_MAX_NUM_OF_ENUM_VALUES -->
+                        <xs:complexType>
+                            <xs:attributeGroup ref="EnumValsAttr"/>
+                        </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    </xs:complexType>
+                    </xs:element>
+                </xs:choice>
+            </xs:sequence>
+                <xs:attributeGroup ref="FieldTypeAttr"/>
+            </xs:complexType>
+            </xs:element>
+            <xs:element name="FieldToPhyDbMapping"  minOccurs="1" maxOccurs="1">
+            <xs:complexType>
+            <xs:sequence>
+                <xs:choice>
+                    <xs:element name="ChildFieldsEncoding" minOccurs="0" maxOccurs="1">
+                    <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="ChildField" minOccurs="1" maxOccurs="5"> <!-- maxOccurs = DBAL_FIELD_MAX_CHILDS_PER_FIELD -->
+                        <xs:complexType>
+                            <xs:attributeGroup ref="NameAttr"/>
+                            <xs:attributeGroup ref="FieldEncodeAttr"/>
+                        </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    </xs:complexType>
+                    </xs:element>
+                    <xs:element name="EnumValueMapping" minOccurs="0" maxOccurs="1">
+                    <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="EnumVal" minOccurs="1" maxOccurs="31"> <!-- maxOccurs = DBAL_FIELD_MAX_NUM_OF_ENUM_VALUES -->
+                        <xs:complexType>
+                            <xs:attributeGroup ref="EnumMappingAttr"/>
+                        </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    </xs:complexType>
+                    </xs:element>
+                </xs:choice>
+                <xs:element name="Encoding" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="FieldEncodeAttr"/>
+                </xs:complexType>
+                </xs:element>
+                <xs:element name="MaxValue" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+            <xs:attributeGroup ref="FieldDefinitionAttr"/>
+        </xs:complexType>
+
+            <!-- In Field, all child encoding should be defined in interface and vice-versa -->
+            <xs:keyref name="MappingChildKeyRef" refer="MappedChild">
+                <xs:selector xpath="FieldToPhyDbMapping/ChildFieldsEncoding/ChildField" />
+                <xs:field xpath="@Name" />
+            </xs:keyref>
+
+            <xs:key name="MappedChild">
+                <xs:selector xpath="FieldDbInterface/ChildFields/ChildField" />
+                <xs:field xpath="@Name" />
+            </xs:key>
+            
+            <xs:keyref name="ChildListKeyRef" refer="ChildList">
+                <xs:selector xpath="FieldDbInterface/ChildFields/ChildField" />
+                <xs:field xpath="@Name" />
+            </xs:keyref>
+
+            <xs:key name="ChildList">
+                <xs:selector xpath="FieldToPhyDbMapping/ChildFieldsEncoding/ChildField" />
+                <xs:field xpath="@Name" />
+            </xs:key>
+            
+            <xs:unique name="UniqueChildField">
+                <xs:selector xpath="FieldDbInterface/ChildFields/ChildField"/>
+                <xs:field xpath="@Name"/>
+            </xs:unique>
+
+            <xs:unique name="UniqueChildEncoded">
+                <xs:selector xpath="FieldToPhyDbMapping/ChildFieldsEncoding/ChildField"/>
+                <xs:field xpath="@Name"/>
+            </xs:unique>
+
+            <!-- In Field, all enum mapping should be defined in interfacea nd vice-versa -->
+            <xs:keyref name="MappingEnumKeyRef" refer="MappedEnum">
+                <xs:selector xpath="FieldToPhyDbMapping/EnumValueMapping/EnumVal" />
+                <xs:field xpath="@Name" />
+            </xs:keyref>
+
+            <xs:key name="MappedEnum">
+                <xs:selector xpath="FieldDbInterface/EnumValues/EnumVal" />
+                <xs:field xpath="@Name" />
+            </xs:key>
+
+            <xs:keyref name="EnumValsKeyRef" refer="EnumVals">
+                <xs:selector xpath="FieldDbInterface/EnumValues/EnumVal" />
+                <xs:field xpath="@Name" />
+            </xs:keyref>
+
+            <xs:key name="EnumVals">
+                <xs:selector xpath="FieldToPhyDbMapping/EnumValueMapping/EnumVal" />
+                <xs:field xpath="@Name" />
+            </xs:key>
+            
+            <xs:unique name="UniqueEnumVal">
+                <xs:selector xpath="FieldDbInterface/EnumValues/EnumVal"/>
+                <xs:field xpath="@Name"/>
+            </xs:unique>
+
+            <xs:unique name="UniqueEnumMapping">
+                <xs:selector xpath="FieldToPhyDbMapping/EnumValueMapping/EnumVal"/>
+                <xs:field xpath="@Name"/>
+            </xs:unique>
+
+            </xs:element>
+    </xs:sequence>
+    </xs:complexType>
+                
+        <xs:unique name="UniqueField">
+            <xs:selector xpath="Field"/>
+            <xs:field xpath="@Name"/>
+        </xs:unique>
+                    
+    </xs:element>
+
+</xs:schema>

@@ -1,0 +1,266 @@
+<?xml version="1.0"?>
+<SignalInfo device="aradplus">
+	<Signal>
+		<Attribute>VSI_or_VRF</Attribute>
+		<Size>16</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [15 : 0] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Valid</Attribute>
+		<Size>1</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [16 : 16] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_LIF</Attribute>
+		<Size>16</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [32 : 17] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_TM_Port</Attribute>
+		<Size>8</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [40 : 33] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_PP_Port</Attribute>
+		<Size>8</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [48 : 41] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Header_Code</Attribute>
+		<Size>4</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [84 : 81] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Code</Attribute>
+		<Size>4</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [88 : 85] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fabric_or_Egress_MC</Attribute>
+		<Size>1</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [89 : 89] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Eth_Type_Code</Attribute>
+		<Size>4</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [93 : 90] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Eth_Tag_Format</Attribute>
+		<Size>5</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [98 : 94] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Dst_System_Port</Attribute>
+		<Size>16</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [114 : 99] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>DSP_Ptr</Attribute>
+		<Size>8</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [122 : 115] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Action_Profile_Valid</Attribute>
+		<Size>1</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [123 : 123] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Action_Profile_Index</Attribute>
+		<Size>3</Size>
+		<From>Filter</From>
+		<To>PMF</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd1,16'd0} bits: [126 : 124] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Valid</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [0 : 0] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>System_Headers_Record</Attribute>
+		<Size>44</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [44 : 1] </Address>
+		<Expansion>SHR_ERPP_PMF</Expansion>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_TM_Port_Updated</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [45 : 45] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_TM_Port</Attribute>
+		<Size>8</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [53 : 46] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_PP_Port</Attribute>
+		<Size>8</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [61 : 54] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Mirror_Profile</Attribute>
+		<Size>4</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [65 : 62] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Header_Code</Attribute>
+		<Size>4</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [101 : 98] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fabric_or_Egress_MC</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [102 : 102] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Counter_Profile</Attribute>
+		<Size>3</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [121 : 119] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>COS_Profile</Attribute>
+		<Size>4</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [125 : 122] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Action_Profile_Valid</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [126 : 126] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Action_Profile_Index</Attribute>
+		<Size>3</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [129 : 127] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>ACE_Ptr</Attribute>
+		<Size>12</Size>
+		<From>PMF</From>
+		<To>TM Action</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd2,16'd0} bits: [141 : 130] </Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>System_Headers_Record</Attribute>
+		<Size>341</Size>
+		<From>Parser</From>
+		<To>DSPM</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd4,16'd0} bits: [255 : 1]  | {15'd4,16'd1} bits: [85 : 0] </Address>
+		<Expansion>SHR</Expansion>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>CUD</Attribute>
+		<Size>16</Size>
+		<From>DSPM</From>
+		<To>PRP</To>
+		<BlockID>15</BlockID>
+		<Address>{15'd4,16'd2} bits: [209 : 194] </Address>
+		<Perm>1</Perm>
+	</Signal>
+</SignalInfo>

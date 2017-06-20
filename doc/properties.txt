@@ -1,0 +1,119 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+		   Notes on Configuration Properties
+		 Curt McDowell, Broadcom Corp. 12-12-02
+			 Last Updated: 12-12-02
+------------------------------------------------------------------------------
+
+There are many configuration parameters called "properties" available to
+the driver to customize its behavior.  These parameters have been
+grouped into one place for two reasons:
+
+* Have a common place to customize all aspects of driver operation
+  without having the parameters sprinkled all around the driver code.
+
+* Allow optional run-time modification of these parameters so the driver
+  can be customized without recompiling an image.
+
+A property is name=value pair where both name and value are strings.
+For most properties, the value is parsed as a numeric and can be
+formatted in decimal, or in hex with a '0x' prefix, similar to a
+constant in the C language.  For example,
+
+	mmu_sdram_enable=1
+
+Each property has a default value that is compiled into the driver and
+takes effect if the property is not customized.
+
+To allow different property values for different units or chips, each
+property is looked up with the following suffixes in order:
+
+	Suffix			Example
+
+	.<unit-num>             mmu_sdram_enable.0
+	.<CHIP_TYPE>            mmu_sdram_enable.BCM5680_B0
+	.<CHIP_GROUP>           mmu_sdram_enable.BCM5680
+	<nothing>               mmu_sdram_enable
+
+The per-port properties are looked up with various port related
+suffixes in the following order:
+
+	Suffix			Example
+
+	_<port_name>		phy_null_fe0
+	_<port_type>		phy_null_fe
+	_<port_number>		phy_null_port1
+	<nothing>		phy_null
+
+Port numbers start are counted from 1 up to the number of enabled
+ports on the chip.
+
+The per-port properties also have the unit or chip based suffixes
+described above added as well, so:
+
+	Example			Meaning
+
+	phy_null		applies to all ports on all units
+	phy_null_fe		applies to fast ethernet ports on all units
+	phy_null_fe3.1		applies to port fe3 on unit 1
+
+All of the supported properties can be found in the file
+$SDK/rc/config.bcm, along with a comment explaining the purpose of the
+property and the default value of the property.  Lines in config.bcm
+that are preceded by a pound sign (#) are comments.  In general, all of
+the properties are commented out, so their default value will take
+effect.  They must be uncommented to change the value.
+
+The values of properties are set in three ways:
+
+* First, the Makefiles distributed with the SDK software allow the
+  values of chosen properties to compiled into the driver so they are
+  preset at the time of driver initialization.
+
+* Second, if the appropriate support is provided in the User SAL,
+  additional properties are then loaded from the file "flash:config.bcm"
+  at runtime. This is great for customizing per platform or CPU board
+  for testing.
+
+* Third, if the BCM Diagnostics Shell is compiled in, property values
+  may be changed from the command line using the "config" command:
+
+	config <name>=<value>		Set value of existing property
+	config add <name>=<value>	Must use 'add' if not already there
+	config delete <name>		Remove property (restore default)
+	config save			Save changes to non-volatile storage
+
+  If the value of a property is changed in this way, it may take effect
+  immediately, or upon re-initializing (rc.soc), or upon rebooting the
+  system.  Which one is dependent on the particular property.
+
+The Makefiles distributed with the SDK software provide a way to compile
+into the application the default values of various properties.  This is
+also useful to permanently fix the properties will be never loaded at
+runtime because there is no flash device to store the config.bcm file or
+no user SAL support for file operations.
+
+During the build process, the Makefile in $SDK/make/Make.vxworks
+processes the contents of $SDK/rc/config.bcm through a PERL script found
+in $SDK/tools/bcm2c.pl.  Any properties that are NOT commented out are
+converted to a C function call to set the property, for example
+
+	sal_config_set("name", "value")
+
+These function calls are placed in the routine
+sal_config_init_defaults() in a file named platform_defines.c in the
+build directory $SDK/build/vxworks-<platform>, and subsequently
+compiled into platform_defines.o and linked in.  The routine
+sal_config_init_defaults() is called during SAL initialization.
+
+It is also possible for the user to simply add calls to sal_config_set()
+in the code where sal_config_init_defaults() would normally be called.
+
+In the standard SDK, the soc_property routines, found in $SDK/src/drv.c,
+are implemented using the SAL Config module and the routines
+sal_config_set/reg found in the User SAL.

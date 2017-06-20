@@ -1,0 +1,123 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+		       Notes on L2 Shadow Tables
+		 Curt McDowell, Broadcom Corp. 12-18-01
+			 Last Updated: 03-08-04
+------------------------------------------------------------------------------
+
+1. Purpose of L2 Shadow Table
+
+In some applications it may be desirable for ethernet switch software to
+keep an L2 (ARL) Shadow Table, which is a copy of the hardware L2 lookup
+table in host memory that is kept up to date as closely as possible.
+
+Some possible uses for an L2 shadow table are:
+
+* Software L2 address resolution for packet transmission and ARP lookup
+
+* SNMP "get" and "get next" operations.
+
+* Maintaining synchronized ARLs across multiple chips in a system.
+
+2. StrataSwitch Family
+
+Switch chips including BCM560x, BCM561x, BCM562x, and BCM568x implement
+the 8K-entry ARL table as a linear list that is kept in sorted order by
+the hardware.
+
+When entries are inserted or deleted, the table is bubbled up and down
+as needed.  When entries are looked up, a binary search is used.  The
+binary search skips the first entry (index 0) so that only 13 memory
+clocks are needed.
+
+For proper operation, it is required that a special static entry be
+inserted at initialization time with
+
+	ST=1
+	VLAN_TAG=0xffe
+	MAC_ADDR=0xfffffffffffe
+
+Without this entry, bad things can happen when the table overflows.
+With this entry, new addresses are not learned if the table is full.
+
+Because the hardware changes this table dynamically, software needs to
+modify it using special ARL insert and delete S-channel operations
+rather than regular memory read/write operations.  It is feasible to use
+read/write operations on the ARL only when both hardware learning and
+hardware aging are disabled (bcm_l2_freeze).
+
+The hardware performs inserts when learning new addresses, deletes when
+processing an aging cycle, and delete/insert pairs when port movement is
+detected.
+
+A hardware-assisted ARL lookup operation is provided in BCM560x,
+BCM561x, and BCM568x.  In some cases, this may eliminate the need to
+maintain an ARL shadow table.
+
+3. ARL DMA
+
+The StrataSwitch family has a feature called ARL DMA.  When this feature
+is enabled, a 16-byte record, or "message," is written into host memory
+for each hardware ARL insert or delete that occurs.  Transfers are
+directed by a base address register that increments and a counter
+register decrements each time a message is written.  A four-message
+buffer provides time to reload these registers when the count reaches
+zero.  Software insertions and deletions are not reflected in ARL DMA.
+
+The StrataSwitch driver ARL Message Task (arlmsg.c) processes messages
+as they are received, mirroring them into an AVL tree that is sorted by
+VLAN+MAC.  The AVL tree allows for software lookups and in-order
+traversals of ARL entries.
+
+One problem with ARL DMA is that the ARL may learn at a rate much faster
+than the CPU can keep up with.  If this happens and the buffers fill up,
+ARL messages can be dropped.  While this is an unusual situation, it
+must be detected and dealt with if it happens.  There are not many
+options for recovering in this case.  In the current driver, this is
+handled by turning off hardware learning and aging, re-reading the
+entire ARL table to resynchronize the shadow table, then restoring
+learning and aging activity.
+
+4. XGS Family
+
+In the BCM569x member of the XGS Family, the L2 table is hashed.  This
+permits much faster, less complex insert, delete and lookup operations
+in hardware.  It is important especially because the table is larger
+(16K entries) and much requires much higher lookup bandwidth.
+
+The hardware performs inserts when learning new addresses, deletes when
+processing an aging cycle, and delete/insert pairs when port movement is
+detected.
+
+A hardware-assisted L2 lookup operation is provided.  In some cases,
+this may eliminate the need to maintain an ARL shadow table.  Also, both
+software and hardware-assisted versions of the table hash functions are
+available.
+
+There is no ARL DMA feature in XGS.  Instead, the StrataSwitch driver L2
+Message Task (l2xmsg.c) periodically reads the L2 table and synchronizes
+an AVL tree in host memory.  The AVL tree is sorted by VLAN+MAC.  A new
+XGS feature called Table DMA is used to read the L2 table in one quick,
+efficient operation.
+
+5. Message Callbacks
+
+The AVL tree structure used for storing an L2 shadow table has a
+callback feature which can call a user-supplied routine each time an
+entry is inserted or deleted in the tree.
+
+This callback feature may be used to pass individual inserts or deletes
+to a higher level in the software.  It is ensured that the AVL tree
+callbacks will receive a coherent stream of messages; i.e., an eventual
+delete will occur for every insert and the number of outstanding inserts
+is bounded by the physical entry count.
+
+Because the AVL tree is kept in sync with the hardware, even in the case
+of StrataSwitch where ARL DMA messages may be dropped, synchronization
+is maintained.  In the case of XGS, a stream of insert/delete messages
+is generated from the hash table.

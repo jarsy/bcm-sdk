@@ -1,0 +1,461 @@
+/*
+ * $Id: dnxf_drv.h,v 1.35 Broadcom SDK $
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ *
+ * This file contains structure and routine declarations for the
+ * Switch-on-a-Chip Driver.
+ *
+ * This file also includes the more common include files so the
+ * individual driver files don't have to include as much.
+ */
+#ifndef _SOC_DNXF_DRV_H
+#define _SOC_DNXF_DRV_H
+
+
+
+#include <soc/chip.h>
+#include <soc/error.h>
+#include <soc/drv.h>
+#include <soc/scache.h>
+
+#include <soc/dnxc/legacy/fabric.h>
+
+#include <sal/types.h>
+
+#include <shared/cyclic_buffer.h>
+
+#include <soc/dnxf/cmn/mbcm.h>
+#include <soc/dnxf/cmn/dnxf_defs.h>
+
+
+
+#include <soc/dnxf/cmn/dnxf_config_defs.h>
+#include <soc/dnxf/cmn/dnxf_config_imp_defs.h>
+
+#include <soc/dnxf/fe1600/fe1600_defs.h>
+
+
+#include <bcm/debug.h>
+#include <bcm_int/common/lock.h>
+#include <bcm_int/common/debug.h>
+
+
+#define SOC_DNXF_NUM_OF_ROUTES (1024)
+#define SOC_DNXF_MAX_NUM_OF_ROUTES_PER_ROUTE_GROUP (8)
+#define SOC_DNXF_MAX_NUM_OF_PRIORITIES (4)
+#define SOC_DNXF_NUM_OF_FABRIC_PIPE_VALID_CONFIGURATIONS (4)
+#define SOC_DNXF_MAX_LEN_NAME_PRIORITY_CONFIG (30)
+#define SOC_DNXF_WARMBOOT_TIME_OUT            (5000000) /*5 sec*/
+typedef cyclic_buffer_t dnxf_cells_buffer_t;
+typedef cyclic_buffer_t dnxf_captured_buffer_t;
+
+/**********************************************************/
+/*                  Verifications                         */
+/**********************************************************/
+
+#define DNXF_MAX_MODULES 2048
+
+#define SOC_DNXF_DRV_MULTIPLIER_MAX_LINK_SCORE               (120)
+
+#define DNXF_LINK_INPUT_CHECK(unit, link) \
+    if ( SOC_E_NONE != MBCM_DNXF_DRIVER_CALL(unit, mbcm_dnxf_fabric_links_validate_link, (unit, link)) ) { \
+         DNXC_EXIT_WITH_ERR(SOC_E_PORT, (_BSL_DNXC_MSG("%d isn't a valid link"), link)); \
+    }
+
+#define DNXF_LINK_INPUT_CHECK_DNXC(unit, link) \
+    if ( SOC_E_NONE != MBCM_DNXF_DRIVER_CALL(unit, mbcm_dnxf_fabric_links_validate_link, (unit, link)) ) { \
+         DNXC_EXIT_WITH_ERR(SOC_E_PORT, (_BSL_DNXC_MSG("%d isn't a valid link"), link)); \
+    }
+
+#define DNXF_IS_PRIORITY_VALID(arg) \
+    ((soc_dnxf_fabric_priority_0 == arg) \
+        || (soc_dnxf_fabric_priority_1 == arg) \
+        || (soc_dnxf_fabric_priority_2 == arg) \
+        || (soc_dnxf_fabric_priority_3 == arg))
+
+#define SOC_DNXF_CHECK_MODULE_ID(modid) \
+        (modid < DNXF_MAX_MODULES ? 1 : 0)
+
+#define DNXF_ADD_PORT(ptype, nport) \
+            si->ptype.port[si->ptype.num++] = nport; \
+            if ( (si->ptype.min < 0) || (si->ptype.min > nport) ) {     \
+                si->ptype.min = nport; \
+            } \
+            if (nport > si->ptype.max) { \
+                si->ptype.max = nport; \
+            }
+
+#define DNXF_REMOVE_DYNAMIC_PORT(ptype, nport) \
+            SOC_PBMP_PORT_REMOVE(si->ptype.bitmap, nport);
+
+#define DNXF_ADD_DYNAMIC_PORT(ptype, nport) \
+            SOC_PBMP_PORT_ADD(si->ptype.bitmap, nport);
+
+#define DNXF_REMOVE_DYNAMIC_DISABLED_PORT(ptype, nport) \
+            SOC_PBMP_PORT_REMOVE(si->ptype.disabled_bitmap, nport);
+
+#define DNXF_ADD_DYNAMIC_DISABLED_PORT(ptype, nport) \
+            SOC_PBMP_PORT_ADD(si->ptype.disabled_bitmap, nport);
+
+
+/**********************************************************/
+/*                     Defaults                            */
+/**********************************************************/
+#define DNXF_FABRIC_DEVICE_MODE_DEFAULT                                  soc_dnxf_fabric_device_mode_single_stage_fe2
+#define DNXF_FABRIC_MULTICAST_MODE_DEFAULT                               soc_dnxf_multicast_mode_direct
+#define DNXF_FABRIC_LOAD_BALANCING_MODE_DEFAULT                          soc_dnxf_load_balancing_mode_normal
+#define DNXF_VCS128_UNICAST_PRIORITY_DEFAULT                             soc_dnxf_fabric_priority_2
+#define DNXF_VCS128_UNICAST_PRIORITY_TDM_OVER_PRIMARY_PIPE_DEFAULT       soc_dnxf_fabric_priority_1
+#define DNXF_FABRIC_MAC_BUCKET_FILL_RATE_DEFAULT                         6
+#define DNXF_PORT_TX_LANE_MAP_DEFAULT                                    0x0123
+#define DNXF_PORT_RX_LANE_MAP_DEFAULT                                    0x3210
+#define DNXF_TDM_PRIORITY_OVER_PRIMARY_PIPE                              0x2
+#define DNXF_TDM_PRIORITY_OVER_SECONDARY_PIPE                            0x3
+#define SOC_DNXF_FABRIC_TDM_PRIORITY_NONE                                (-2)
+#define SOC_DNXF_FABRIC_TDM_PRIORITY_DEFAULT                             (3)
+/**********************************************************/
+/*                     Control                            */
+/**********************************************************/
+
+typedef struct soc_dnxf_modid_local_map_s
+{
+  uint32 valid;
+  uint32 module_id;
+} soc_dnxf_modid_local_map_t;
+
+typedef struct soc_dnxf_modid_group_map_s
+{
+  uint32 raw[SOC_DNXF_MODID_NOF_UINT32_SIZE];
+} soc_dnxf_modid_group_map_t;
+
+typedef uint32 soc_dnxf_fifo_type_handle_t;
+
+
+typedef struct soc_dnxf_mgmt_mode_s {
+
+    int fabric_device_mode; /*soc_dnxf_fabric_device_mode_t*/
+    int is_dual_mode; /*Whether data switch works in dual mode*/
+    int system_is_vcs_128_in_system; /*Whether there is a dvice in VCS128 mode in system*/
+    int system_is_dual_mode_in_system; /*Whether there is a device in the in dual mode system*/
+    int system_is_single_mode_in_system; /*Whether there is a device in the in single mode system*/
+    int system_is_fe600_in_system;  /*Whether there is an FE600 device in the system*/
+    int system_ref_core_clock; /*System reference core clock - KHz*/
+    int core_clock_speed; /*Core clock speed - KHz*/
+    int fabric_merge_cells; /*BCM88X4X has a mode to send successive 128B cell on the link*/
+    int fabric_multicast_mode; /*direct or indirect*/
+    int fabric_load_balancing_mode; /*NORMAL_LOAD_BALANCE | DESTINATION_UNREACHABLE | BALANCED_INPUT*/
+    int fabric_TDM_fragment; /*Used to define the fragment number used for TDM identification*/
+    int fabric_TDM_over_primary_pipe; /* Allows single pipe device to send TDM traffic over the fabric primary pipe.  */
+    int fabric_tdm_priority_min; /* Allows single pipe device to send TDM traffic over the fabric primary pipe.  */
+    int fabric_optimize_patial_links; /* If the BCM88750 is connected with links 0 - 11, 16 - 27, 32 - 43, 48 - 59, 64 - 75, 80 - 91, 96 - 107, 112 - 123 
+                                         (first 12 in every 16 links group), and the secondary switch is used, 
+                                         then its secondary TX FIFOs can use the memory of the unused links, thus increasing their capacity by 33% to 144 entries.  */
+    int vcs128_unicast_priority; /*Defines the priority for VCS128 unicast cells*/
+    int run_mbist; /* if non FALSE, run MBIST on memories at startup */
+    int fabric_mac_bucket_fill_rate; /* Number of good cells that add a token to the bucket. Value is set to 2^fabric_mac_bucket_fill_rate. Range valid for BCM88750: 0-11 */
+    int serdes_mixed_rate_enable;
+
+
+    int fe_mc_id_range; /*The multicast table can be used 1x512K, 2x256K, 4x128K and 8x64K modes.*/
+    int fe_mc_priority_map_enable; /*Enable mapping internal multicast priority from VSC256 priority field*/
+
+    int system_contains_multiple_pipe_device;
+    soc_dnxc_fabric_pipe_map_t fabric_pipe_mapping; /*Fabric Pipe Configuration*/
+    int custom_feature_lab;
+    int mesh_topology_fast; /*used for debug only*/
+    int mdio_int_dividend;/*internal MDIO dividend*/
+    int mdio_int_divisor; /*internal MDIO divisor*/
+
+    int fabric_port_lcpll_in[SOC_DNXF_NOF_LCPLL];
+    int fabric_port_lcpll_out[SOC_DNXF_NOF_LCPLL];
+
+    int fabric_clk_freq_in_quad_26; /*This property is used in asymmetric FE13, for determining the additional quads (connected to FAP) clk speed */
+    int fabric_clk_freq_in_quad_35; /*This property is used in asymmetric FE13, for determining the additional quads (connected to FAP) clk speed */
+    int fabric_clk_freq_out_quad_26; /*This property is used in asymmetric FE13, for determining the additional quads (connected to FAP) clk speed */
+    int fabric_clk_freq_out_quad_35; /*This property is used in asymmetric FE13, for determining the additional quads (connected to FAP) clk speed */
+
+
+    /*Fabric Cell Fifo DMA*/
+    uint32 fabric_cell_fifo_dma_enable; /*enables/disables fifo dma*/
+    uint32 fabric_cell_fifo_dma_threshold; /*The number of writes by the DMA until a threshold based interrupt is triggered. */
+    uint32 fabric_cell_fifo_dma_timeout; /*The amount of time in microseconds that passes from the first write by the DMA until a timeout based interrupt is triggered. Value 0 disables timeout based interrupts.*/
+    uint32 fabric_cell_fifo_dma_buffer_size; /*Size of the host memory stored allocated by the CPU*/
+
+	int fabric_local_routing_enable; /* enables/disables local routing in FE13 */
+
+} soc_dnxf_mgmt_mode_t;
+
+typedef struct soc_dnxf_control_s {
+
+  soc_dnxf_mgmt_mode_t       cfg;
+  dnxc_soc_fabric_inband_route_t inband_routes[SOC_DNXF_NUM_OF_ROUTES];
+  dnxf_cells_buffer_t        sr_cells_buffer;
+  dnxf_captured_buffer_t     captured_cells_buffer;
+  int                       rx_reception_thread_running;
+  int                       rx_reception_thread_closed;
+  sal_sem_t                 rx_thread_fifo_dma_semaphore;
+
+} soc_dnxf_control_t;
+
+typedef struct soc_dnxf_drv_mem_reset_s
+{
+    soc_mem_t memory;
+    soc_reg_above_64_val_t entry_value;
+} soc_dnxf_drv_mem_reset_t;
+
+/**********************************************************/
+/*                  Structures                            */
+/**********************************************************/
+
+typedef struct soc_dnxf_drv_dch_default_thresholds_s{
+
+	uint32 fifo_size[SOC_DNXF_MAX_NOF_PIPES]; /* each entry represents a pipe */
+    uint32 full_threshold[SOC_DNXF_MAX_NOF_PIPES];
+    uint32 llfc_threshold[SOC_DNXF_MAX_NOF_PIPES]; 
+    uint32 mc_low_prio_threshold[SOC_DNXF_MAX_NOF_PIPES];
+
+} soc_dnxf_drv_dch_default_thresholds_t;
+
+
+typedef struct soc_dnxf_drv_dcm_default_thresholds_s{
+
+	uint32 fifo_size[SOC_DNXF_MAX_NOF_PIPES];
+    uint32 prio_0_threshold[SOC_DNXF_MAX_NOF_PIPES];
+    uint32 prio_1_threshold[SOC_DNXF_MAX_NOF_PIPES]; 
+    uint32 prio_2_threshold[SOC_DNXF_MAX_NOF_PIPES];
+    uint32 prio_3_threshold[SOC_DNXF_MAX_NOF_PIPES];
+    uint32 full_threshold[SOC_DNXF_MAX_NOF_PIPES];
+    uint32 almost_full_threshold[SOC_DNXF_MAX_NOF_PIPES];
+	uint32 gci_low_threshold[SOC_DNXF_MAX_NOF_PIPES];
+	uint32 gci_med_threshold[SOC_DNXF_MAX_NOF_PIPES];
+	uint32 gci_high_threshold[SOC_DNXF_MAX_NOF_PIPES];
+	uint32 rci_low_threshold[SOC_DNXF_MAX_NOF_PIPES];
+	uint32 rci_med_threshold[SOC_DNXF_MAX_NOF_PIPES];
+	uint32 rci_high_threshold[SOC_DNXF_MAX_NOF_PIPES];
+
+    /*for local switch*/
+    uint32 local_switch_fifo_size[SOC_DNXF_MAX_NOF_PIPES];
+    uint32 local_switch_almost_full_0_threshold[SOC_DNXF_MAX_NOF_PIPES];
+    uint32 local_switch_almost_full_1_threshold[SOC_DNXF_MAX_NOF_PIPES];
+
+} soc_dnxf_drv_dcm_default_thresholds_t;
+
+typedef struct soc_dnxf_drv_dcl_default_thresholds_s{
+
+	uint32 fifo_size[3]; 
+    uint32 llfc_threshold[3]; 
+	uint32 almost_full_threshold[3];
+	uint32 gci_low_threshold[3];
+	uint32 gci_med_threshold[3];
+	uint32 gci_high_threshold[3];
+	uint32 rci_low_threshold[3];
+	uint32 rci_med_threshold[3];
+	uint32 rci_high_threshold[3];
+    uint32 prio_0_threshold[3];
+    uint32 prio_1_threshold[3]; 
+    uint32 prio_2_threshold[3];
+    uint32 prio_3_threshold[3];
+
+} soc_dnxf_drv_dcl_default_thresholds_t;
+
+
+typedef enum soc_dnxf_drv_soft_reset_e
+{
+    soc_dnxf_drv_soft_reset_in,
+    soc_dnxf_drv_soft_reset_out,
+    soc_dnxf_drv_soft_reset_inout
+} soc_dnxf_drv_soft_reset_t ;
+
+
+
+#ifdef BCM_WARM_BOOT_SUPPORT
+#define SOC_DNXF_MARK_WARMBOOT_DIRTY_BIT(unit) \
+            SOC_CONTROL_LOCK(unit); \
+            SOC_CONTROL(unit)->scache_dirty = 1; \
+            SOC_CONTROL_UNLOCK(unit);
+#else
+#define SOC_DNXF_MARK_WARMBOOT_DIRTY_BIT(unit) \
+            do { \
+            } while(0)
+#endif
+
+#define SOC_DNXF_CONTROL(unit)               ((soc_dnxf_control_t *)SOC_CONTROL(unit)->drv)
+#define SOC_DNXF_CONFIG(unit)                (SOC_DNXF_CONTROL(unit)->cfg)
+#define SOC_DNXF_FABRIC_PIPES_CONFIG(unit)   (SOC_DNXF_CONTROL(unit)->cfg.fabric_pipe_mapping)
+
+#define SOC_DNXF_IS_REPEATER(unit)       (soc_dnxf_fabric_device_mode_repeater == SOC_DNXF_CONFIG(unit).fabric_device_mode)
+#define SOC_DNXF_IS_FE13(unit)           ((soc_dnxf_fabric_device_mode_multi_stage_fe13 == SOC_DNXF_CONFIG(unit).fabric_device_mode) || \
+                                         (soc_dnxf_fabric_device_mode_multi_stage_fe13_asymmetric == SOC_DNXF_CONFIG(unit).fabric_device_mode))
+#define SOC_DNXF_IS_FE2(unit)            ((soc_dnxf_fabric_device_mode_multi_stage_fe2 == SOC_DNXF_CONFIG(unit).fabric_device_mode) || \
+                                         (soc_dnxf_fabric_device_mode_single_stage_fe2 == SOC_DNXF_CONFIG(unit).fabric_device_mode))
+#define SOC_DNXF_IS_MULTISTAGE_FE2(unit) (soc_dnxf_fabric_device_mode_multi_stage_fe2 == SOC_DNXF_CONFIG(unit).fabric_device_mode)
+#define SOC_DNXF_IS_MULTISTAGE(unit)     ((soc_dnxf_fabric_device_mode_multi_stage_fe13 == SOC_DNXF_CONFIG(unit).fabric_device_mode) || \
+                                         (soc_dnxf_fabric_device_mode_multi_stage_fe2 == SOC_DNXF_CONFIG(unit).fabric_device_mode) || \
+                                         (soc_dnxf_fabric_device_mode_multi_stage_fe13_asymmetric == SOC_DNXF_CONFIG(unit).fabric_device_mode))
+
+#define SOC_DNXF_IS_FE13_SYMMETRIC(unit)  (soc_dnxf_fabric_device_mode_multi_stage_fe13 == SOC_DNXF_CONFIG(unit).fabric_device_mode)
+#define SOC_DNXF_IS_FE13_ASYMMETRIC(unit) (soc_dnxf_fabric_device_mode_multi_stage_fe13_asymmetric == SOC_DNXF_CONFIG(unit).fabric_device_mode)
+
+#define DNXF_UNIT_LOCK_TAKE(unit) \
+    do{ \
+        if (BCM_LOCK(unit)) { \
+            _bsl_error(_BSL_BCM_MSG("unable to obtain unit lock"));\
+            BCM_EXIT; \
+        } \
+        _lock_taken = 1; \
+    }while (0)
+
+/* sorry for the code dupluication :(
+   you cannot leave people alone with these macros for one second.... grrr */
+#define DNXF_UNIT_LOCK_TAKE_DNXC(unit) \
+    do{ \
+        if (BCM_LOCK(unit)) { \
+            _bsl_error(_BSL_BCM_MSG("unable to obtain unit lock"));\
+            BCM_EXIT; \
+        } \
+        _lock_taken = 1; \
+    }while (0)
+
+
+#define DNXF_UNIT_LOCK_RELEASE(unit) \
+    do { \
+        if(1 == _lock_taken) { \
+            _lock_taken = 0; \
+            if (BCM_UNLOCK(unit)) { \
+                _bsl_error(_BSL_BCM_MSG("unable to obtain unit release on unit %d\n"), unit);\
+                BCM_EXIT; \
+            }  \
+        } \
+    } while (0)
+
+#define DNXF_UNIT_LOCK_RELEASE_DNXC(unit) \
+    do { \
+        if(1 == _lock_taken) { \
+            _lock_taken = 0; \
+            if (BCM_UNLOCK(unit)) { \
+                _bsl_error(_BSL_BCM_MSG("unable to obtain unit release on unit %d\n"), unit);\
+                BCM_EXIT; \
+            }  \
+        } \
+    } while (0)
+
+#define INT_DEVIDE(num,dev) (num-(num%dev))/dev;
+
+
+#define SOC_DNXF_DRV_INIT_LOG(_unit_, _msg_str_)\
+                _bsl_verbose(_ERR_MSG_MODULE_NAME, _unit_, "    + %d: %s\n", _unit_ , _msg_str_)
+
+#define SOC_DNXF_DRV_SUPPORTED_SOC_PROPERTY_SUFFIX_NUM_INT_DUMP(unit, soc_prop_name, suffix, num, int_val)   \
+        do {                                                                                                \
+            if (int_val != SOC_DNXF_PROPERTY_UNAVAIL)                                                        \
+            {                                                                                               \
+                LOG_CLI((BSL_META_U(unit,                                                                   \
+                                    "%s_%s%d=%d\n"), soc_prop_name, suffix, num, int_val));                 \
+            }                                                                                               \
+        } while (0) 
+
+#define SOC_DNXF_DRV_SUPPORTED_SOC_PROPERTY_SUFFIX_INT_DUMP(unit, soc_prop_name, suffix, int_val)            \
+        do {                                                                                                \
+            if (int_val != SOC_DNXF_PROPERTY_UNAVAIL)                                                        \
+            {                                                                                               \
+                LOG_CLI((BSL_META_U(unit,                                                                   \
+                                    "%s_%s=%d\n"), soc_prop_name, suffix, int_val));                        \
+            }                                                                                               \
+        } while (0) 
+
+#define SOC_DNXF_DRV_SUPPORTED_SOC_PROPERTY_INT_DUMP(unit, soc_prop_name, int_val)                           \
+        do {                                                                                                \
+            if (int_val != SOC_DNXF_PROPERTY_UNAVAIL)                                                        \
+            {                                                                                               \
+                LOG_CLI((BSL_META_U(unit,                                                                   \
+                                    "%s=%d\n"), soc_prop_name, int_val));                                   \
+            }                                                                                               \
+        } while (0)
+
+#define SOC_DNXF_DRV_SUPPORTED_SOC_PROPERTY_STR_DUMP(unit, soc_prop_name, prop_str_enum, int_val)            \
+        do {                                                                                                \
+            char *str_val;                                                                                  \
+            int rv;                                                                                         \
+            if (int_val != SOC_DNXF_PROPERTY_UNAVAIL)                                                        \
+            {                                                                                               \
+                rv = soc_dnxf_property_enum_to_str(unit, soc_prop_name, prop_str_enum, int_val, &str_val);   \
+                if (SOC_FAILURE(rv))                                                                        \
+                {                                                                                           \
+                    str_val = "unknown";                                                                    \
+                }                                                                                           \
+                LOG_CLI((BSL_META_U(unit,                                                                   \
+                                    "%s=%s\n"), soc_prop_name, str_val));                                   \
+            }                                                                                               \
+        } while (0)
+
+#define SOC_DNXF_DRV_SUPPORTED_SOC_PROPERTY_SUFFIX_NUM_STR_DUMP(unit, soc_prop_name, suffix_str, suffix_num, prop_str_enum, int_val)     \
+        do {                                                                                                                            \
+            char *str_val;                                                                                                              \
+            int rv;                                                                                                                     \
+            if (int_val != SOC_DNXF_PROPERTY_UNAVAIL)                                                                                    \
+            {                                                                                                                           \
+                rv = soc_dnxf_property_enum_to_str(unit, soc_prop_name, prop_str_enum, int_val, &str_val);                               \
+                if (SOC_FAILURE(rv))                                                                                                    \
+                {                                                                                                                       \
+                    str_val = "unknown";                                                                                                \
+                }                                                                                                                       \
+                if (suffix_num != -1)                                                                                                   \
+                {                                                                                                                       \
+                    LOG_CLI((BSL_META_U(unit,                                                                                           \
+                                        "%s_%s%d=%s\n"), soc_prop_name, suffix_str, suffix_num, str_val));                              \
+                } else {                                                                                                                \
+                    LOG_CLI((BSL_META_U(unit,                                                                                           \
+                                        "%s_%s=%s\n"), soc_prop_name, suffix_str, str_val));                                            \
+                }                                                                                                                       \
+            }                                                                                                                           \
+        } while (0)
+
+
+#define SOC_DNXF_ALLOW_WARMBOOT_WRITE(operation, _rv) \
+            SOC_ALLOW_WB_WRITE(unit, operation, _rv)
+
+/**********************************************************/
+/*                     Functions                          */
+/**********************************************************/
+
+void dnxf_local_soc_intr(void *unit);
+int soc_dnxf_tbl_is_dynamic(int unit, soc_mem_t mem);
+soc_driver_t* soc_dnxf_chip_driver_find(int unit, uint16 pci_dev_id, uint8 pci_rev_id);
+int soc_dnxf_info_config(int unit,int dev_id);
+int soc_dnxf_chip_type_set(int unit, uint16 dev_id);
+
+int soc_dnxf_drv_soc_properties_fabric_pipes_read(int unit);
+int soc_dnxf_drv_soc_properties_general_read(int unit);
+int soc_dnxf_drv_soc_properties_fabric_cell_read(int unit);
+int soc_dnxf_drv_soc_properties_port_read(int unit);
+int soc_dnxf_drv_soc_properties_chip_read(int unit);
+int soc_dnxf_drv_soc_properties_access_read(int unit);
+int soc_dnxf_drv_soc_properties_multicast_read(int unit);
+int soc_dnxf_drv_soc_properties_repeater_read(int unit);
+int soc_dnxf_drv_soc_properties_fabric_routing_read(int unit);
+void soc_dnxf_drv_soc_properties_dump(int unit);
+int _soc_dnxf_drv_soc_property_serdes_qrtt_read(int unit);
+    
+int soc_dnxf_attach(int unit);
+int soc_dnxf_detach(int unit);
+int soc_dnxf_init(int unit, int reset);
+int soc_dnxf_deinit(int unit);
+int soc_dnxf_device_reset(int unit, int mode, int action);
+int soc_dnxf_dump(int unit, char *pfx);
+void soc_dnxf_chip_dump(int unit, soc_driver_t *d);
+
+int soc_dnxf_nof_interrupts(int unit, int* nof_interrupts);
+int soc_dnxf_nof_block_instances(int unit,  soc_block_types_t block_types, int *nof_block_instances);
+int soc_dnxf_avs_value_get(int unit, uint32 *avs_value);
+int soc_dnxf_drv_graceful_shutdown_set(int unit, soc_pbmp_t active_links, int shutdown, soc_pbmp_t unisolated_links, int isolate_device);
+int soc_dnxf_drv_mbist(int unit, int skip_errors);
+int soc_dnxf_drv_update_valid_block_database(int unit, int block_type, int block_number, int enable);
+int soc_dnxf_drv_link_to_dch_block(int unit, int link, int *block_instance, int *inner_link);
+
+
+int soc_dnxf_compiler_64_div_32(uint64 x, uint32 y, uint32 *result);
+
+
+
+#endif  /* _SOC_DNXF_DRV_H */

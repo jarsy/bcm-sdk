@@ -1,0 +1,29 @@
+# $Id: config-pioneer.bcm,v 1.7 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Example configuration file for Pioneer systems, in vxworks platform 
+# And sim platform
+# config-pioneer.bcm
+#
+
+# The pioneer use asychronous bus or socket to transmit or receive 
+# EMMI message. To socket mode, a tcp port number is a must for the pioneer
+# to the Asynchronous mode, the phymem base address is a must for the
+# The configuatioin as following:
+
+# Vxworks platform
+# Normal Asynchronous mode, uncomment following line to support asyn mode
+#ea_baseaddr.0=0x80000000
+#ea_baseaddr.1=0x81000000
+
+# Normal socket mode, uncomment following line to support socket mode
+#ea_tcpport.0=14114
+
+# To use sim platform, the the configuation must as following. Now only one 
+# Pioneer can be sim.
+# To use sim platform 
+
+# Normal socket mode, uncomment following line to run it on sim platform
+# And use sim by default
+chipsim_pio_ndev=1 

@@ -1,0 +1,174 @@
+\" brcm_katana2/target.ref - Broadcom iProc Katana2 target specific documentation
+\"
+\" Copyright (c) 2013 Wind River Systems, Inc.
+\"
+\" The right to copy, distribute, modify or otherwise make use
+\" of this software may be licensed only pursuant to the terms
+\" of an applicable Wind River license agreement.
+\"
+\" modification history
+\" --------------------
+\" 01a,04nov13,dnb  written.
+\"
+\TITLE brcm_katana2 - Broadcom iProc Katana2
+
+NAME 
+`Broadcom Katana2 iProc Board'
+
+EXTERNAL DEPENDENCIES
+None
+
+INTRODUCTION
+This section includes getting-started information, including subsections
+detailing ROM installation, boot ROM flash instructions, and jumper 
+settings for VxWorks operation.
+
+\sh Getting the board running VxWorks
+This section will guide you how to run VxWorks on the Versatile Express A9x4 board. 
+Note that Wind River ICE/Probe is not supported for this board.
+
+1. Configuring Boot Option Switches
+   
+
+2. Configuring Serial Connection
+
+   On the PC, start a terminal emulator program such as
+   TeraTerm or HyperTerm to talk to the connected PC
+   port with the following settings (connect to UART0 on 
+   target board, see board layout at the end of this
+   document):
+
+    Baud Rate   : 115200
+    Data        : 8 bit
+    Parity      : None
+    Stop        : 1 bit
+    Flow Control: None
+
+3. Flashing the VxWorks bootrom image
+
+   Not currently supported.
+
+   3.1 Creating a VxWorks bootrom image
+
+        Not currently supported.
+
+FEATURES
+
+This section describes all features of the board, supported or not.
+It documents all configurations of the board and the interaction between
+features and configuration items.
+
+\sh Supported Features
+
+\sh List of supported hardware features (Katana2 board)
+
+\ts
+Hardware Interface       | Controller      | Driver/Component      | Status
+------------------------------------------------------------------------------
+UART:0                   | CCA    UART0    | vxbNs16550Sio.c       | SUPPORTED
+UART:1                   | CCA    UART1    | vxbNs16550Sio.c       | SUPPORTED
+10/100/1000 MB-ETHERNET  | iProc  GMAC     | iProcVxbEnd.c         | SUPPORTED
+TIMER                    | ARM MPCore      | vxbArmMpCoreTimer.c   | SUPPORTED
+PCIe                     | iProc PCIe      | iProcPCIe.c           | SUPPORTED
+SPI Flash                | iProc SPI Flash | iProcQspi.c           | SUPPORTED
+
+\te
+
+\sh List of features (ARM Cortex-A9 CPU)
+\ts
+Module        | Status
+--------------------------
+FPU(VFPv3)    | SUPPORTED
+L2 cache      | SUPPORTED
+NEON MPU      | UNSUPPORTED
+Thumb-2       | UNSUPPORTED
+TrustZone     | UNSUPPORTED
+Jazelle       | UNSUPPORTED
+\te
+
+\sh Feature Interactions
+Refer to the board vendor's documentation.
+
+HARDWARE DETAILS
+This section discusses memory maps for each bus.
+
+\sh Verified Hardware
+This BSP has been verified on the following board and silicon:
+
+\cs
+    BCM956450K Reference Platform
+\ce
+
+\sh Memory Maps
+
+
+\sh Serial Configuration
+There are four serial ports on the board, provided by four PrimeCell UARTs.
+The default configuration is:
+
+\ts
+    Baud Rate   : 115200 
+    Data        : 8 bit
+    Parity      : None
+    Stop        : 1 bit
+    Flow Control: None
+\te
+
+\sh Flash
+
+
+\sh Network and MAC address
+
+\sh Boot Methods
+
+\sh L2 Cache
+
+\sh Make Targets
+The make targets are listed as the names of object-format files. Append '.hex' to each to derive a 
+hex-format file name. Other images not listed here may not be tested.
+
+\ts
+'vxWorks' (with 'vxWorks.sym')
+'vxWorks.st'
+\te
+
+\sh BSP Bootloaders and Bootroms
+
+\ts
+Bootloader/Bootrom    | Status
+------------------------------
+Uboot (pre-flashed)   | SUPPORTED
+bootrom               | SUPPORTED
+bootrom_uncmp         | SUPPORTED
+vxWorks               | SUPPORTED
+vxWorks_rom           | SUPPORTED
+vxWorks_romCompress   | SUPPORTED
+vxWorks_romResident   | SUPPORTED
+\te
+
+
+\sh Special Routines
+None
+
+
+\sh Vector and Soft Floating Point
+Vector floating point is supported both in little and big endian (BE8) 
+configurations and in VIPs and RTPs. Soft floating point is supported in little
+and big endian (BE8) configurations in VIPs only.
+
+BOARD LAYOUT
+
+
+BIBLIOGRAPHY
+
+
+WEB RESOURCES
+
+
+SEE ALSO
+
+\tb VxWorks Kernel Programmer's Guide
+
+\tb VxWorks Architecture Supplement 
+
+

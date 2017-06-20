@@ -1,0 +1,82 @@
+
+/* $Id$ */
+            README: Wind River SBC8548 Evaluation Board
+
+This file contains board-specific information for the Wind River SBC8548
+target board.  Specifically, this file contains information on any BSP
+interface changes from previous software or hardware versions, and
+contains caveats that the user must be aware of before using this BSP.
+
+------------------------------------------------------------------------------
+
+Version 2.0/2
+
+    Released from Wind River for Workbench 2.6, VxWorks 6.4
+
+    Support the latest Wind River SBC8548 rev.2 board.
+    Add CPU rev.2 update.
+    Add TFFS support, using the SODIMM 64MB flash as the TFFS media.
+    Add PCI Express support, tested using a Intel 8257x NIC.
+    Modify SODIMM Flash base address to solve the static TLB issue.
+    Modify SRIO to use m85xxCCSR driver.
+    Modify auxClock and nvRam to get BSPVTS passed.
+
+FCS Version 2.0/1
+
+    Released from Wind River for Workbench 2.5, VxWorks 6.3
+
+    ETSEC functionality has been added including checksum offload support and
+    filer capability. The user should rebuild target/src/hwif for etsec.
+    VXBUS infrastructure is now used for ETSEC (and SRIO, which has not been
+    tested). These devices are configured via hwconf.c including the MII bus
+    and PHY driver.
+    There is backward compatibility with the END TSEC driver and can be
+    configured if necessary but not for SRIO which requires vxBus to be included.
+
+FCS Version 2.0/0
+
+    Released from Wind River for Workbench 2.4, VxWorks 6.2
+
+    SRIO not supported for this first release, waiting until silicon works with
+    a JTAG workaround during reset.
+    ETSEC - enhanced features such as checksum offload not supported until the
+    next release. Only standard TSEC features supported for now.
+
+    PCI Express not supported yet. MSI unsupported.
+
+    This BSP will move to the VXBUS infrastructure for drivers in vxWorks 6.3
+    which include rapidIO and ETSEC. There are already changes in the BSP to
+    support this which may not make alot of sense at this time. This means
+    anyone wanting the additional functionality should expect to migrate to
+    vxWorks 6.3.
+
+    L2 cache will require modification to support rev2 silicon.
+    Expect this to be done in the vxWorks 6.3 verison of the BSP.
+
+EAR Version 2.0/0
+
+    Issues:
+
+    Only Rev1.1 silicon supported
+
+    VxWorks bootrom may not always run properly after power-on reset or HRESET.
+    This is due to MPC8548 errata GEN3 which affects any silicon prior to rev
+    2.0. Refer to the "Freescale Device Errata for the MPC8548E PowerQUICC III".
+
+    SRIO:
+    Has not yet been tested on SBC8548.
+    Requires GEN6 pll workaround via JTAG. TIPC_SM/SM END is working.
+    Require addition of smUtilLib.o to MACH_EXTRA - should be temporary.
+
+    PCI-Express:
+    Has not yet been tested on SBC8548.
+
+    PCI2:
+    Not supported. Only the single 64-bit PCI1 interface is available on the SBC8548.
+
+    Security Engine:
+    Partially tested security engine drivers for SEC2.0 may still be issues.
+    Additional features SEC2.1 not supported in present drivers.
+
+    Only support 1GHz Core 400Mhz DDR to reduce configuration/initialization
+    issues.

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_VLAN_BMP">
+        <OneLineDescription>Ingress VLAN table bitmap actions, used for VLAN membership</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_ID" Size="12"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP" Size="512"/>
+            </Result>
+            <TableLabels>VLAN</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP"> 
+                    <Access>
+                        <Memory Name="IPPA_VLAN_MEMBERSHIP_TABLEm"> 
+                            <ArrayOffset EncodeType="HARD_VALUE" Value="0"/>
+                            <HwField Name="VLAN_PORT_MEMBER_LINEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_VLAN_BMP">
+        <OneLineDescription>Egress VLAN table bitmap actions, used for VLAN membership</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_ID" Size="12"/>                
+            </Key>
+            <Result>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP" Size="256"/>
+            </Result>
+            <TableLabels>VLAN</TableLabels>
+        </AppDbInterface>
+       <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP"> 
+                    <Access>
+                        <Memory Name="ETPPB_EGRESS_MEMBERSHIPm">                         
+                            <HwField Name="EGRESS_MEMBERSHIP_DATAf"/>
+                        </Memory>
+                    </Access>
+               </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

@@ -1,0 +1,9 @@
+# $Id: pass.soc,v 1.1 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Used only by the automated infrastructure to validate behavior. 
+# Always finishes successfully.
+
+echo "testsuite: started: pass"
+echo "testsuite: finished: pass: 0"

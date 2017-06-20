@@ -1,0 +1,222 @@
+# $Id: Makefile.vxworks-bmw,v 1.28 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Makefile for MPC8240 host running VxWorks
+
+include ${SDK}/make/Makefile.vxworks-common
+
+# WIND_BASE and WIND_HOST_TYPE must be modified according to your
+# installed location.  The environment variables are ignored intentionally.
+
+ifndef VX_VERSION
+VX_VERSION = 62
+endif
+
+ifeq ($(HOSTTYPE),Windows2000PC)
+else
+ifeq ($(HOSTTYPE),Windows_Cygnus)
+WIND_BASE ?= //fs-sj1-21/Projects-V2/ntsw-tools/wrs/tms_201
+WIND_HOST_TYPE ?= x86-win32
+else
+WIND_BASE_531 = /net/igor/export/home/tornado/ppc
+WIND_BASE_54 = /projects/ntsw-tools/wrs/tornado/t2
+WIND_BASE_55 = /projects/ntsw-tools/wrs/tornado/t2.2.1
+ifeq ($(VX_VERSION),62)
+ifeq ($(HOSTTYPE),i386-linux)
+WIND_HOME ?= /tools/windriver/vxworks/6.2/Linux
+else
+WIND_HOME ?= /tools/windriver/vxworks/6.2/SunOS
+endif
+WIND_GNU_PATH = $(WIND_HOME)/gnu/3.3.2-vxworks-6.2
+WIND_DIAB_PATH = $(WIND_HOME)/diab/5.3.1.0
+WIND_BASE_62 = $(WIND_HOME)/vxworks-6.2
+endif
+WIND_BASE ?= ${WIND_BASE_${VX_VERSION}}
+
+ifeq ($(HOSTTYPE),i386-linux)
+ifeq ($(VX_VERSION),62)
+WIND_HOST_TYPE ?= x86-linux2
+else
+WIND_HOST_TYPE ?= x86-linux
+endif
+endif
+
+ifeq ($(HOSTTYPE),NetBSD)
+#compat
+ifeq ($(VX_VERSION),62)
+WIND_HOST_TYPE ?= x86-linux2
+else
+WIND_HOST_TYPE ?= x86-linux
+endif
+endif
+
+ifeq ($(HOSTTYPE),sun4)
+WIND_HOST_TYPE ?= sun4-solaris2
+endif
+
+#default
+ifeq ($(HOSTTYPE),)
+WIND_HOST_TYPE ?= sun4-solaris2
+endif
+
+endif
+endif
+
+CPU = PPC603
+TOOL = gnu
+
+ifdef ALT_BMW_BSP_DIR
+VX_SRC = \
+    ${ALT_BMW_BSP_DIR}
+else
+VX_SRC = \
+    ${SDK}/systems/vxworks/bmw/mpc824x
+endif
+
+VX_SRC_ALL = \
+    $(VX_SRC)/all
+
+# Extra libraries for this platform
+ifeq ($(VX_VERSION),55)
+COND_LIB_BSP = $(VX_SRC)/tffs/libTFFS55.a
+else
+ifeq ($(VX_VERSION),54)
+COND_LIB_BSP = $(VX_SRC)/tffs/libTFFS54.a
+else
+ifeq ($(VX_VERSION),62)
+else
+COND_LIB_BSP = $(VX_SRC)/tffs/libTFFS.a
+endif
+endif
+endif
+
+# Configuration Flags
+CFGFLAGS += -DBCM_PLATFORM_STRING=\"BMW_MPC8245\"
+
+# fast pci access
+CFGFLAGS+= -DSOC_CM_MEMORY_BASE=bcm_bde_soc_cm_memory_base \
+-DEXTERN_SOC_CM_MEMORY_BASE=bcm_bde_soc_cm_memory_base \
+-DSOC_CM_MEMORY_OFFSET=0x00010000
+
+# Use FTP2 for VxWorks 5.5
+ifeq ($(VX_VERSION),55)
+CFLAGS += -DUSE_FTP2
+endif
+
+ifeq ($(VX_VERSION),62)
+toolbase = $(WIND_GNU_PATH)/$(WIND_HOST_TYPE)/bin/
+toolbase_alt = $(WIND_BASE)/../workbench-2.4/$(WIND_HOST_TYPE)/bin/
+
+export GCC_EXEC_PREFIX=$(WIND_HOME)/gnu/3.3.2-vxworks-6.2/$(WIND_HOST_TYPE)/lib/gcc-lib/
+
+else
+ifeq ($(VX_VERSION),65)
+
+WIND_GNU_PATH = $(WIND_HOME)/gnu/3.4.4-vxworks-6.5
+toolbase = $(WIND_GNU_PATH)/$(WIND_HOST_TYPE)/bin/
+toolbase_alt = $(WIND_GNU_PATH)/$(WIND_HOST_TYPE)/bin/
+
+else
+
+toolbase = $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin/
+toolbase_alt = $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin/
+
+#
+# Set GCC prefix and PATH to find what it needs, and export them to subshells
+# etc.
+#
+export GCC_EXEC_PREFIX=$(WIND_BASE)/host/$(WIND_HOST_TYPE)/lib/gcc-lib/
+
+endif
+endif
+
+CC 	= $(toolbase)ccppc
+CPP	= $(toolbase)cppppc
+CXX 	= $(toolbase)g++ppc
+RANLIB 	= $(toolbase)ranlibppc
+AR 	= $(toolbase)arppc
+LD 	= $(toolbase)ldppc
+NM 	= $(toolbase_alt)nmppc
+SIZE 	= $(toolbase_alt)sizeppc
+STRIP	= $(toolbase_alt)stripppc
+
+OPTFLAGS_DEFAULT = -O2
+MFLAGS = $(OPTFLAGS) -DCPU=$(CPU)
+ARFLAGS = -rc
+
+# TARGETTYPE Defines: This defines the type of system you are compiling
+# the driver for; there are several values allowed. New values can be created
+# by porting the routines (system.c) to your platform and adding
+# the define in this Makefile.
+
+TARGETTYPE = BMW
+
+# OSType Defines: This defines the type of RTOS or microkernel which you
+# are compiling the SAL (and its associated driver) for. New platforms
+# can be created by porting the routines (system.c) to your platform and
+# adding the define in this Makefile.
+
+OSTYPE = VXWORKS
+
+INCS +=  -I$(VX_SRC) -I${VX_SRC_ALL} -I$(WIND_BASE)/target/h
+ifeq ($(VX_VERSION),62)
+INCS += -I$(WIND_BASE)/target/h/wrn/coreip
+endif
+LIBS = 
+
+#
+# STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
+# BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
+# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of 
+#			 this Makefile, to define local "Extra" flags.
+#
+# We include -DTRUE=1 to fix a Tornado 1 problem where stdarg macros are
+# defined incorrectly if TRUE is not defined ahead of including stdarg.h.
+# NOTE: Extra -I${INCDIR} puts $SDK/include before system incs, for assert.h
+#
+ifeq ($(HOSTTYPE),Windows2000PC)
+STD_CFLAGS = -fno-builtin -nostdlib $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DTRUE=1 -DBE_HOST=1
+STD_CPPFLAGS = ${STD_CFLAGS}
+STD_CXXFLAGS = ${STD_CFLAGS}
+else
+ifeq ($(VX_VERSION),55)
+STD_CFLAGS = -fno-builtin -nostdlib $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DTRUE=1 -DBE_HOST=1
+STD_CPPFLAGS = ${STD_CFLAGS}
+STD_CXXFLAGS = ${STD_CFLAGS}
+else
+ifeq ($(VX_VERSION),62)
+STD_CFLAGS = -fno-builtin -nostdlib -fno-strict-aliasing $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DTRUE=1 -DBE_HOST=1
+STD_CPPFLAGS = ${STD_CFLAGS}
+STD_CXXFLAGS = ${STD_CFLAGS}
+else
+ifeq ($(VX_VERSION),65)
+STD_CFLAGS = -fno-builtin $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DTRUE=1 -DBE_HOST=1 -DVXWORKS_NETWORK_STACK_6_5
+else
+STD_CFLAGS = -fno-builtin -nostdinc $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DTRUE=1 -DBE_HOST=1
+STD_CPPFLAGS = ${STD_CFLAGS}
+STD_CXXFLAGS = ${STD_CFLAGS}
+endif
+endif
+endif
+endif
+
+#
+# Features which should be explicitly excluded from this configuration:
+#
+FEATURE_EXCLUDE_LIST += DUNE_UI

@@ -1,0 +1,33 @@
+# $Id: dnxf.soc,v 1.18 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+
+#Debug level
+debug info
+debug soc tests warn
+debug appl rcload warn
+debug appl symtab warn
+debug soc phy,schan,reg,socmem,dma,mem,miim,mii,intr,counter,physim warn
+debug sys verinet warn
+debug bcm attach warn
+
+
+# Shutdown threads if system is already running
+counter off
+linkscan off
+
+exit;
+
+# For RAMON:
+# This will have to change when we have bcm88790_board.soc
+if $?BCM88790_A0 \
+    'rcload bcm88950_board.soc'
+
+if !$?warmboot "\
+  local warmboot 0"
+
+INIT_DNX ModID=5 Warmboot=$warmboot
+
+
+echo "dnxf.soc: Done."

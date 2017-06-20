@@ -1,0 +1,6797 @@
+#include <shared/bsl.h>
+
+#include <soc/mcm/memregs.h>
+#if defined(BCM_88690_A0)
+/* $Id: jer2_arad_egr_queuing.c,v 1.98 Broadcom SDK $
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+*/
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_SOC_EGRESS
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+#include <shared/swstate/access/sw_state_access.h>
+#include <soc/mem.h>
+#include <soc/register.h>
+#include <soc/dnxc/legacy/error.h>
+#include <soc/dnx/legacy/TMC/tmc_api_framework.h>
+
+#include <soc/dnx/legacy/SAND/Utils/sand_header.h>
+
+#include <soc/dnx/legacy/drv.h>
+#include <soc/dnx/legacy/mbcm.h>
+#include <soc/dnx/legacy/ARAD/arad_egr_queuing.h>
+#include <soc/dnx/legacy/ARAD/arad_scheduler_ports.h>
+#include <soc/dnx/legacy/ARAD/arad_ofp_rates.h>
+#include <soc/dnx/legacy/ARAD/arad_api_framework.h>
+#include <soc/dnx/legacy/ARAD/arad_general.h>
+#include <soc/dnx/legacy/ARAD/arad_reg_access.h>
+#include <soc/dnx/legacy/ARAD/arad_tbl_access.h>
+#include <soc/dnx/legacy/ARAD/arad_api_egr_queuing.h>
+#include <soc/dnx/legacy/ARAD/arad_sw_db.h>
+#include <soc/dnx/legacy/ARAD/arad_api_general.h>
+
+#include <soc/dnx/legacy/port_sw_db.h>
+
+#include <soc/dnx/legacy/SAND/Utils/sand_integer_arithmetic.h>
+#include <soc/dnx/legacy/SAND/Management/sand_low_level.h>
+
+/* } */
+
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+
+#define JER2_ARAD_TC_NDX_MAX                                          (7)
+#define JER2_ARAD_DP_NDX_MAX                                          (3)
+#define JER2_ARAD_MAP_TYPE_NDX_MAX                                    (JER2_ARAD_EGR_NOF_Q_PRIO_MAPPING_TYPES-1)
+#define JER2_ARAD_MAP_PROFILE_NDX_MAX                                 (7)
+
+
+/* Invalid base q pair: since assumed ERP port is located at the last PS. */
+
+#define JER2_ARAD_EGQ_PS_DEF_PRIORITY                                 (2)
+#define JER2_ARAD_EGQ_PS_PRIORITY_NOF_BITS                            (2)
+#define JER2_ARAD_EGQ_SHAPER_MODE_NOF_BITS                            (1)
+/* By default, port will be assigned to two priorities (i.e. two q-pairs) */
+#define JER2_ARAD_EGQ_PORT_DEF_PRIORITY_MODE                          (JER2_ARAD_EGR_PORT_TWO_PRIORITIES)
+#define JER2_ARAD_EGR_PORT_PRIORITY_MAX                               (JER2_ARAD_EGR_PORT_EIGHT_PRIORITIES)
+
+#define JER2_ARAD_EGQ_PS_MODE_ONE_PRIORITY_VAL                        (0)
+#define JER2_ARAD_EGQ_PS_MODE_TWO_PRIORITY_VAL                        (1)
+#define JER2_ARAD_EGQ_PS_MODE_EIGHT_PRIORITY_VAL                      (2)
+
+#define JER2_ARAD_EGR_SINGLE_MEMBER_TCG_START (4)
+#define JER2_ARAD_EGR_SINGLE_MEMBER_TCG_END (7)
+#define JER2_ARAD_EGQ_NOF_TCG_IN_BITS (3)
+#define JER2_ARAD_EGQ_TCG_WEIGHT_MIN                (0)
+#define JER2_ARAD_EGQ_TCG_WEIGHT_MAX                (255)
+#define JER2_ARAD_EGQ_PORT_ID_INVALID (256)
+
+/*
+ *    FQP NIF Port MUX table predefined values
+ */
+
+/* Give BW to other interfaces always */
+
+
+/* FQP value for other */
+#define JER2_ARAD_EGQ_NIF_OTHERS_DEF_VAL               40
+
+/* PQP value for others */
+#define JER2_ARAD_EGQ_NIF_PQP_CPU_DEF_VAL              1
+#define JER2_ARAD_EGQ_NIF_PQP_RCY_DEF_VAL              1
+#define JER2_ARAD_EGQ_NIF_PQP_OLP_DEF_VAL              1
+#define JER2_ARAD_EGQ_NIF_PQP_OAM_DEF_VAL              1
+
+#define CGM_MC_INTERFACE_PD_TH_NOF_FIELDS         4
+#define CGM_UC_INTERFACE_TH_NOF_FIELDS            8
+
+
+#define JER2_ARAD_NIF_NOF_NIFS 32
+/* 
+ *  EGQ Interface constant numbers
+ */
+#define JER2_ARAD_EGQ_IFC_RCY              31
+#define JER2_ARAD_EGQ_IFC_OAMP             30
+#define JER2_ARAD_EGQ_IFC_OLP              29
+#define JER2_ARAD_EGQ_IFC_CPU              28
+/* Default value assigned once port is not mapped */
+#define JER2_ARAD_EGQ_IFC_DEF_VAL          0
+#define JER2_ARAD_EGQ_NOF_IFCS             32
+
+/* Egress NIF interfaces */
+#define JER2_ARAD_EGQ_NOF_NIFS_IFCS        28
+
+
+/* } */
+
+/*************
+ *  MACROS   *
+ *************/
+/* { */
+
+/* } */
+
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+typedef struct
+{
+  uint32    rate;
+} JER2_ARAD_NIF_PORT_RATE;
+
+typedef struct
+{
+  JER2_ARAD_NIF_PORT_RATE nif_prt_rts[JER2_ARAD_NIF_NOF_NIFS];
+  uint32 nof_nifs;
+} JER2_ARAD_NIF_PORT_RATES;
+/* } */
+
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+/* } */
+
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+/*********************************************************************
+* NAME:
+*     JER2_ARAD_NIF_PORT_RATES_clear
+* TYPE:
+*   PROC
+* DATE:
+*   Jul 22 2010
+* FUNCTION:
+*         Initialize Nif Rates struct
+* INPUT:
+*         DNX_SAND_IN int unit
+* REMARKS:
+* RETURNS:
+*     void.
+*********************************************************************/
+static void
+    JER2_ARAD_NIF_PORT_RATES_clear(
+      DNX_SAND_OUT JER2_ARAD_NIF_PORT_RATES  *nif_rates
+    )
+{
+  uint32 ind;
+
+  nif_rates->nof_nifs = 0;
+
+  for( ind = 0; ind < JER2_ARAD_NIF_NOF_NIFS ; ind ++)
+  {
+    nif_rates->nif_prt_rts[ind].rate = 0;
+  }
+}
+
+/*********************************************************************
+* NAME:
+*     jer2_arad_egr_q_fqp_scheduer_config
+* TYPE:
+*   PROC
+* DATE:
+* FUNCTION:
+*         Set fqp scheduler configuration:
+*         1. Enable BW requests by others
+*         2. Disable BW higher requests on account port with rate of 1009 or higher
+* INPUT:
+*         DNX_SAND_IN int unit
+*
+* RETURNS:
+*     OK or ERROR indication.
+*********************************************************************/
+
+int
+  jer2_arad_egr_q_fqp_scheduler_config(
+    DNX_SAND_IN int unit
+  )
+{
+    soc_pbmp_t port_bm;
+    uint32 
+        flags,
+        is_master,
+        if_rate_mbps;
+    soc_port_t port;
+
+    DNXC_INIT_FUNC_DEFS;
+  
+    /*Bandwidth normal requests by others*/
+    DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_FQP_SCHEDULER_CONFIGURATIONr, SOC_CORE_ALL, 0, CFG_RCY_REQ_ENf,  0x1));
+    DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_FQP_SCHEDULER_CONFIGURATIONr, SOC_CORE_ALL, 0, CFG_OAM_REQ_ENf,  0x1));
+    DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_FQP_SCHEDULER_CONFIGURATIONr, SOC_CORE_ALL, 0, CFG_OLP_REQ_ENf,  0x1));
+    DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_FQP_SCHEDULER_CONFIGURATIONr, SOC_CORE_ALL, 0, CFG_DEL_REQ_ENf,  0x1));
+    DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_FQP_SCHEDULER_CONFIGURATIONr, SOC_CORE_ALL, 0, CFG_CPU_REQ_ENf,  0x1));
+
+    /*Bandwidth Higher requests by others*/
+    DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_FQP_SCHEDULER_CONFIGURATIONr, SOC_CORE_ALL, 0, CFG_RCY_HIGHER_ENf,  0x0));
+    DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_FQP_SCHEDULER_CONFIGURATIONr, SOC_CORE_ALL, 0, CFG_OAM_HIGHER_ENf,  0x0));
+    DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_FQP_SCHEDULER_CONFIGURATIONr, SOC_CORE_ALL, 0, CFG_OLP_HIGHER_ENf,  0x0));
+    DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_FQP_SCHEDULER_CONFIGURATIONr, SOC_CORE_ALL, 0, CFG_DEL_HIGHER_ENf,  0x0));
+    DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_FQP_SCHEDULER_CONFIGURATIONr, SOC_CORE_ALL, 0, CFG_CPU_HIGHER_ENf,  0x0));
+
+    if(SOC_IS_ARADPLUS_AND_BELOW(unit)) {
+        /*Disable higher requests on account of 100g ports or higher*/
+        DNXC_IF_ERR_EXIT(dnx_port_sw_db_valid_ports_get(unit, DNX_PORT_FLAGS_NETWORK_INTERFACE, &port_bm));
+
+        SOC_PBMP_ITER(port_bm, port) {
+            DNXC_IF_ERR_EXIT(dnx_port_sw_db_flags_get(unit, port, &flags));
+
+            if (DNX_PORT_IS_STAT_INTERFACE(flags)) {
+                /* Statistics interface is not required for Egress */
+                continue;
+            }
+            if (DNX_PORT_IS_ELK_INTERFACE(flags)){
+                continue;
+            }
+            DNXC_IF_ERR_EXIT(dnx_port_sw_db_is_master_get(unit, port, &is_master));
+            if(!is_master) {
+                continue;
+            }
+
+            DNXC_IF_ERR_EXIT(dnx_port_sw_db_interface_rate_get(unit, port, &if_rate_mbps));
+
+            if (if_rate_mbps >= JER2_ARAD_EGR_QUEUEING_HIGER_REQ_MAX_RATE_MBPS)
+            {
+                uint32 phys_port_uint32[1],
+                higher_request_per_mal[1];
+                soc_pbmp_t phys_port;
+
+                DNXC_IF_ERR_EXIT(dnx_port_sw_db_phy_ports_get(unit, port, &phys_port));
+
+                /*soc_port_t to uint32*/
+                *phys_port_uint32 = SOC_PBMP_WORD_GET(phys_port, 0);
+                /*1 base to 0 base*/
+                *phys_port_uint32 = *phys_port_uint32 >> 1;
+
+                /*remove lanes from higer request bitmap*/
+                DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_read(unit, EGQ_HIGHER_REQ_EN_PER_MALr, SOC_CORE_ALL, 0, HIGHER_REQ_EN_PER_MALf, higher_request_per_mal));
+                SHR_BITREMOVE_RANGE(higher_request_per_mal, phys_port_uint32, 0, BYTES2BITS(sizeof(uint32)), higher_request_per_mal);
+                DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_HIGHER_REQ_EN_PER_MALr, SOC_CORE_ALL, 0, HIGHER_REQ_EN_PER_MALf,  *higher_request_per_mal));
+
+            }
+        }
+    }
+
+exit:
+    DNXC_FUNC_RETURN;
+
+}
+
+/*********************************************************************
+* NAME:
+*   jer2_arad_egr_q_static_cal_build_from_rates
+* TYPE:
+*   PROC
+* FUNCTION:
+*   generate a calendar by assign reserved slots for each physical port.
+*   unused slots filled with JER2_ARAD_EGQ_NIF_PORT_CAL_BW_INVALID
+* INPUT:
+*   DNX_SAND_IN  uint32                   ports_rates[JER2_ARAD_NIF_NOF_NIFS] -
+*   array of the ports rates in gbits per sec
+*   DNX_SAND_OUT DNX_SAND_OUT JER2_ARAD_OFP_RATES_CAL_SCH         *calendar-
+*   the calendar built by the function
+*   
+* REMARKS:
+* RETURNS:
+*   OK or ERROR indication.
+*********************************************************************/
+static uint32
+  jer2_arad_egr_q_static_cal_build_from_rates(
+         DNX_SAND_IN  uint32                   ports_rates[JER2_ARAD_NIF_NOF_NIFS],
+         DNX_SAND_OUT DNX_SAND_OUT JER2_ARAD_OFP_RATES_CAL_SCH         *calendar
+    )
+{
+  /* this array built to keep the maximum distance between CAUI,XLAUI and RXAUI diffrent
+     slots in the calendar minimal
+     the quad i is in the place arrengment[i] for each quads iteration
+   */
+  /* [0,4,3,1,5,2,6,7]*/
+  static uint32 regular_calendar_arrangement[JER2_ARAD_NIF_NOF_NIFS/4] = {0, 3, 5 , 2, 1, 4, 6, 7};
+  /* [0,4,1,5,2,3,6,7]*/
+  static uint32 ilkn16_and_up_calander_arrengment[JER2_ARAD_NIF_NOF_NIFS/4] = {0, 2, 4 , 5, 1, 3, 6, 7};
+  uint32 *calendar_config;
+   /*we use this for case  to keep the maximum distance minimal*/
+  uint32 ktransitions[] = {2,3,1,0};
+  uint32 internal_quad_mapping[] = {0,2,1,3};
+  uint32 i, j, k;
+  uint32 num_of_slots;
+  uint32 has_ilkn16_and_up_calander = 0;
+
+  /*reset the calendar*/
+  for(i = 0 ; i < JER2_ARAD_EGR_MAX_CAL_SIZE ; i++)
+  {
+       calendar->slots[i] = JER2_ARAD_EGQ_NIF_PORT_CAL_BW_INVALID;
+  }
+
+  for(i = 0 ; i < JER2_ARAD_NIF_NOF_NIFS ; i++)
+  {
+      if(ports_rates[i] >= 160) {
+          has_ilkn16_and_up_calander = 1;
+          break;
+      }
+  }
+
+  calendar_config =  (has_ilkn16_and_up_calander)? ilkn16_and_up_calander_arrengment: regular_calendar_arrangement;
+
+  for(i = 0 ; i < JER2_ARAD_NIF_NOF_NIFS ; i++)
+  {
+    /*we assume each 10 gig needs physical port*/
+    num_of_slots = ports_rates[i]/10;
+    /*handle low BW ports*/
+    num_of_slots *= 4;
+    if((num_of_slots == 0) && (ports_rates[i] > 0))
+    {
+      num_of_slots = ports_rates[i]*10/25;
+      if((ports_rates[i]*10) % 25 != 0)
+      {
+        num_of_slots++;
+      }
+    }
+    j = i;
+    k = 0;
+    /*calendar slots positioning*/
+    while(num_of_slots > 0)
+    {
+      calendar->slots[calendar_config[j/4]+ internal_quad_mapping[j%4]*8 + JER2_ARAD_NIF_NOF_NIFS*k] =  i;
+      num_of_slots --;
+      k = ktransitions[k];
+      if(k == 0)
+      {
+        /* ILKN > 12 handling*/
+        if(i==0 && j>= 11){
+          j = (j==11 ? 27 : j-1);
+        }
+        /*other cases*/
+        else if (j < JER2_ARAD_NIF_NOF_NIFS - 1) {
+          j++;
+        }
+      }
+    }
+  }
+  return SOC_E_NONE;
+}
+
+
+/*********************************************************************
+* NAME:
+*     jer2_arad_egr_q_nif_cal_set_unsafe
+* TYPE:
+*   PROC
+* DATE:
+* FUNCTION:
+*         Set the calender of the nif port "processing time" i.e every 2 clk there
+*         is a context switch and different nif get "service" or others which include
+          delete and recycling.
+* INPUT:
+*         DNX_SAND_IN int unit
+*
+* REMARKS:
+*         This function consist of four steps:
+*         1. Classifying the nif, mal configuration
+*         2. Giving each nif  weight according to its type
+*         3. Adding the "others" processes of recycling, deleting as competitor with a given value
+*         4. Computing the optimal calender using "black box" soc_pb_ofp_rates_from_rates_to_calendar function
+*         5. Using the values computed in 4. to initialize JER2_ARAD_EGQ_FQP_NIF_PORT_MUX_TBL address:
+*
+*         The calender should admit the constraint derived from the formula BW=(128 * 8)/(ClkFreq * # Clk )
+*         => # Clk = (128 * 8)/(ClkFreq * BW) Given that the clock frequency is 3.3 Ns
+*         WE get #Clk= (128 * 8) /(3.3 * BW)
+*
+* RETURNS:
+*     OK or ERROR indication.
+*********************************************************************/
+
+int
+  jer2_arad_egr_q_nif_cal_set_unsafe(
+    DNX_SAND_IN int unit
+  )
+{
+    uint32
+        res = DNX_SAND_OK;
+    uint32
+        ind,
+        nif_id = 0,
+        lanes;
+    soc_port_if_t intf;
+    JER2_ARAD_EGQ_FQP_NIF_PORT_MUX_TBL_DATA
+        nif_port_mux_tbl;
+    JER2_ARAD_EGQ_PQP_NIF_PORT_MUX_TBL_DATA
+        pqp_nif_port_mux_tbl;
+    JER2_ARAD_NIF_PORT_RATES
+        nif_rates;
+    uint32
+        fqp_ports_rates[JER2_ARAD_EGR_MAX_CAL_SIZE],
+        pqp_ports_rates[JER2_ARAD_EGR_MAX_CAL_SIZE],
+        fqp_total_credit_bandwidth = 0,
+        pqp_total_credit_bandwidth = 0,
+        calendar_len = 0;
+    uint32 other_pqp_to_fill;
+    JER2_ARAD_OFP_RATES_CAL_SCH
+        *calendar = NULL;
+    uint32
+        if_rate_mbps;
+    uint32
+        port,
+        is_master,
+        flags,
+        offset;
+    soc_pbmp_t
+        port_bm;
+    uint32 
+        phy_port,
+        is_if_0_ilkn_tdm = FALSE,
+        is_if_16_ilkn_tdm = FALSE;
+    soc_pbmp_t
+        ports_bm;
+    soc_port_t
+        port_i;
+    soc_port_if_t 
+        nif_type;
+    JER2_ARAD_MGMT_ILKN_TDM_DEDICATED_QUEUING_MODE
+        ilkn_tdm_dedicated_queuing;
+  
+    DNXC_INIT_FUNC_DEFS;
+
+    calendar = (JER2_ARAD_OFP_RATES_CAL_SCH*)sal_alloc(sizeof(JER2_ARAD_OFP_RATES_CAL_SCH),"calendar egr_q_nif_cal");                  
+    if (calendar == NULL) {
+        DNXC_EXIT_WITH_ERR(SOC_E_MEMORY, (_BSL_DNXC_MSG("calendar egr_q_nif_cal allocation failed")));
+    }                                                                     
+    sal_memset(calendar, 0x0, sizeof(JER2_ARAD_OFP_RATES_CAL_SCH));                                      
+
+    ilkn_tdm_dedicated_queuing = SOC_DNX_CONFIG(unit)->jer2_arad->init.ilkn_tdm_dedicated_queuing;
+
+    /* 1. Classifying the nif configuration */
+    JER2_ARAD_NIF_PORT_RATES_clear(&nif_rates);
+
+    /* Add all valid interfaces */
+    DNXC_IF_ERR_EXIT(dnx_port_sw_db_valid_ports_get(unit, DNX_PORT_FLAGS_NETWORK_INTERFACE, &port_bm));
+
+    SOC_PBMP_ITER(port_bm, port) {
+        DNXC_IF_ERR_EXIT(dnx_port_sw_db_flags_get(unit, port, &flags));
+
+        if (DNX_PORT_IS_STAT_INTERFACE(flags)) {
+            /* Statistics interface is not required for Egress */
+            continue;
+        }
+        if (DNX_PORT_IS_ELK_INTERFACE(flags)){
+            continue;
+        }
+        DNXC_IF_ERR_EXIT(dnx_port_sw_db_is_master_get(unit, port, &is_master));
+        if(!is_master) {
+            continue;
+        }
+
+        DNXC_IF_ERR_EXIT(dnx_port_sw_db_interface_rate_get(unit, port, &if_rate_mbps));
+        DNXC_IF_ERR_EXIT(dnx_port_sw_db_first_phy_port_get(unit, port, &phy_port));
+        nif_id = phy_port-1;
+
+        if (if_rate_mbps < 1000) {
+            nif_rates.nif_prt_rts[nif_id].rate = JER2_ARAD_EGR_SGMII_RATE;
+        } else {
+            DNXC_IF_ERR_EXIT(dnx_port_sw_db_num_lanes_get(unit, port, &lanes));
+            DNXC_IF_ERR_EXIT(dnx_port_sw_db_interface_type_get(unit, port, &intf));
+
+            if(intf == SOC_PORT_IF_CAUI){
+                nif_rates.nif_prt_rts[nif_id].rate = 120;
+            } else if(intf == SOC_PORT_IF_TM_INTERNAL_PKT){
+                nif_rates.nif_prt_rts[nif_id].rate = 200;
+            } else if(if_rate_mbps > 10000* lanes){
+                nif_rates.nif_prt_rts[nif_id].rate = 10*lanes;
+            } else {
+                nif_rates.nif_prt_rts[nif_id].rate = if_rate_mbps / 1000;
+            }
+        }
+        nif_rates.nof_nifs++;
+    }
+
+    for (ind = 0; ind < JER2_ARAD_EGR_MAX_CAL_SIZE ; ind++ )
+    {
+        fqp_ports_rates[ind] = 0;
+        pqp_ports_rates[ind] = 0;
+    }
+ 
+    /* 2. Giving each nif weight according to its type */
+    for (ind = 0; ind < JER2_ARAD_NIF_NOF_NIFS ; ind++ )
+    {
+        fqp_ports_rates[ind] = nif_rates.nif_prt_rts[ind].rate;
+        fqp_total_credit_bandwidth += nif_rates.nif_prt_rts[ind].rate;
+
+        pqp_ports_rates[ind] = nif_rates.nif_prt_rts[ind].rate;
+        pqp_total_credit_bandwidth += nif_rates.nif_prt_rts[ind].rate;
+    }
+
+    /* 3. Adding the "others" processes of recycling, deleting as competitor with a given value */  
+    /* we use the last interface not used before and we use it for others*/
+    fqp_ports_rates[JER2_ARAD_EGR_OTHERS_INDX] = JER2_ARAD_EGQ_NIF_OTHERS_DEF_VAL;
+    fqp_total_credit_bandwidth += JER2_ARAD_EGQ_NIF_OTHERS_DEF_VAL;
+  
+    /* 4. Computing the optimal calender using "black box" jer2_arad_ofp_rates_from_rates_to_calendar function  */
+    DNXC_IF_ERR_EXIT(jer2_arad_egr_q_static_cal_build_from_rates(fqp_ports_rates, calendar));
+    calendar_len = JER2_ARAD_EGR_MAX_CAL_SIZE;
+
+    /*TDM SP MODE CONFIGURATION*/
+    if (ilkn_tdm_dedicated_queuing == JER2_ARAD_MGMT_ILKN_TDM_DEDICATED_QUEUING_MODE_ON) {
+        /*For each ilkn_tdm port nif fqp MUX has a special id find which nifs are defined as ilkn*/
+        DNXC_IF_ERR_EXIT(dnx_port_sw_db_valid_ports_get(unit, DNX_PORT_FLAGS_NETWORK_INTERFACE, &ports_bm));
+        SOC_PBMP_ITER(ports_bm, port_i) {
+            DNXC_IF_ERR_EXIT(dnx_port_sw_db_interface_type_get(unit, port_i, &nif_type));
+            if(nif_type == SOC_PORT_IF_ILKN){
+                DNXC_IF_ERR_EXIT(dnx_port_sw_db_protocol_offset_get(unit, port_i, 0, &offset));
+                if (0 == offset){
+                    is_if_0_ilkn_tdm = TRUE;
+                } else {
+                    is_if_16_ilkn_tdm = TRUE;
+                }
+            }
+        }
+    }
+
+    /* 5. Using the values computed in 4. to initialize JER2_ARAD_EGQ_FQP_NIF_PORT_MUX_TBL */
+    for (nif_id = 0; nif_id < calendar_len; nif_id++)
+    {
+        if((calendar->slots[nif_id] == JER2_ARAD_EGR_OTHERS_INDX) || (calendar->slots[nif_id] == JER2_ARAD_EGQ_NIF_PORT_CAL_BW_INVALID))
+        {
+            nif_port_mux_tbl.fqp_nif_port_mux = JER2_ARAD_EGQ_NIF_PORT_CAL_BW_GIVE_UPON_REQUEST;
+        } 
+        else 
+        {
+            /*Special ilkn tdm code { */
+            if((0 == calendar->slots[nif_id]) && (is_if_0_ilkn_tdm)){
+                nif_port_mux_tbl.fqp_nif_port_mux = 124;
+            }
+            else if((16 == calendar->slots[nif_id]) && (is_if_16_ilkn_tdm)){
+                nif_port_mux_tbl.fqp_nif_port_mux = 123;
+            }
+            /*Special ilkn tdm code }*/
+            else {
+                nif_port_mux_tbl.fqp_nif_port_mux = calendar->slots[nif_id];
+            }
+        }
+         
+        /* Set FQP table */
+        res = jer2_arad_egq_fqp_nif_port_mux_tbl_set_unsafe(
+            unit,
+            nif_id,
+            &nif_port_mux_tbl
+            );
+        DNXC_IF_ERR_EXIT(res);
+    }
+
+    /* 5.1 Enable requrets for FQP BW by "OTHERS" and Disable Higher request for 100g ports or higher*/
+    DNXC_IF_ERR_EXIT(jer2_arad_egr_q_fqp_scheduler_config(unit));
+
+    /* 6. Adding the "others" processes of recycling, CPU, OLP, OAM */
+    pqp_ports_rates[JER2_ARAD_EGQ_IFC_CPU] = JER2_ARAD_EGQ_NIF_PQP_CPU_DEF_VAL;
+    pqp_total_credit_bandwidth += JER2_ARAD_EGQ_NIF_PQP_CPU_DEF_VAL;
+
+    pqp_ports_rates[JER2_ARAD_EGQ_IFC_OLP] = JER2_ARAD_EGQ_NIF_PQP_OLP_DEF_VAL;
+    pqp_total_credit_bandwidth += JER2_ARAD_EGQ_NIF_PQP_OLP_DEF_VAL;
+
+    pqp_ports_rates[JER2_ARAD_EGQ_IFC_RCY] = JER2_ARAD_EGQ_NIF_PQP_RCY_DEF_VAL;
+    pqp_total_credit_bandwidth += JER2_ARAD_EGQ_NIF_PQP_RCY_DEF_VAL;
+
+    pqp_ports_rates[JER2_ARAD_EGQ_IFC_OAMP] = JER2_ARAD_EGQ_NIF_PQP_OAM_DEF_VAL;
+    pqp_total_credit_bandwidth += JER2_ARAD_EGQ_NIF_PQP_OAM_DEF_VAL;
+
+
+    /* 7. Computing the optimal calender using "black box" jer2_arad_ofp_rates_from_rates_to_calendar function  */
+    DNXC_IF_ERR_EXIT(jer2_arad_egr_q_static_cal_build_from_rates(pqp_ports_rates, calendar));
+    calendar_len = JER2_ARAD_EGR_MAX_CAL_SIZE;
+
+    /* 8. Using the values computed in 4. to initialize JER2_ARAD_EGQ_PQP_NIF_PORT_MUX_TBL */
+    other_pqp_to_fill = JER2_ARAD_EGQ_IFC_CPU;
+    for (nif_id = 0; nif_id < calendar_len; nif_id++)
+    {
+        /* Set PQP table */
+        if(calendar->slots[nif_id] == JER2_ARAD_EGQ_NIF_PORT_CAL_BW_INVALID)
+        {
+            pqp_nif_port_mux_tbl.pqp_nif_port_mux = other_pqp_to_fill;
+            other_pqp_to_fill = (other_pqp_to_fill == JER2_ARAD_EGQ_IFC_RCY )? JER2_ARAD_EGQ_IFC_CPU : other_pqp_to_fill+1;
+        }
+        else
+        {
+            pqp_nif_port_mux_tbl.pqp_nif_port_mux = calendar->slots[nif_id];
+        }
+        res = jer2_arad_egq_pqp_nif_port_mux_tbl_set_unsafe(
+            unit,
+            nif_id,
+            &pqp_nif_port_mux_tbl
+            );
+        DNXC_IF_ERR_EXIT(res);
+    }
+
+exit:
+    SOC_FREE(calendar);
+    DNXC_FUNC_RETURN;
+
+}
+
+/*********************************************************************
+* NAME:
+*     jer2_arad_egr_queuing_regs_init
+* FUNCTION:
+*   Initialization of the Arad blocks configured in this module.
+*   This function directly accesses registers/tables for
+*   initializations that are not covered by API-s
+* INPUT:
+*  DNX_SAND_IN  int                 unit -
+*     Identifier of the device to access.
+* RETURNS:
+*   OK or ERROR indication.
+* REMARKS:
+*   Called as part of the initialization sequence.
+*********************************************************************/
+static int
+  jer2_arad_egr_queuing_regs_init(
+    DNX_SAND_IN  int                 unit
+  )
+{
+    uint32
+        field_32,
+        reg_32;
+    uint8
+        is_petrab_in_system;
+    uint64
+        reg_64;
+    soc_reg_above_64_val_t
+        reg_above_64,
+        field_above_64;
+    int
+        core_id;
+    DNXC_INIT_FUNC_DEFS;
+
+    SOC_REG_ABOVE_64_CLEAR(reg_above_64);
+    SOC_REG_ABOVE_64_CLEAR(field_above_64);
+
+    /* Enable sending credits to various interfaces */    
+    field_32 = 0x1;
+    DNXC_IF_ERR_EXIT(WRITE_EGQ_INIT_FQP_TXI_CMICMr(unit, SOC_CORE_ALL,  field_32));
+    DNXC_IF_ERR_EXIT(WRITE_EGQ_INIT_FQP_TXI_OLPr(unit, SOC_CORE_ALL,  field_32));
+    DNXC_IF_ERR_EXIT(WRITE_EGQ_INIT_FQP_TXI_OAMr(unit, SOC_CORE_ALL,  field_32));
+    DNXC_IF_ERR_EXIT(WRITE_EGQ_INIT_FQP_TXI_RCYr(unit, SOC_CORE_ALL,  field_32));
+
+    /* Delete FIFO enable */
+    COMPILER_64_ZERO(reg_64);
+  
+
+    field_32 = 66;
+    soc_reg64_field32_set(unit,EGQ_DELETE_FIFO_CONFIGURATIONr,&reg_64,DELETE_FIFO_ALMOSTFULLf, field_32);
+    field_32 = SOC_DNX_CONFIG(unit)->tm.delete_fifo_almost_full_multicast_low_priority;
+    soc_reg64_field32_set(unit,EGQ_DELETE_FIFO_CONFIGURATIONr,&reg_64,DELETE_FIFO_ALMOSTFULL_1f, field_32);
+    field_32 = SOC_DNX_CONFIG(unit)->tm.delete_fifo_almost_full_multicast;
+    soc_reg64_field32_set(unit,EGQ_DELETE_FIFO_CONFIGURATIONr,&reg_64,DELETE_FIFO_ALMOSTFULL_2f, field_32);
+
+    if (SOC_IS_ARADPLUS_AND_BELOW(unit))
+    {
+        field_32 = SOC_DNX_CONFIG(unit)->tm.delete_fifo_almost_full_all;
+        soc_reg64_field32_set(unit,EGQ_DELETE_FIFO_CONFIGURATIONr,&reg_64,DELETE_FIFO_ALMOSTFULL_3f, field_32);
+    }
+    else /*jer2_jericho*/
+    {
+        field_32 = SOC_DNX_CONFIG(unit)->tm.delete_fifo_almost_full_except_tdm;
+        soc_reg64_field32_set(unit,EGQ_DELETE_FIFO_CONFIGURATIONr,&reg_64,DELETE_FIFO_ALMOSTFULL_3f, field_32);
+        field_32 = 42;
+        soc_reg64_field32_set(unit,EGQ_DELETE_FIFO_CONFIGURATIONr,&reg_64,DELETE_FIFO_ALMOSTFULL_4f, field_32);
+    }
+    field_32 = 42;
+    soc_reg64_field32_set(unit,EGQ_DELETE_FIFO_CONFIGURATIONr,&reg_64,DELETE_FIFO_N_RDYf, field_32);
+
+    DNXC_IF_ERR_EXIT(WRITE_EGQ_DELETE_FIFO_CONFIGURATIONr(unit, SOC_CORE_ALL, reg_64));
+
+    /* Set ports priority by default to be LOW priority */
+    SHR_BITSET_RANGE(field_above_64, 0, JER2_ARAD_EGR_NOF_BASE_Q_PAIRS);
+    soc_reg_above_64_field_set(unit, EGQ_EGRESS_PORT_PRIORITY_CONFIGURATIONr, reg_above_64, PORT_PRIORITYf, field_above_64);
+    DNXC_IF_ERR_EXIT(WRITE_EGQ_EGRESS_PORT_PRIORITY_CONFIGURATIONr(unit, SOC_CORE_ALL, reg_above_64));
+
+    /* CNTXT FIFO Thresholds */
+    reg_32 = 0;
+    soc_reg_field_set(unit, EGQ_CONTEXT_FIFO_THRESHOLD_VALUESr, &reg_32, CNTXT_FULL_THf, 42);
+    soc_reg_field_set(unit, EGQ_CONTEXT_FIFO_THRESHOLD_VALUESr, &reg_32, CNTXT_ALMOST_FULL_THf, 84);
+    DNXC_IF_ERR_EXIT(WRITE_EGQ_CONTEXT_FIFO_THRESHOLD_VALUESr(unit, SOC_CORE_ALL, reg_32));
+
+    is_petrab_in_system = jer2_arad_sw_db_is_petrab_in_system_get(unit);
+
+    if (is_petrab_in_system) 
+    {
+        /* enable 64K for Petra-B compatible */
+        SOC_DNX_CORES_ITER(SOC_CORE_ALL, core_id) {
+            DNXC_IF_ERR_EXIT(READ_EGQ_GLOBAL_CONFIGr(unit, core_id, &reg_32));
+            soc_reg_field_set(unit, EGQ_GLOBAL_CONFIGr, &reg_32, EGRESS_MC_64K_MODEf, 1);
+            DNXC_IF_ERR_EXIT(WRITE_EGQ_GLOBAL_CONFIGr(unit, core_id, reg_32));
+
+            DNXC_IF_ERR_EXIT(READ_EPNI_GLOBAL_CONFIGr(unit, core_id, &reg_32));
+            soc_reg_field_set(unit, EPNI_GLOBAL_CONFIGr, &reg_32, EGRESS_MC_64K_MODEf, 1);
+            DNXC_IF_ERR_EXIT(WRITE_EPNI_GLOBAL_CONFIGr(unit, core_id, reg_32));
+
+            DNXC_IF_ERR_EXIT(READ_EGQ_EGRESS_REPLICATION_MCID_MASKr(unit, core_id, &reg_32));
+            soc_reg_field_set(unit, EGQ_EGRESS_REPLICATION_MCID_MASKr, &reg_32, MCID_MASKf, 0x3fff);
+            DNXC_IF_ERR_EXIT(WRITE_EGQ_EGRESS_REPLICATION_MCID_MASKr(unit, core_id, reg_32));
+
+        }
+    }
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+
+/* 
+ * Set scheduled drop threshold per q-pair (egress_tc) and threshold type. 
+ * Thresholds are of dbuff (256B) and packet descriptors (pd) 
+ */
+static
+  uint32
+    jer2_arad_egr_unsched_drop_q_pair_thresh_set_unsafe(
+    DNX_SAND_IN  int                unit,
+    DNX_SAND_IN  int                core,
+    DNX_SAND_IN  uint32                egress_tc,
+    DNX_SAND_IN  uint32                threshold_type,
+    DNX_SAND_IN  uint32                drop_precedence,
+    DNX_SAND_IN  JER2_ARAD_EGR_THRESH_INFO     *thresh_info
+  )
+{
+  soc_reg_above_64_val_t data;
+  uint32 res, offset;
+  
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_UNSCHED_DROP_Q_PAIR_THRESH_SET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh_info);
+
+  if((!SOC_IS_JERICHO(unit)) && (thresh_info->packet_descriptors > SOC_DNX_DEFS_GET(unit, egq_qdct_pd_max_val)))
+  {
+    DNX_SAND_SET_ERROR_CODE(JER2_ARAD_EGR_QDCT_PD_VALUE_OUT_OF_RANGE, 5, exit);
+  }
+
+  /* QDCT offset */
+  offset = JER2_ARAD_EGQ_QDCT_TABLE_KEY_ENTRY(threshold_type,egress_tc);
+  /* Write PD threshold */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1350, exit, READ_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+  soc_EGQ_QDCT_TABLEm_field32_set(unit, data, QUEUE_MC_PD_MAX_TH_DP_0f + drop_precedence, thresh_info->packet_descriptors);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1360, exit, WRITE_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+
+  /* Write Dbuff threshold  */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1370, exit, READ_EGQ_QQST_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+  soc_EGQ_QQST_TABLEm_field32_set(unit, data, QUEUE_MC_DB_DP_0_THf + drop_precedence, thresh_info->dbuff);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1380, exit, WRITE_EGQ_QQST_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_unsched_drop_q_pair_thresh_set_unsafe()",egress_tc,threshold_type); 
+}
+
+/* 
+ * Get threshold per q-pair (egress_tc) and threshold type. 
+ * Thresholds are of dbuff (256B) and packet descriptors (pd) 
+ */
+static
+  uint32
+    jer2_arad_egr_unsched_drop_q_pair_thresh_get_unsafe(
+    DNX_SAND_IN  int                unit,
+    DNX_SAND_IN  uint32                egress_tc,
+    DNX_SAND_IN  uint32                threshold_type,
+    DNX_SAND_IN  uint32                drop_precedence,
+    DNX_SAND_OUT JER2_ARAD_EGR_THRESH_INFO     *thresh_info
+  )
+{
+  soc_reg_above_64_val_t data;
+  uint32 res, offset;
+  
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_UNSCHED_DROP_Q_PAIR_THRESH_GET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh_info);
+  
+  /* QDCT offset */
+  offset = JER2_ARAD_EGQ_QDCT_TABLE_KEY_ENTRY(threshold_type,egress_tc);
+
+  /* READ PD threshold */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1480, exit, READ_EGQ_QDCT_TABLEm(unit, MEM_BLOCK_ANY, offset, data));
+  thresh_info->packet_descriptors = soc_EGQ_QDCT_TABLEm_field32_get(unit, data, QUEUE_MC_PD_MAX_TH_DP_0f + drop_precedence);
+
+  /* READ Dbuff threshold */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1490, exit, READ_EGQ_QQST_TABLEm(unit, MEM_BLOCK_ANY, offset, data));
+  thresh_info->dbuff = soc_EGQ_QQST_TABLEm_field32_get(unit, data, QUEUE_MC_DB_DP_0_THf + drop_precedence);
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_unsched_drop_q_pair_thresh_get_unsafe()",egress_tc,threshold_type); 
+}
+
+/* 
+ * Set OFP FC threshold per q-pair (egress_tc) and threshold type. 
+ * Thresholds are of dbuff (256B) and packet descriptors (pd) 
+ */
+
+  uint32
+    jer2_arad_egr_ofp_fc_q_pair_thresh_set_unsafe(
+      DNX_SAND_IN  int                 unit,
+      DNX_SAND_IN  int                 core,
+      DNX_SAND_IN  uint32                 egress_tc,
+      DNX_SAND_IN  uint32                 threshold_type,
+      DNX_SAND_IN  JER2_ARAD_EGR_THRESH_INFO      *thresh_info
+    )
+{
+  
+  soc_reg_above_64_val_t data;
+  uint32 res, offset;
+  
+  
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_FC_Q_PAIR_THRESH_SET_UNSAFE);
+  DNX_SAND_CHECK_NULL_INPUT(thresh_info);
+
+  if(thresh_info->packet_descriptors > SOC_DNX_DEFS_GET(unit, egq_qdct_pd_max_val))
+  {
+    DNX_SAND_SET_ERROR_CODE(JER2_ARAD_EGR_QDCT_PD_VALUE_OUT_OF_RANGE, 5, exit);
+  }
+
+  /* QDCT offset */
+  offset = JER2_ARAD_EGQ_QDCT_TABLE_KEY_ENTRY(threshold_type,egress_tc);
+
+  /* Write PD threshold */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1800, exit, READ_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+  soc_EGQ_QDCT_TABLEm_field32_set(unit, data, QUEUE_UC_PD_MAX_FC_THf , thresh_info->packet_descriptors);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1810, exit, WRITE_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+
+  /* Write Dbuff threshold */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1820, exit, READ_EGQ_QQST_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+  soc_EGQ_QQST_TABLEm_field32_set(unit, data, QUEUE_UC_DB_MAX_FC_THf , thresh_info->dbuff);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1830, exit, WRITE_EGQ_QQST_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_ofp_fc_q_pair_thresh_set_unsafe()",egress_tc,threshold_type); 
+}
+
+/* 
+ * Get OFP FC threshold per q-pair (egress_tc) and threshold type. 
+ * Thresholds are of dbuff (256B) and packet descriptors (pd) 
+ */
+static
+  uint32
+    jer2_arad_egr_ofp_fc_q_pair_thresh_get_unsafe(
+      DNX_SAND_IN  int                 unit,
+      DNX_SAND_IN  int                 core,
+      DNX_SAND_IN  uint32                 egress_tc,
+      DNX_SAND_IN  uint32                 threshold_type,
+      DNX_SAND_OUT JER2_ARAD_EGR_THRESH_INFO      *thresh_info
+    )
+{
+  uint32
+    offset;
+  soc_reg_above_64_val_t data;
+  uint32 res;
+  
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_FC_Q_PAIR_THRESH_GET_UNSAFE);
+
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh_info);
+
+  SOC_REG_ABOVE_64_CLEAR(data);
+  /* QDCT offset */
+  offset = JER2_ARAD_EGQ_QDCT_TABLE_KEY_ENTRY(threshold_type,egress_tc);
+
+  /* Write PD threshold */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1930, exit, READ_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+  thresh_info->packet_descriptors = soc_EGQ_QDCT_TABLEm_field32_get(unit, data, QUEUE_UC_PD_MAX_FC_THf);
+
+  /* READ Dbuff threshold */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1940, exit, READ_EGQ_QQST_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+  thresh_info->dbuff = soc_EGQ_QQST_TABLEm_field32_get(unit, data, QUEUE_UC_DB_MAX_FC_THf);
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_ofp_fc_q_pair_thresh_get_unsafe()",egress_tc,threshold_type); 
+}
+
+/* 
+ * Set scheduled drop threshold per q-pair (egress_tc) and threshold type. 
+ * Thresholds are of dbuff (256B) and packet descriptors (pd) 
+ */
+static
+  uint32
+    jer2_arad_egr_sched_drop_q_pair_thresh_set_unsafe(
+    DNX_SAND_IN  int                unit,
+    DNX_SAND_IN  int                core,
+    DNX_SAND_IN  uint32                egress_tc,
+    DNX_SAND_IN  uint32                threshold_type,
+    DNX_SAND_IN  JER2_ARAD_EGR_THRESH_INFO     *thresh_info
+  )
+{
+  soc_reg_above_64_val_t data;
+  uint32 res, offset;
+  
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_SCHED_DROP_Q_PAIR_THRESH_SET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh_info);
+
+  if(thresh_info->packet_descriptors > SOC_DNX_DEFS_GET(unit, egq_qdct_pd_max_val))
+  {
+    DNX_SAND_SET_ERROR_CODE(JER2_ARAD_EGR_QDCT_PD_VALUE_OUT_OF_RANGE, 5, exit);
+  }
+
+  /* QDCT offset */
+  offset = JER2_ARAD_EGQ_QDCT_TABLE_KEY_ENTRY(threshold_type,egress_tc);
+
+  /* Write PD threshold */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1110, exit, READ_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+  soc_EGQ_QDCT_TABLEm_field32_set(unit, data, QUEUE_UC_PD_DIS_THf , thresh_info->packet_descriptors);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1120, exit, WRITE_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+
+  /* Write Dbuff threshold */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1130, exit, READ_EGQ_QQST_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+  soc_EGQ_QQST_TABLEm_field32_set(unit, data, QUEUE_UC_DB_DIS_THf , thresh_info->dbuff);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1140, exit, WRITE_EGQ_QQST_TABLEm(unit, EGQ_BLOCK(unit, core), offset, data));
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_unsched_drop_q_pair_thresh_set_unsafe()",egress_tc,threshold_type); 
+}
+
+/* 
+ * Get threshold per q-pair (egress_tc) and threshold type. 
+ * Thresholds are of dbuff (256B) and packet descriptors (pd) 
+ */
+static
+  uint32
+    jer2_arad_egr_sched_drop_q_pair_thresh_get_unsafe(
+    DNX_SAND_IN  int                unit,
+    DNX_SAND_IN  uint32                egress_tc,
+    DNX_SAND_IN  uint32                threshold_type,
+    DNX_SAND_OUT JER2_ARAD_EGR_THRESH_INFO     *thresh_info
+  )
+{
+  uint32 offset, res;
+  soc_reg_above_64_val_t data;
+  
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_SCHED_DROP_Q_PAIR_THRESH_GET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh_info);
+
+  /* QDCT offset */
+  offset = JER2_ARAD_EGQ_QDCT_TABLE_KEY_ENTRY(threshold_type,egress_tc);
+
+
+  /* READ PD threshold */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1240, exit, READ_EGQ_QDCT_TABLEm(unit, MEM_BLOCK_ANY, offset, data));
+  thresh_info->packet_descriptors = soc_EGQ_QDCT_TABLEm_field32_get(unit, data, QUEUE_UC_PD_DIS_THf);
+
+  /* READ Dbuff threshold */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1250, exit, READ_EGQ_QQST_TABLEm(unit, MEM_BLOCK_ANY, offset, data));
+  thresh_info->dbuff = soc_EGQ_QQST_TABLEm_field32_get(unit, data, QUEUE_UC_DB_DIS_THf);
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_sched_drop_q_pair_thresh_get_unsafe()",egress_tc,threshold_type); 
+}
+  
+/*********************************************************************
+* NAME:
+*     jer2_arad_egr_queuing_init
+* FUNCTION:
+*     Initialization of the Arad blocks configured in this module.
+* INPUT:
+*  DNX_SAND_IN  int                 unit -
+*     Identifier of the device to access.
+* RETURNS:
+*   OK or ERROR indication.
+* REMARKS:
+*   Called as part of the initialization sequence.
+*********************************************************************/
+int
+  jer2_arad_egr_queuing_init(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN          JER2_ARAD_EGR_QUEUING_PARTITION_SCHEME    scheme
+  )
+{
+    uint32
+        base_q_pair;
+    JER2_ARAD_EGQ_PPCT_TBL_DATA
+        egq_ppct_tbl_data;
+    uint32
+        ps_default_priority,
+        ps,
+        is_queue_level_interface;
+    uint64
+        data;
+    uint32
+        data32[2];
+    int core;
+    JER2_ARAD_EGR_FC_DEVICE_THRESH dev_conf, exact_dev_conf;
+    JER2_ARAD_EGR_THRESH_INFO thresh_info;
+    JER2_ARAD_EGR_QUEUING_DEV_TH device_thresh;
+    JER2_ARAD_EGR_FC_OFP_THRESH ofp_conf, exact_ofp_conf;
+    JER2_ARAD_EGR_FC_CHNIF_THRESH chnif_conf, exact_chnif_conf;
+    JER2_ARAD_EGR_QUEUING_IF_UC_FC if_uc_info;
+    JER2_ARAD_EGR_DROP_THRESH drop_thresh;
+    JER2_ARAD_EGR_DROP_THRESH exact_drop_thresh;
+    DNX_TMC_EGR_FC_OFP_THRESH fc_thresh;
+    int res, drop_precedence, egress_tc, threshold_type;
+    int mc_if_profile_ndx, uc_if_profile_ndx;
+
+    DNXC_INIT_FUNC_DEFS;
+
+    DNXC_IF_ERR_EXIT(jer2_arad_egr_queuing_regs_init(unit));
+
+    /* 
+     *  Internal mapping between base_q_pair and its according q_pair num.
+     *  Must be 1:1 mapping (HW limitation)
+     */
+    SOC_DNX_CORES_ITER(SOC_CORE_ALL, core) {
+        for (base_q_pair = 0; base_q_pair < JER2_ARAD_EGR_NOF_BASE_Q_PAIRS; base_q_pair++)
+        {
+            DNXC_IF_ERR_EXIT(jer2_arad_egq_ppct_tbl_get_unsafe(unit, core, base_q_pair, &egq_ppct_tbl_data));
+            egq_ppct_tbl_data.base_q_pair_num = base_q_pair;
+            egq_ppct_tbl_data.cgm_interface = JER2_ARAD_EGQ_IFC_DEF_VAL;
+            egq_ppct_tbl_data.cos_map_profile = 0;
+            DNXC_IF_ERR_EXIT(jer2_arad_egq_ppct_tbl_set_unsafe(unit, core, base_q_pair, &egq_ppct_tbl_data));
+        }
+    }
+
+    ps_default_priority = JER2_ARAD_EGQ_PS_DEF_PRIORITY;
+    data32[0] = 0;
+    data32[1] = 0;
+    for (ps = 0; ps < JER2_ARAD_EGR_NOF_PS; ps++) {
+        SHR_BITCOPY_RANGE(data32,ps*JER2_ARAD_EGQ_PS_PRIORITY_NOF_BITS,&ps_default_priority,0,JER2_ARAD_EGQ_PS_PRIORITY_NOF_BITS);
+    }       
+    COMPILER_64_SET(data, data32[1], data32[0]);
+    DNXC_IF_ERR_EXIT(WRITE_EGQ_PS_MODEr(unit, SOC_CORE_ALL, data));
+
+    is_queue_level_interface = DNX_SAND_BOOL2NUM((SOC_DNX_CONFIG((unit))->tm.queue_level_interface_enable));
+    if (SOC_IS_JERICHO(unit)) {
+        DNXC_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, EGQ_PQP_SPECIAL_FLOW_CONTROLr, SOC_CORE_ALL, 0, SPECIAL_FLOW_CONTROLf,
+                                                           is_queue_level_interface));
+    }
+
+
+    DNXC_IF_ERR_EXIT(MBCM_DNX_SOC_DRIVER_CALL(unit,mbcm_dnx_egr_q_nif_cal_set,(unit)));
+
+    /* Set the Egress shared resource mode */
+    DNXC_IF_ERR_EXIT(jer2_arad_egr_queuing_partition_scheme_set_unsafe(unit, scheme));
+
+        /*
+       *  Device Thresholds, currently set to maximal value
+       */
+      jer2_arad_JER2_ARAD_EGR_FC_DEVICE_THRESH_clear(&dev_conf);
+      jer2_arad_JER2_ARAD_EGR_FC_DEVICE_THRESH_clear(&exact_dev_conf);
+      dev_conf.global.buffers = 0x3fff;
+      dev_conf.global.descriptors = 0x7fff;
+      dev_conf.global.descriptors_min = 0x7fff;
+      dev_conf.scheduled.buffers = 0x3fff;
+      dev_conf.scheduled.descriptors = 0x7fff;
+      dev_conf.scheduled.descriptors_min = 0x7fff;
+      dev_conf.unscheduled_pool[0].buffers = 0x3fff;
+      dev_conf.unscheduled_pool[1].buffers = 0x3fff;
+      dev_conf.unscheduled.descriptors = 0x7fff;
+      dev_conf.unscheduled.descriptors_min = 0x7fff;
+      dev_conf.unscheduled.buffers = 0x3fff;
+      dev_conf.unscheduled_pool[0].descriptors = 0x7fff;
+      dev_conf.unscheduled_pool[1].descriptors = 0x7fff;
+      dev_conf.unscheduled_pool[0].descriptors_min = 0x7fff;
+      dev_conf.unscheduled_pool[1].descriptors_min = 0x7fff;
+      SOC_DNX_CORES_ITER(SOC_CORE_ALL, core){
+          res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_dev_fc_set, (unit, core ,&dev_conf, &exact_dev_conf));
+          DNXC_SAND_IF_ERR_EXIT(res);
+      }
+
+      /*
+       *  OFP Thresholds
+       */
+      jer2_arad_JER2_ARAD_EGR_DROP_THRESH_clear(&drop_thresh);
+      jer2_arad_JER2_ARAD_EGR_DROP_THRESH_clear(&exact_drop_thresh);
+      SOC_DNX_CORES_ITER(SOC_CORE_ALL, core){
+          for(egress_tc = 0; egress_tc < JER2_ARAD_NOF_TRAFFIC_CLASSES; ++egress_tc) {
+            for(threshold_type = 0; threshold_type < JER2_ARAD_NOF_THRESH_TYPES; ++threshold_type) {
+              drop_thresh.queue_pkts_consumed[threshold_type] = 0x600;
+              drop_thresh.queue_pkts_consumed_min[threshold_type] = 0x600;
+              drop_thresh.queue_pkts_consumed_alpha[threshold_type] = 0;
+              drop_thresh.queue_words_consumed[threshold_type] = 0x3ffff;
+              for(drop_precedence = 0; drop_precedence < JER2_ARAD_NOF_DROP_PRECEDENCE; ++drop_precedence) {
+                  res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_unsched_drop_set, (unit, core, threshold_type, egress_tc, drop_precedence, &drop_thresh, &exact_drop_thresh));
+                  DNXC_SAND_IF_ERR_EXIT(res);
+              }
+            }
+          }
+      }
+
+      fc_thresh.data_buffers = 0x800;
+      fc_thresh.data_buffers_min=0x800;
+      fc_thresh.data_buffers_alpha=0;
+      fc_thresh.packet_descriptors = 0x400;
+      fc_thresh.packet_descriptors_min = 0x400;
+      fc_thresh.packet_descriptors_alpha = 0;
+      SOC_DNX_CORES_ITER(SOC_CORE_ALL, core){
+          for(egress_tc = 0; egress_tc < JER2_ARAD_NOF_TRAFFIC_CLASSES; ++egress_tc) {
+            for(threshold_type = 0; threshold_type < JER2_ARAD_NOF_THRESH_TYPES; ++threshold_type) {
+                res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_sched_q_fc_thresh_set, (unit, core, egress_tc, threshold_type, &fc_thresh));
+                DNXC_SAND_IF_ERR_EXIT(res);
+            }
+          }
+      }
+
+      thresh_info.dbuff = 0xb00;
+      thresh_info.dbuff_min = 0xb00;
+      thresh_info.packet_descriptors = 0x600;
+      thresh_info.packet_descriptors_min = 0x600;
+      SOC_DNX_CORES_ITER(SOC_CORE_ALL, core){
+          for(egress_tc = 0; egress_tc < JER2_ARAD_NOF_TRAFFIC_CLASSES; ++egress_tc) {
+            for(threshold_type = 0; threshold_type < JER2_ARAD_NOF_THRESH_TYPES; ++threshold_type) {
+              res = jer2_arad_egr_sched_drop_q_pair_thresh_set_unsafe(
+                      unit,
+                      core,
+                      egress_tc,
+                      threshold_type,
+                      &thresh_info
+                    );
+              DNXC_SAND_IF_ERR_EXIT(res);
+            }
+          }
+      }
+
+      SOC_DNX_CORES_ITER(BCM_CORE_ALL, core)
+      {
+          res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_queuing_dev_get, (unit, core, &device_thresh));
+          DNXC_SAND_IF_ERR_EXIT(res);
+
+          /* On default, reserved should be empty */
+          for(threshold_type = 0; threshold_type < JER2_ARAD_NOF_THRESH_TYPES; ++threshold_type) {
+            for(egress_tc = 0; egress_tc < JER2_ARAD_NOF_TRAFFIC_CLASSES; ++egress_tc) {
+              device_thresh.thresh_type[threshold_type].reserved[egress_tc].descriptors = 0x000;
+              device_thresh.thresh_type[threshold_type].reserved[egress_tc].descriptors_min = 0x000;
+            }
+          }
+
+          for(threshold_type = 0; threshold_type < JER2_ARAD_NOF_THRESH_TYPES; ++threshold_type) {
+            device_thresh.thresh_type[threshold_type].uc.buffers = 0xa00;
+            device_thresh.thresh_type[threshold_type].uc.descriptors = 0x600;
+            device_thresh.thresh_type[threshold_type].uc.descriptors_min = 0x600;
+            device_thresh.thresh_type[threshold_type].mc_shared.buffers = 0x3ffff;
+            device_thresh.thresh_type[threshold_type].mc_shared.descriptors = 0x600;
+            device_thresh.thresh_type[threshold_type].mc_shared.descriptors_min = 0x600;
+          }
+
+          res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_queuing_dev_set, (unit, core, &device_thresh));
+          DNXC_SAND_IF_ERR_EXIT(res);
+
+          /* configure special additional values (min val, alpha)*/
+          if (SOC_IS_JERICHO(unit)) {
+              for(threshold_type = 0; threshold_type < JER2_ARAD_NOF_THRESH_TYPES; ++threshold_type) {
+                  res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_queuing_sch_unsch_drop_set, (unit, core, threshold_type, &device_thresh));
+                  DNXC_SAND_IF_ERR_EXIT(res);
+              }
+          }
+      }
+      SOC_DNX_CORES_ITER(SOC_CORE_ALL, core)
+      {
+          for(threshold_type = 0; threshold_type < JER2_ARAD_NOF_THRESH_TYPES; ++threshold_type) {
+            if (SOC_IS_QAX(unit)) {
+                res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_ofp_fc_get,
+                        (unit,
+                         core,
+                         JER2_ARAD_EGR_Q_PRIO_ALL,
+                         threshold_type,
+                         &ofp_conf
+                        ));
+                DNXC_SAND_IF_ERR_EXIT(res);
+
+                ofp_conf.data_buffers = 0x800;
+                ofp_conf.data_buffers_min = 0x800;
+                ofp_conf.data_buffers_alpha = 0;
+                ofp_conf.packet_descriptors = 0x400;
+                ofp_conf.packet_descriptors_min = 0x400;
+                ofp_conf.packet_descriptors_alpha = 0;
+                res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_ofp_fc_set,
+                        (unit,
+                         core,
+                         JER2_ARAD_EGR_Q_PRIO_ALL,
+                         threshold_type,
+                         &ofp_conf,
+                         &exact_ofp_conf
+                        ));
+                DNXC_SAND_IF_ERR_EXIT(res);
+
+                /* configure new min and alpha values */
+                res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_sched_port_fc_thresh_set,
+                        (unit,
+                         core,
+                         threshold_type,
+                         &ofp_conf
+                        ));
+                DNXC_SAND_IF_ERR_EXIT(res);
+            } else {
+                res = jer2_arad_egr_ofp_fc_get_unsafe(
+                         unit,
+                         core,
+                         JER2_ARAD_EGR_Q_PRIO_ALL,
+                         threshold_type,
+                         &ofp_conf
+                        );
+                DNXC_SAND_IF_ERR_EXIT(res);
+
+                ofp_conf.data_buffers = 0x800;
+                ofp_conf.data_buffers_min = 0x800;
+                ofp_conf.data_buffers_alpha = 0;
+                ofp_conf.packet_descriptors = 0x400;
+                ofp_conf.packet_descriptors_min = 0x400;
+                ofp_conf.packet_descriptors_alpha = 0;
+                res = jer2_arad_egr_ofp_fc_set_unsafe(
+                         unit,
+                         core,
+                         JER2_ARAD_EGR_Q_PRIO_ALL,
+                         threshold_type,
+                         &ofp_conf,
+                         &exact_ofp_conf
+                        );
+                DNXC_SAND_IF_ERR_EXIT(res);
+
+                /* configure new min and alpha values */
+                if (SOC_IS_JERICHO(unit)) {
+                    res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_sched_port_fc_thresh_set,
+                            (unit,
+                             core,
+                             threshold_type,
+                             &ofp_conf
+                            ));
+                DNXC_SAND_IF_ERR_EXIT(res);
+                }
+            }
+        }
+      }
+
+       jer2_arad_JER2_ARAD_EGR_FC_CHNIF_THRESH_clear(&chnif_conf);
+      jer2_arad_JER2_ARAD_EGR_FC_CHNIF_THRESH_clear(&exact_chnif_conf);
+      SOC_DNX_CORES_ITER(SOC_CORE_ALL, core){
+              for (mc_if_profile_ndx = 0; mc_if_profile_ndx < CGM_MC_INTERFACE_PD_TH_NOF_FIELDS; mc_if_profile_ndx++) {
+                  res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_queuing_if_fc_mc_set, (
+                            unit,
+                            core,
+                            mc_if_profile_ndx,
+                            0x7fff
+                        ));
+                  DNXC_SAND_IF_ERR_EXIT(res);
+              }
+
+
+          for (uc_if_profile_ndx = 0; uc_if_profile_ndx < CGM_UC_INTERFACE_TH_NOF_FIELDS; uc_if_profile_ndx++) {
+              res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_queuing_if_fc_uc_get, (
+                        unit,
+                        core,
+                        uc_if_profile_ndx,
+                        &if_uc_info
+                    ));
+              DNXC_SAND_IF_ERR_EXIT(res);
+
+              if_uc_info.pd_th = 0x7FFF;
+              if_uc_info.pd_th_min = 0x7FFF;
+			  if_uc_info.pd_th_alpha = 0;
+              if_uc_info.size256_th = 0x3FFF;
+              if_uc_info.size256_th_min = 0x3FFF;
+			  if_uc_info.size256_th_alpha = 0;
+              res = MBCM_DNX_DRIVER_CALL(unit, mbcm_dnx_egr_queuing_if_fc_uc_set, (
+                        unit,
+                        core,
+                        uc_if_profile_ndx,
+                        &if_uc_info
+                    ));
+              DNXC_SAND_IF_ERR_EXIT(res);
+          }
+      }
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+
+
+/* Mapping from Queue-pair to OTM-Port and TC */
+uint32
+  jer2_arad_egr_queuing_q_pair_port_tc_find(
+    DNX_SAND_IN  int                      unit,
+    DNX_SAND_IN  uint32                        q_pair,
+    DNX_SAND_OUT uint8                        *found,
+    DNX_SAND_OUT JER2_ARAD_FAP_PORT_ID               *ofp_idx,
+    DNX_SAND_OUT uint32                          *tc
+  )
+{
+  uint32
+      tc_lcl = 0;
+  uint32
+    base_q_pair,
+    nof_priorities,
+    res,
+    port_i,
+    flags;
+  uint8
+    found_lcl = FALSE;
+  soc_pbmp_t
+    pbmp;
+  uint32 
+    ofp_ndx = 0;
+  int
+    core;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_Q_PAIR_PORT_TC_FIND);
+
+  /* Find a port where the Queue-pair is inside, and then compute the TC */
+  found_lcl = FALSE;
+
+  res = dnx_port_sw_db_valid_ports_get(unit, 0, &pbmp);
+  DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 1, exit);
+
+  SOC_PBMP_ITER(pbmp, port_i)
+  {
+      res = dnx_port_sw_db_flags_get(unit, port_i, &flags);
+      DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 2, exit);
+
+      if (DNX_PORT_IS_ELK_INTERFACE(flags) || DNX_PORT_IS_STAT_INTERFACE(flags)) {
+          continue;
+      }
+      res = sw_state_access[unit].dnx.soc.jer2_arad.tm.logical_ports_info.base_q_pair.get(unit, port_i, &base_q_pair);
+      DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 5, exit);
+
+      res = dnx_port_sw_db_local_to_out_port_priority_get(unit, port_i, &nof_priorities);
+      DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 7, exit);
+
+      if ((q_pair >= base_q_pair) && (q_pair < base_q_pair + nof_priorities)) {
+          found_lcl = TRUE;
+          tc_lcl = q_pair - base_q_pair;
+
+          res = dnx_port_sw_db_local_to_tm_port_get(unit, port_i, &ofp_ndx, &core);
+          DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 3, exit);
+
+          break;
+      }
+  }
+
+  *found = found_lcl;
+  *ofp_idx = ofp_ndx;
+  *tc = tc_lcl;
+
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_q_pair_port_tc_find()", q_pair, 0);
+}
+
+
+/*********************************************************************
+*     Sets Outgoing FAP Port (OFP) threshold type, per port.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_ofp_thresh_type_set_unsafe(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  int                 core_id,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID    tm_port,
+    DNX_SAND_IN  JER2_ARAD_EGR_PORT_THRESH_TYPE ofp_thresh_type
+  )
+{
+  uint32
+    res;
+  JER2_ARAD_EGQ_PPCT_TBL_DATA
+    ppct_tbl_data;
+  JER2_ARAD_EGQ_PCT_TBL_DATA
+    pct_tbl_data;
+  uint32
+    base_q_pair,
+    nof_pairs,
+    curr_q_pair;
+  
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_THRESH_TYPE_SET_UNSAFE);
+  
+  /* Retreive base_q_pair */
+  res = dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core_id, tm_port, &base_q_pair);
+  DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 3, exit);
+
+  res = dnx_port_sw_db_tm_port_to_out_port_priority_get(unit, core_id, tm_port, &nof_pairs);
+  DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 4, exit);
+
+  res = jer2_arad_egq_ppct_tbl_get_unsafe(
+          unit,
+          core_id,
+          base_q_pair,
+          &ppct_tbl_data
+        );
+  DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 5, exit);
+
+  ppct_tbl_data.cgm_port_profile = ofp_thresh_type;
+
+  res = jer2_arad_egq_ppct_tbl_set_unsafe(
+          unit,
+          core_id,
+          base_q_pair,
+          &ppct_tbl_data
+        );
+  DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 10, exit); 
+     
+  /* PCT is per q_pair */
+  for (curr_q_pair = base_q_pair; curr_q_pair - base_q_pair < nof_pairs; curr_q_pair++)
+  {
+    res = jer2_arad_egq_pct_tbl_get_unsafe(
+          unit,
+          core_id,
+          curr_q_pair,
+          &pct_tbl_data
+        );
+    DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 15, exit);
+
+    pct_tbl_data.port_profile = ofp_thresh_type;
+
+    res = jer2_arad_egq_pct_tbl_set_unsafe(
+            unit,
+            core_id,
+            curr_q_pair,
+            &pct_tbl_data
+          );
+    DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 20, exit); 
+
+    if (SOC_DNX_CONFIG((unit))->tm.queue_level_interface_enable) 
+    {
+      soc_port_if_t interface_type;
+      soc_port_t logical_port;
+
+      res = dnx_port_sw_db_tm_to_local_port_get(unit, core_id, tm_port, &logical_port);
+      DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 16, exit);
+      res = dnx_port_sw_db_interface_type_get(unit, logical_port, &interface_type);
+      DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 17, exit);
+
+      /* Set also Mc-Queue-ID when port is ILKN Port */
+      if (interface_type == SOC_PORT_IF_ILKN) 
+      {
+        int curr_mc_q_pair;
+
+        curr_mc_q_pair = JER2_ARAD_EGR_QUEUING_MC_QUEUE_OFFSET(curr_q_pair); 
+      
+        res = jer2_arad_egq_pct_tbl_get_unsafe(
+                unit,
+                core_id,
+                curr_mc_q_pair,
+                &pct_tbl_data
+              );
+        DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 15, exit);
+
+        pct_tbl_data.port_profile = ofp_thresh_type;
+
+        res = jer2_arad_egq_pct_tbl_set_unsafe(
+                unit,
+                core_id,
+                curr_mc_q_pair,
+                &pct_tbl_data
+              );
+        DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 20, exit); 
+      }
+    }
+  }
+
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_ofp_thresh_type_set_unsafe()",0,0);
+}
+
+/*********************************************************************
+*     Sets Outgoing FAP Port (OFP) threshold type, per port.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_ofp_thresh_type_verify(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID         ofp_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_PORT_THRESH_TYPE ofp_thresh_type
+  )
+{
+  uint32
+    res;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_THRESH_TYPE_VERIFY);
+
+  res = jer2_arad_fap_port_id_verify(unit, ofp_ndx);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  DNX_SAND_ERR_IF_ABOVE_MAX(
+    ofp_thresh_type, JER2_ARAD_EGR_PORT_NOF_THRESH_TYPES-1,
+    JER2_ARAD_EGR_THRESH_TYPE_OUT_OF_RANGE_ERR, 20, exit
+  );
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_ofp_thresh_type_verify()",0,0);
+}
+
+/*********************************************************************
+*     Sets Outgoing FAP Port (OFP) threshold type, per port.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_ofp_thresh_type_get_unsafe(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  int                 core_id,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID          ofp_ndx,
+    DNX_SAND_OUT JER2_ARAD_EGR_PORT_THRESH_TYPE *ofp_thresh_type
+  )
+{
+  uint32
+    res;
+  uint32
+    base_q_pair;
+  JER2_ARAD_EGQ_PPCT_TBL_DATA
+    tbl_data;
+  JER2_ARAD_EGR_PORT_THRESH_TYPE  
+    thresh_type_val;  
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_THRESH_TYPE_GET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(ofp_thresh_type);
+
+  res = jer2_arad_fap_port_id_verify(unit, ofp_ndx);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 5, exit);
+  
+  /* Retreive base_q_pair */
+  res = dnx_port_sw_db_tm_port_to_base_q_pair_get(unit,core_id, ofp_ndx, &base_q_pair);
+  DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 10, exit);
+
+  res = jer2_arad_egq_ppct_tbl_get_unsafe(
+          unit,
+          core_id,
+          base_q_pair,
+          &tbl_data
+        );
+  DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 15, exit);
+
+  thresh_type_val = tbl_data.cgm_port_profile;
+
+  *ofp_thresh_type = (JER2_ARAD_EGR_PORT_THRESH_TYPE)thresh_type_val;
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_ofp_thresh_type_get_unsafe()",0,0);
+}
+
+/*********************************************************************
+*     Set scheduled drop thresholds for egress queues per
+*     queue-priority.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_sched_drop_set_unsafe(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  int                 core,
+    DNX_SAND_IN  int                 profile,
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIO          prio_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_DROP_THRESH     *thresh,
+    DNX_SAND_OUT JER2_ARAD_EGR_DROP_THRESH     *exact_thresh
+  )
+{
+  uint32
+    res;
+  JER2_ARAD_EGR_THRESH_INFO
+    thresh_info;
+  uint32
+    egress_tc; 
+  
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_SCHED_DROP_SET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh);
+  DNX_SAND_CHECK_NULL_INPUT(exact_thresh); 
+
+  /* API is used only for ports with 2 q-pairs only */
+  /* For other types of q-pairs (1 or 8), refer to (? - need to be done) */
+  egress_tc = prio_ndx;
+
+  jer2_arad_JER2_ARAD_EGR_THRESH_INFO_clear(&thresh_info);
+  thresh_info.dbuff = thresh->queue_words_consumed[profile]; /* queue_words_consumed parameter used for Data buffers */
+  thresh_info.packet_descriptors = thresh->queue_pkts_consumed[profile];
+  res = jer2_arad_egr_sched_drop_q_pair_thresh_set_unsafe(
+             unit,
+             core,
+             egress_tc,
+             profile,
+             &thresh_info
+           );
+  DNX_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+  exact_thresh->queue_words_consumed[profile] = thresh_info.dbuff;/* queue_words_consumed parameter used for Data buffers in Arad */
+  exact_thresh->queue_pkts_consumed[profile] = thresh_info.packet_descriptors;
+  
+  
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_sched_drop_set_unsafe()",prio_ndx,0);
+}
+
+/*********************************************************************
+*     Set scheduled drop thresholds for egress queues per
+*     queue-priority.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_sched_drop_verify(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIO          prio_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_DROP_THRESH     *thresh
+  )
+{
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_SCHED_DROP_VERIFY);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh);
+
+  DNX_SAND_MAGIC_NUM_VERIFY(thresh);
+  if (prio_ndx != JER2_ARAD_EGR_Q_PRIO_ALL)
+  {
+      DNX_SAND_ERR_IF_ABOVE_MAX(
+      prio_ndx, JER2_ARAD_EGR_NOF_Q_PRIO-1,
+      JER2_ARAD_EGR_Q_PRIO_OUT_OF_RANGE_ERR, 10, exit
+      );
+  }
+  
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_sched_drop_verify()",0,0);
+}
+
+/*********************************************************************
+*     Set scheduled drop thresholds for egress queues per
+*     queue-priority.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_sched_drop_get_unsafe(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIO          prio_ndx,
+    DNX_SAND_OUT JER2_ARAD_EGR_DROP_THRESH     *thresh
+  )
+{
+  uint32
+    res;
+  JER2_ARAD_EGR_THRESH_INFO
+    thresh_info;
+  uint32
+    egress_tc;
+  JER2_ARAD_EGR_PORT_THRESH_TYPE
+    thresh_type;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_SCHED_DROP_GET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh); 
+
+  egress_tc = prio_ndx;
+
+  for (thresh_type = JER2_ARAD_EGR_PORT_THRESH_TYPE_0; thresh_type < JER2_ARAD_EGR_PORT_NOF_THRESH_TYPES; thresh_type++)
+  {     
+     jer2_arad_JER2_ARAD_EGR_THRESH_INFO_clear(&thresh_info);
+
+     res = jer2_arad_egr_sched_drop_q_pair_thresh_get_unsafe(
+             unit,
+             egress_tc,
+             thresh_type,
+             &thresh_info             
+           );
+     DNX_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+     thresh->queue_words_consumed[thresh_type] = thresh_info.dbuff;/* queue_words_consumed parameter used for Data buffers in Arad */
+     thresh->queue_pkts_consumed[thresh_type] = thresh_info.packet_descriptors;
+  }
+
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_sched_drop_get_unsafe()",0,0);
+}
+
+uint32
+  jer2_arad_egr_unsched_drop_set_unsafe(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  int                 core,
+    DNX_SAND_IN  int                 profile,
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIO           prio_ndx,
+    DNX_SAND_IN  uint32                 dp_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_DROP_THRESH     *thresh,
+    DNX_SAND_OUT JER2_ARAD_EGR_DROP_THRESH     *exact_thresh
+  )
+{
+  uint32
+    res;
+  JER2_ARAD_EGR_THRESH_INFO
+    thresh_info;
+  uint32
+    egress_tc;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_UNSCHED_DROP_SET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh);
+  DNX_SAND_CHECK_NULL_INPUT(exact_thresh); 
+
+  egress_tc = prio_ndx;
+    
+  jer2_arad_JER2_ARAD_EGR_THRESH_INFO_clear(&thresh_info);
+  thresh_info.dbuff = thresh->queue_words_consumed[profile];/* queue_words_consumed parameter used for Data buffers in Arad */
+  thresh_info.packet_descriptors = thresh->queue_pkts_consumed[profile];
+  res = jer2_arad_egr_unsched_drop_q_pair_thresh_set_unsafe(
+             unit,
+             core,
+             egress_tc,
+             profile,
+             dp_ndx,
+             &thresh_info
+         );
+  DNX_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+  exact_thresh->queue_words_consumed[profile] = thresh_info.dbuff;/* queue_words_consumed parameter used for Data buffers in Arad */
+  exact_thresh->queue_pkts_consumed[profile] = thresh_info.packet_descriptors;
+  
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_unsched_drop_set_unsafe()",prio_ndx,dp_ndx);
+}
+
+uint32
+  jer2_arad_egr_sched_port_fc_thresh_set_unsafe(
+    DNX_SAND_IN  int                unit,
+    DNX_SAND_IN  int                core,
+    DNX_SAND_IN  int                threshold_type,
+    DNX_SAND_IN  DNX_TMC_EGR_FC_OFP_THRESH *thresh
+  )
+{
+    uint32 res, field_32;
+    soc_reg_above_64_val_t mem;
+
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_SCHED_PORT_FC_THRESH_SET_UNSAFE);
+    DNX_SAND_CHECK_DRIVER_AND_DEVICE;
+
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1100, exit, READ_EGQ_PDCT_TABLEm(unit, EGQ_BLOCK(unit, core), threshold_type, mem));
+    field_32 = thresh->packet_descriptors;
+    soc_EGQ_PDCT_TABLEm_field_set(unit, mem, PORT_UC_PD_MAX_FC_THf, &field_32);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1110, exit, WRITE_EGQ_PDCT_TABLEm(unit, EGQ_BLOCK(unit, core), threshold_type, mem));
+
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1120, exit, READ_EGQ_PQST_TABLEm(unit, EGQ_BLOCK(unit, core), threshold_type, mem));
+    field_32 = thresh->data_buffers;
+    soc_EGQ_PQST_TABLEm_field_set(unit, mem, PORT_UC_DB_MAX_FC_THf, &field_32);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1130, exit, WRITE_EGQ_PQST_TABLEm(unit, EGQ_BLOCK(unit, core), threshold_type, mem));
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_sched_port_fc_thresh_set_unsafe()",0, 0);
+
+}
+
+/*********************************************************************
+*     Set unscheduled drop thresholds for egress queues, per
+*     queue-priority and drop precedence.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_unsched_drop_verify(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIO          prio_ndx,
+    DNX_SAND_IN  uint32                 dp_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_DROP_THRESH     *thresh
+  )
+{
+  uint32
+    res;
+  
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_UNSCHED_DROP_VERIFY);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh);
+  DNX_SAND_MAGIC_NUM_VERIFY(thresh);
+
+  if (prio_ndx != JER2_ARAD_EGR_Q_PRIO_ALL)
+  {
+      DNX_SAND_ERR_IF_ABOVE_MAX(
+      prio_ndx, JER2_ARAD_EGR_NOF_Q_PRIO-1,
+      JER2_ARAD_EGR_Q_PRIO_OUT_OF_RANGE_ERR, 10, exit
+      );
+  }
+
+  res = jer2_arad_drop_precedence_verify(dp_ndx);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_unsched_drop_verify()",0,0);
+}
+
+uint32
+  jer2_arad_egr_unsched_drop_get_unsafe(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIO          prio_ndx,
+    DNX_SAND_IN  uint32                 dp_ndx,
+    DNX_SAND_OUT JER2_ARAD_EGR_DROP_THRESH     *thresh
+  )
+{
+  uint32
+    res;
+  JER2_ARAD_EGR_THRESH_INFO
+    thresh_info;
+  uint32
+    egress_tc;
+  JER2_ARAD_EGR_PORT_THRESH_TYPE
+    thresh_type;
+
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_UNSCHED_DROP_GET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh);
+
+  if (prio_ndx != JER2_ARAD_EGR_Q_PRIO_ALL){
+      DNX_SAND_ERR_IF_ABOVE_MAX(
+      prio_ndx, JER2_ARAD_EGR_NOF_Q_PRIO-1,
+      JER2_ARAD_EGR_Q_PRIO_OUT_OF_RANGE_ERR, 10, exit
+      );
+  }
+
+  res = jer2_arad_drop_precedence_verify(dp_ndx);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+  egress_tc = prio_ndx;
+
+  for (thresh_type = JER2_ARAD_EGR_PORT_THRESH_TYPE_0; thresh_type < JER2_ARAD_EGR_PORT_NOF_THRESH_TYPES; thresh_type++)
+  {     
+     jer2_arad_JER2_ARAD_EGR_THRESH_INFO_clear(&thresh_info);
+
+     res = jer2_arad_egr_unsched_drop_q_pair_thresh_get_unsafe(
+             unit,
+             egress_tc,
+             thresh_type,
+             dp_ndx,
+             &thresh_info
+           );
+     DNX_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+     thresh->queue_words_consumed[thresh_type] = thresh_info.dbuff;/* queue_words_consumed parameter used for Data buffers in Arad */
+     thresh->queue_pkts_consumed[thresh_type] = thresh_info.packet_descriptors;
+  }
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_unsched_drop_get_unsafe()",prio_ndx,dp_ndx);
+}
+
+/*********************************************************************
+*     Set Flow Control thresholds for egress queues, based on
+*     device-level resources. Threshold are set for overall
+*     resources, and scheduled resources.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_dev_fc_set_unsafe(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  int                 core,
+    DNX_SAND_IN  JER2_ARAD_EGR_FC_DEVICE_THRESH *thresh,
+    DNX_SAND_OUT JER2_ARAD_EGR_FC_DEVICE_THRESH *exact_thresh
+  )
+{
+  soc_reg_above_64_val_t
+    data,
+    field_val;
+  uint32 res;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DEV_FC_SET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh);
+  DNX_SAND_CHECK_NULL_INPUT(exact_thresh);
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1590, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr(unit, core, data));
+
+  /* Global { */
+  /* Global FC DBuff */
+  SOC_REG_ABOVE_64_CLEAR(field_val);
+  SHR_BITCOPY_RANGE(field_val,0,&(thresh->global.buffers),0,JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, TOTAL_DATA_BUFFERS_FLOW_CONTROL_LIMITf,field_val);
+  exact_thresh->global.buffers = thresh->global.buffers;
+
+  /* Global FC PD */
+  SHR_BITCOPY_RANGE(field_val,0,&(thresh->global.descriptors),0,JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, TOTAL_PACKET_DESCRIPTORS_FLOW_CONTROLLIMITf,field_val);
+  exact_thresh->global.descriptors = thresh->global.descriptors;
+
+  /* Global } */
+
+  /* UC { */
+  /* UC FC DBuff */
+  SOC_REG_ABOVE_64_CLEAR(field_val);
+  SHR_BITCOPY_RANGE(field_val,0,&(thresh->scheduled.buffers),0,JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, UNICAST_DATA_BUFFERS_FLOW_CONTROL_LIMITf, field_val);
+  exact_thresh->scheduled.buffers = thresh->scheduled.buffers;
+
+  /* UC FC PD */
+  SHR_BITCOPY_RANGE(field_val,0,&(thresh->scheduled.descriptors),0,JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, UNICAST_PACKET_DESCRIPTORS_FLOW_CONTROL_LIMITf,field_val);
+  exact_thresh->scheduled.descriptors = thresh->scheduled.descriptors;
+
+  /* UC } */
+
+  /* MC { */
+  /* MC FC DBuff */
+  SOC_REG_ABOVE_64_CLEAR(field_val);
+  SHR_BITCOPY_RANGE(field_val,0,&(thresh->unscheduled.buffers),0,JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_DATA_BUFFERS_FLOW_CONTROL_LIMITf, field_val);
+  exact_thresh->unscheduled.buffers = thresh->unscheduled.buffers;
+
+  /* MC FC PD */
+  SHR_BITCOPY_RANGE(field_val,0,&(thresh->unscheduled.descriptors),0,JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_PACKET_DESCRIPTORS_FLOW_CONTROL_LIMITf,field_val);
+  exact_thresh->unscheduled.descriptors = thresh->unscheduled.descriptors;
+
+  /* CFG MC SP0 FC DBuff */
+  SOC_REG_ABOVE_64_CLEAR(field_val);
+  SHR_BITCOPY_RANGE(field_val,0,&(thresh->unscheduled_pool[0].buffers),0,JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_DATA_BUFFERS_SERVICE_POOL_0_FLOW_CONTROL_LIMITf, field_val);
+  exact_thresh->unscheduled_pool[0].buffers = thresh->unscheduled_pool[0].buffers;
+
+  /* CFG MC SP0 FC PD */
+  SHR_BITCOPY_RANGE(field_val,0,&(thresh->unscheduled_pool[0].descriptors),0,JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_PACKET_DESCRIPTORS_SERVICE_POOL_0_FLOW_CONTROL_LIMITf,field_val);
+  exact_thresh->unscheduled_pool[0].descriptors = thresh->unscheduled_pool[0].descriptors;
+
+  /* CFG MC SP1 FC DBuff */
+  SOC_REG_ABOVE_64_CLEAR(field_val);
+  SHR_BITCOPY_RANGE(field_val,0,&(thresh->unscheduled_pool[1].buffers),0,JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_DATA_BUFFERS_SERVICE_POOL_1_FLOW_CONTROL_LIMITf, field_val);
+  exact_thresh->unscheduled_pool[1].buffers = thresh->unscheduled_pool[1].buffers;
+
+  /* CFG MC SP0 FC PD */
+  SHR_BITCOPY_RANGE(field_val,0,&(thresh->unscheduled_pool[1].descriptors),0,JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_PACKET_DESCRIPTORS_SERVICE_POOL_1_FLOW_CONTROL_LIMITf,field_val);
+  exact_thresh->unscheduled_pool[1].descriptors = thresh->unscheduled_pool[1].descriptors;
+
+  /* MC } */
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1600, exit, WRITE_CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr(unit, core, data));
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_dev_fc_set_unsafe()",0,0);
+}
+
+/*********************************************************************
+*     Set Flow Control thresholds for egress queues, based on
+*     device-level resources. Threshold are set for overall
+*     resources, and scheduled resources.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_dev_fc_verify(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  JER2_ARAD_EGR_FC_DEVICE_THRESH *thresh
+  )
+{
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DEV_FC_VERIFY);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh);
+  DNX_SAND_MAGIC_NUM_VERIFY(thresh);
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_dev_fc_verify()",0,0);
+}
+
+/*********************************************************************
+*     Set Flow Control thresholds for egress queues, based on
+*     device-level resources. Threshold are set for overall
+*     resources, and scheduled resources.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_dev_fc_get_unsafe(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  int                 core,
+    DNX_SAND_OUT JER2_ARAD_EGR_FC_DEVICE_THRESH *thresh
+  )
+{
+  soc_reg_above_64_val_t
+    data,
+    field_val;
+  uint32 res;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DEV_FC_GET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh);
+
+  jer2_arad_JER2_ARAD_EGR_FC_DEVICE_THRESH_clear(thresh);
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1700, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr(unit,core,  data));
+  /* General { */
+  /* General Dbuff */
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, TOTAL_DATA_BUFFERS_FLOW_CONTROL_LIMITf, field_val);
+  SHR_BITCOPY_RANGE(&(thresh->global.buffers),0,field_val,0,JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+
+  /* General PD */
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, TOTAL_PACKET_DESCRIPTORS_FLOW_CONTROLLIMITf, field_val);
+  SHR_BITCOPY_RANGE(&(thresh->global.descriptors),0,field_val,0,JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+
+  /* General } */
+
+  /* UC { */
+  /* UC Dbuff */
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, UNICAST_DATA_BUFFERS_FLOW_CONTROL_LIMITf, field_val);
+  SHR_BITCOPY_RANGE(&(thresh->scheduled.buffers),0,field_val,0,JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+
+  /* UC PD */
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, UNICAST_PACKET_DESCRIPTORS_FLOW_CONTROL_LIMITf, field_val);
+  SHR_BITCOPY_RANGE(&(thresh->scheduled.descriptors),0,field_val,0,JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+
+  /* UC } */
+
+  /* MC { */
+  /* MC FC DBuff */
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_DATA_BUFFERS_FLOW_CONTROL_LIMITf, field_val);
+  SHR_BITCOPY_RANGE(&(thresh->unscheduled.buffers),0,field_val,0,JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+
+  /* MC FC PD */
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_PACKET_DESCRIPTORS_FLOW_CONTROL_LIMITf,field_val);
+  SHR_BITCOPY_RANGE(&(thresh->unscheduled.descriptors),0,field_val,0,JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+
+  /* CFG MC SP0 FC DBuff */
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_DATA_BUFFERS_SERVICE_POOL_0_FLOW_CONTROL_LIMITf, field_val);
+  SHR_BITCOPY_RANGE(&(thresh->unscheduled_pool[0].buffers),0,field_val,0,JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+
+  /* CFG MC SP0 FC PD */
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_PACKET_DESCRIPTORS_SERVICE_POOL_0_FLOW_CONTROL_LIMITf,field_val);
+  SHR_BITCOPY_RANGE(&(thresh->unscheduled_pool[0].descriptors),0,field_val,0,JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+
+  /* CFG MC SP1 FC DBuff */
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_DATA_BUFFERS_SERVICE_POOL_1_FLOW_CONTROL_LIMITf, field_val);
+  SHR_BITCOPY_RANGE(&(thresh->unscheduled_pool[1].buffers),0,field_val,0,JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+
+  /* CFG MC SP0 FC PD */
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, data, MULTICAST_PACKET_DESCRIPTORS_SERVICE_POOL_1_FLOW_CONTROL_LIMITf,field_val);
+  SHR_BITCOPY_RANGE(&(thresh->unscheduled_pool[1].descriptors),0,field_val,0,JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+
+  /* MC } */
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_dev_fc_get_unsafe()",0,0);
+}
+
+/*********************************************************************
+*     Set Flow Control thresholds for egress queues, per port
+*     queue priority and threshold type, based on Outgoing FAP
+*     Port (OFP) resources.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_ofp_fc_set_unsafe(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  int                 core,
+    DNX_SAND_IN  uint32                 prio_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_PORT_THRESH_TYPE ofp_type_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_FC_OFP_THRESH   *thresh,
+    DNX_SAND_OUT JER2_ARAD_EGR_FC_OFP_THRESH   *exact_thresh
+  )
+{
+  uint32
+    res;
+  uint32
+    egress_tc;
+  JER2_ARAD_EGR_THRESH_INFO
+    thresh_info;
+  soc_reg_above_64_val_t
+    reg_pd,
+    field_pd,
+    reg_db,
+    field_db,
+    mem;
+  uint32
+    field_32;
+        
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_FC_SET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh);
+  DNX_SAND_CHECK_NULL_INPUT(exact_thresh);
+
+  SOC_REG_ABOVE_64_CLEAR(reg_pd);
+  SOC_REG_ABOVE_64_CLEAR(field_pd);
+  SOC_REG_ABOVE_64_CLEAR(reg_db);
+  SOC_REG_ABOVE_64_CLEAR(field_db);
+  SOC_REG_ABOVE_64_CLEAR(mem);
+
+  jer2_arad_JER2_ARAD_EGR_THRESH_INFO_clear(&thresh_info);
+
+  if(prio_ndx == JER2_ARAD_EGR_Q_PRIO_ALL) {
+    /* CGM_CGM_MC_PD_TC_FC_THr */
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 2040, exit, READ_CGM_CGM_MC_PD_TC_FC_THr(unit, core, reg_pd));
+    SHR_BITCOPY_RANGE(field_pd, 0, &thresh->mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 2050, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr(unit, core, reg_db));
+    SHR_BITCOPY_RANGE(field_db, 0, &thresh->mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+
+    switch(ofp_type_ndx) {
+      case 0:
+        soc_reg_above_64_field_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_0f, field_pd);
+        soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_0_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 1:
+        soc_reg_above_64_field_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_1f, field_pd);
+        soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_1_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 2:
+        soc_reg_above_64_field_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_2f, field_pd);
+        soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_2_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 3:
+        soc_reg_above_64_field_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_3f, field_pd);
+        soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_3_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 4:
+        soc_reg_above_64_field_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_4f, field_pd);
+        soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_4_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 5:
+        soc_reg_above_64_field_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_5f, field_pd);
+        soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_5_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 6:
+        soc_reg_above_64_field_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_6f, field_pd);
+        soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_6_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 7:
+        soc_reg_above_64_field_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_7f, field_pd);
+        soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_7_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      default:
+          break;
+    }
+    if(ofp_type_ndx < 8) {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 2060, exit, WRITE_CGM_CGM_MC_PD_TC_FC_THr(unit, core, reg_pd));
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 2070, exit, WRITE_CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr(unit, core, reg_db));
+    }
+
+    /* EGQ_PDCT_TABLEm */
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 2080, exit, READ_EGQ_PDCT_TABLEm(unit, EGQ_BLOCK(unit, core), ofp_type_ndx, mem));
+    field_32 = thresh->packet_descriptors;
+    soc_EGQ_PDCT_TABLEm_field_set(unit, mem, PORT_UC_PD_MAX_FC_THf, &field_32);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 2090, exit, WRITE_EGQ_PDCT_TABLEm(unit, EGQ_BLOCK(unit, core), ofp_type_ndx, mem));
+
+    /* EGQ_PQST_TABLEm */
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 2100, exit, READ_EGQ_PQST_TABLEm(unit, EGQ_BLOCK(unit, core), ofp_type_ndx, mem));
+    field_32 = thresh->data_buffers;
+    soc_EGQ_PQST_TABLEm_field_set(unit, mem, PORT_UC_DB_MAX_FC_THf, &field_32);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 2110, exit, WRITE_EGQ_PQST_TABLEm(unit, EGQ_BLOCK(unit, core), ofp_type_ndx, mem));
+  }
+  else
+  {
+      egress_tc = prio_ndx;
+
+      thresh_info.dbuff = thresh->words;/* queue_words_consumed parameter used for Data buffers in Arad */
+      thresh_info.packet_descriptors = thresh->packet_descriptors;
+
+      res = jer2_arad_egr_ofp_fc_q_pair_thresh_set_unsafe(
+               unit,
+               core,
+               egress_tc,
+               ofp_type_ndx,
+               &thresh_info
+             );
+      DNX_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+      exact_thresh->words = thresh_info.dbuff;
+      exact_thresh->packet_descriptors = thresh_info.packet_descriptors;
+  }
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_ofp_fc_set_unsafe()",prio_ndx,ofp_type_ndx);
+}
+
+/*********************************************************************
+*     Set Flow Control thresholds for egress queues, per port
+*     queue priority and threshold type, based on Outgoing FAP
+*     Port (OFP) resources.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_ofp_fc_verify(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIO          prio_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_PORT_THRESH_TYPE ofp_type_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_FC_OFP_THRESH   *thresh
+  )
+{
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_FC_VERIFY);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh);
+
+  DNX_SAND_MAGIC_NUM_VERIFY(thresh);
+
+  if (prio_ndx != JER2_ARAD_EGR_Q_PRIO_ALL){
+      DNX_SAND_ERR_IF_ABOVE_MAX(
+      prio_ndx, JER2_ARAD_EGR_NOF_Q_PRIO-1,
+      JER2_ARAD_EGR_Q_PRIO_OUT_OF_RANGE_ERR, 10, exit
+      );
+  }
+
+  DNX_SAND_ERR_IF_ABOVE_MAX(
+    ofp_type_ndx, JER2_ARAD_EGR_PORT_NOF_THRESH_TYPES-1,
+    JER2_ARAD_EGR_THRESH_TYPE_OUT_OF_RANGE_ERR, 20, exit
+  );  
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_ofp_fc_verify()",prio_ndx,ofp_type_ndx);
+}
+
+/*********************************************************************
+*     Set Flow Control thresholds for egress queues, per port
+*     queue priority and threshold type, based on Outgoing FAP
+*     Port (OFP) resources.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_ofp_fc_get_unsafe(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  int                 core,
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIO          prio_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_PORT_THRESH_TYPE ofp_type_ndx,
+    DNX_SAND_OUT JER2_ARAD_EGR_FC_OFP_THRESH   *thresh
+  )
+{
+  uint32
+    res;
+  uint32
+    egress_tc;
+  JER2_ARAD_EGR_THRESH_INFO
+    thresh_info;
+  soc_reg_above_64_val_t
+    reg_pd,
+    field_pd,
+    reg_db,
+    field_db,
+    mem;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_FC_GET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(thresh);
+
+  if (prio_ndx != JER2_ARAD_EGR_Q_PRIO_ALL) {
+      DNX_SAND_ERR_IF_ABOVE_MAX(
+        prio_ndx, JER2_ARAD_EGR_NOF_Q_PRIO-1,
+        JER2_ARAD_EGR_Q_PRIO_OUT_OF_RANGE_ERR, 10, exit
+      );
+  }
+
+  DNX_SAND_ERR_IF_ABOVE_MAX(
+    ofp_type_ndx, JER2_ARAD_EGR_PORT_NOF_THRESH_TYPES-1,
+    JER2_ARAD_EGR_THRESH_TYPE_OUT_OF_RANGE_ERR, 20, exit
+  );
+
+  jer2_arad_JER2_ARAD_EGR_THRESH_INFO_clear(&thresh_info);
+
+  if(prio_ndx == JER2_ARAD_EGR_Q_PRIO_ALL) {
+    /* CGM_CGM_MC_PD_TC_FC_THr */
+    SOC_REG_ABOVE_64_CLEAR(reg_pd);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 2210, exit, READ_CGM_CGM_MC_PD_TC_FC_THr(unit, core, reg_pd));
+
+    /* CGM_CGM_MC_DB_TC_FC_THr */
+    SOC_REG_ABOVE_64_CLEAR(reg_db);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 2220, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr(unit, core, reg_db));
+
+    switch(ofp_type_ndx) {
+      case 0:
+        soc_reg_above_64_field_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_0f, field_pd);
+        soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_0_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 1:
+        soc_reg_above_64_field_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_1f, field_pd);
+        soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_1_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 2:
+        soc_reg_above_64_field_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_2f, field_pd);
+        soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_2_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 3:
+        soc_reg_above_64_field_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_3f, field_pd);
+        soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_3_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 4:
+        soc_reg_above_64_field_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_4f, field_pd);
+        soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_4_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 5:
+        soc_reg_above_64_field_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_5f, field_pd);
+        soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_5_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 6:
+        soc_reg_above_64_field_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_6f, field_pd);
+        soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_6_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      case 7:
+        soc_reg_above_64_field_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg_pd, CGM_MC_PD_TC_FC_TH_7f, field_pd);
+        soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg_db, MULTICAST_DATA_BUFFERS_TC_7_FLOW_CONTROL_LIMITf, field_db);
+        break;
+      default:
+          break;
+    }
+    if(ofp_type_ndx < 7) {
+/*
+ * COVERITY
+ *
+ * The variable field_pd is always initiallized when ofp_type_ndx < 7.
+ */
+/* coverity[uninit_use] */
+      SHR_BITCOPY_RANGE(&thresh->mc.descriptors, 0, field_pd, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+      SHR_BITCOPY_RANGE(&thresh->mc.buffers, 0, field_db, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+    }
+
+    /* EGQ_PDCT_TABLEm */
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 2230, exit, READ_EGQ_PDCT_TABLEm(unit, EGQ_BLOCK(unit, core), ofp_type_ndx, mem));
+    soc_EGQ_PDCT_TABLEm_field_get(unit, mem, PORT_UC_PD_MAX_FC_THf, &thresh->packet_descriptors);
+
+    /* EGQ_PQST_TABLEm */
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 2240, exit, READ_EGQ_PQST_TABLEm(unit, EGQ_BLOCK(unit, core), ofp_type_ndx, mem));
+    soc_EGQ_PQST_TABLEm_field_get(unit, mem, PORT_UC_DB_MAX_FC_THf, &thresh->data_buffers);
+  }
+  else
+  {
+      egress_tc = prio_ndx;
+
+      res = jer2_arad_egr_ofp_fc_q_pair_thresh_get_unsafe(
+               unit,
+               core,
+               egress_tc,
+               ofp_type_ndx,
+               &thresh_info           
+             );
+      DNX_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+      thresh->words = thresh_info.dbuff;/* queue_words_consumed parameter used for Data buffers in Arad */
+      thresh->packet_descriptors = thresh_info.packet_descriptors;
+  } 
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_ofp_fc_get_unsafe()",prio_ndx,ofp_type_ndx);
+}
+
+/* 
+ * Set WFQ settings for a specificed queue in the OFP.
+ */
+static
+  uint32
+    jer2_arad_egr_ofp_scheduling_wfq_set_unsafe(
+      DNX_SAND_IN  int                  unit,
+      DNX_SAND_IN  uint32               tm_port,
+      DNX_SAND_IN  int                  core,
+      DNX_SAND_IN  uint32               cosq,
+      DNX_SAND_IN  JER2_ARAD_EGR_OFP_SCH_WFQ *wfq_info
+    )
+{
+  uint32
+    res,
+    offset;
+  JER2_ARAD_EGQ_DWM_TBL_DATA
+    dwm_tbl_data;
+  uint32
+    base_q_pair;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_SCHEDULING_WFQ_SET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(wfq_info);
+
+  /* Retreive base_q_pair */
+  res = dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, tm_port, &base_q_pair);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 16, exit);
+
+  /* offset set by base_q_pair + cosq */
+  offset = base_q_pair + cosq;
+
+  dwm_tbl_data.uc_or_uc_low_queue_weight = wfq_info->sched_weight;
+  dwm_tbl_data.mc_or_mc_low_queue_weight = wfq_info->unsched_weight;
+
+  res = jer2_arad_egq_dwm_tbl_set_unsafe(
+          unit,
+          core,
+          offset,
+          &dwm_tbl_data
+        );
+  DNX_SAND_CHECK_FUNC_RESULT(res, 32, exit);
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_q_prio_map_entry_get()", 0, 0);
+}
+
+/* 
+ * Set WFQ settings for a specificed queue in the OFP.
+ */
+static
+  uint32
+    jer2_arad_egr_ofp_scheduling_wfq_get_unsafe(
+      DNX_SAND_IN  int                  unit,
+      DNX_SAND_IN  uint32               tm_port,
+      DNX_SAND_IN  int                  core,
+      DNX_SAND_IN  uint32               cosq,
+      DNX_SAND_OUT JER2_ARAD_EGR_OFP_SCH_WFQ *wfq_info
+    )
+{
+  uint32
+    res,
+    offset;
+  JER2_ARAD_EGQ_DWM_TBL_DATA
+    dwm_tbl_data;
+  uint32
+    base_q_pair;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_SCHEDULING_WFQ_SET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(wfq_info);
+
+  JER2_ARAD_CLEAR(&dwm_tbl_data, JER2_ARAD_EGQ_DWM_TBL_DATA, 1);
+
+  /* Retreive base_q_pair */
+  res = dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, tm_port, &base_q_pair);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 16, exit);
+
+  /* offset set by base_q_pair + cosq */
+  offset = base_q_pair + cosq;
+
+  res = jer2_arad_egq_dwm_tbl_get_unsafe(
+          unit,
+          core,
+          offset,
+          &dwm_tbl_data
+        );
+  DNX_SAND_CHECK_FUNC_RESULT(res, 32, exit);
+
+  wfq_info->sched_weight = dwm_tbl_data.uc_or_uc_low_queue_weight;
+  wfq_info->unsched_weight = dwm_tbl_data.mc_or_mc_low_queue_weight;
+
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_q_prio_map_entry_get()", 0, 0);
+}
+
+
+/*********************************************************************
+*     Set per-port egress scheduling information.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_ofp_scheduling_set_unsafe(
+    DNX_SAND_IN  int                unit,
+    DNX_SAND_IN  int                core,
+    DNX_SAND_IN  uint32             tm_port,
+    DNX_SAND_IN  JER2_ARAD_EGR_OFP_SCH_INFO    *info
+  )
+{
+  uint32    
+    res,
+    nif_prio_fld_val;
+  soc_reg_above_64_val_t
+    data,
+    field_val; 
+  uint32
+    base_q_pair,
+    nof_q_pairs,
+    q_pair_in_port; 
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_SCHEDULING_SET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(info);
+
+  switch (info->nif_priority)
+  {
+  case JER2_ARAD_EGR_OFP_INTERFACE_PRIO_HIGH:
+    nif_prio_fld_val = 0x0;
+      break;
+  case JER2_ARAD_EGR_OFP_INTERFACE_PRIO_LOW:
+    nif_prio_fld_val = 0x1;
+      break;
+  default:
+    DNX_SAND_SET_ERROR_CODE(JER2_ARAD_EGR_OFP_CHNIF_PRIO_OUT_OF_RANGE_ERR, 5, exit)
+  }
+
+  /* Retreive base_q_pair */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2000, exit, dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, tm_port, &base_q_pair));
+
+  /*
+   * Set the OFP nif-priority. Each bit correspond to a OFP
+   */  
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2340, exit, READ_EGQ_EGRESS_PORT_PRIORITY_CONFIGURATIONr(unit, core, data));
+
+  soc_reg_above_64_field_get(unit, EGQ_EGRESS_PORT_PRIORITY_CONFIGURATIONr, data, PORT_PRIORITYf,field_val);
+   
+  /* Add the following settings */
+  SHR_BITCOPY_RANGE(field_val,base_q_pair,&nif_prio_fld_val,0,1);
+   
+  /* Set */
+  soc_reg_above_64_field_set(unit, EGQ_EGRESS_PORT_PRIORITY_CONFIGURATIONr, data, PORT_PRIORITYf,field_val);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2350, exit, WRITE_EGQ_EGRESS_PORT_PRIORITY_CONFIGURATIONr(unit, core, data));
+  
+  /* Set NIF priority. } */
+
+  /* 
+   * Set WFQ weights.
+   */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2355, exit, dnx_port_sw_db_tm_port_to_out_port_priority_get(unit, core, tm_port, &nof_q_pairs));
+
+  for (q_pair_in_port = 0; q_pair_in_port < nof_q_pairs; ++q_pair_in_port)
+  {
+    res = jer2_arad_egr_ofp_scheduling_wfq_set_unsafe(
+          unit,
+          tm_port,
+          core,
+          q_pair_in_port,
+          &(info->ofp_wfq_q_pair[q_pair_in_port])
+        );
+    DNX_SAND_CHECK_FUNC_RESULT(res, 40, exit);
+  }  
+  /* Set WFQ weights }*/
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_ofp_scheduling_set_unsafe()",0,0);
+}
+
+/*********************************************************************
+*     Set per-port egress scheduling information.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_ofp_scheduling_verify(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID         ofp_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_OFP_SCH_INFO    *info
+  )
+{
+  uint32
+    res;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_SCHEDULING_VERIFY);
+
+  DNX_SAND_CHECK_NULL_INPUT(info);
+  DNX_SAND_MAGIC_NUM_VERIFY(info);
+
+  res = jer2_arad_fap_port_id_verify(unit, ofp_ndx);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  /*
+   * Verify NIF priority.
+   * Set in any case, but ignored by HW unless is mapped to channelized NIF {
+   */
+  /* JER2_ARAD_EGR_OFP_INTERFACE_PRIO_PFC_LOWEST is invalid for Arad */
+  DNX_SAND_ERR_IF_ABOVE_MAX(
+      info->nif_priority, JER2_ARAD_EGR_OFP_CHNIF_NOF_PRIORITIES-2,
+      JER2_ARAD_EGR_OFP_CHNIF_PRIO_OUT_OF_RANGE_ERR, 20, exit
+    );
+
+  DNX_SAND_ERR_IF_EQUALS_VALUE(info->nif_priority, JER2_ARAD_EGR_OFP_INTERFACE_PRIO_MID, JER2_ARAD_EGR_OFP_CHNIF_PRIO_OUT_OF_RANGE_ERR, 25,exit);
+
+  DNX_SAND_ERR_IF_ABOVE_MAX(
+    info->ofp_wfq.sched_weight, JER2_ARAD_EGR_OFP_SCH_WFQ_WEIGHT_MAX,
+    JER2_ARAD_EGR_OFP_SCH_WFQ_WEIGHT_OUT_OF_RANGE_ERR, 30, exit
+  );
+
+  DNX_SAND_ERR_IF_ABOVE_MAX(
+    info->ofp_wfq.unsched_weight, JER2_ARAD_EGR_OFP_SCH_WFQ_WEIGHT_MAX,
+    JER2_ARAD_EGR_OFP_SCH_WFQ_WEIGHT_OUT_OF_RANGE_ERR, 40, exit
+  );
+ 
+  DNX_SAND_ERR_IF_ABOVE_MAX(
+    info->ofp_wfq_high.sched_weight, JER2_ARAD_EGR_OFP_SCH_WFQ_WEIGHT_MAX,
+    JER2_ARAD_EGR_OFP_SCH_WFQ_WEIGHT_OUT_OF_RANGE_ERR, 45, exit
+  );
+
+  DNX_SAND_ERR_IF_ABOVE_MAX(
+    info->ofp_wfq_high.unsched_weight, JER2_ARAD_EGR_OFP_SCH_WFQ_WEIGHT_MAX,
+    JER2_ARAD_EGR_OFP_SCH_WFQ_WEIGHT_OUT_OF_RANGE_ERR, 50, exit
+  );
+
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_ofp_scheduling_verify()",0,0);
+}
+
+/*********************************************************************
+*     Set per-port egress scheduling information.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_ofp_scheduling_get_unsafe(
+    DNX_SAND_IN  int                 unit,
+    DNX_SAND_IN  int                 core,
+    DNX_SAND_IN  uint32              tm_port,
+    DNX_SAND_OUT JER2_ARAD_EGR_OFP_SCH_INFO    *info
+  )
+{
+  uint32
+    res,
+    nif_prio_val = 0;
+  soc_reg_above_64_val_t
+    data,
+    field_val;
+  uint32
+    base_q_pair,
+    nof_q_pairs,
+    q_pair_in_port; 
+
+
+
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_OFP_SCHEDULING_GET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(info);
+
+  res = jer2_arad_fap_port_id_verify(unit, tm_port);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  SOC_REG_ABOVE_64_CLEAR(data);
+  SOC_REG_ABOVE_64_CLEAR(field_val);
+ 
+  /* Retreive base_q_pair */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2300, exit, dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, tm_port, &base_q_pair));
+
+  /* Get NIF priority. Ignored by the HW unless is mapped to channelized NIF { */
+  /*
+   * Each bit correspond to a tm_port
+   */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2450, exit, READ_EGQ_EGRESS_PORT_PRIORITY_CONFIGURATIONr(unit, core, data));
+  soc_reg_above_64_field_get(unit, EGQ_EGRESS_PORT_PRIORITY_CONFIGURATIONr, data, PORT_PRIORITYf,field_val);
+  
+  SHR_BITCOPY_RANGE(&nif_prio_val,0,field_val,base_q_pair,1);
+    
+  info->nif_priority = (nif_prio_val == 0) ? JER2_ARAD_EGR_OFP_INTERFACE_PRIO_HIGH:JER2_ARAD_EGR_OFP_INTERFACE_PRIO_LOW;
+
+  /* Get NIF priority. } */
+
+  /* 
+   * Get WFQ weights.
+   * Settings should be done via this API, only when the OFP port is a 2 priority mode.
+   * The API skip WFQ weights configuration when port is not in 2 priority mode. 
+   * Refer to API: () to configure WFQ weights for other modes (1/8 priority mode)
+   */
+  /* 
+   * Get WFQ weights.
+   */
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2455, exit, dnx_port_sw_db_tm_port_to_out_port_priority_get(unit, core, tm_port, &nof_q_pairs));
+
+  for (q_pair_in_port = 0; q_pair_in_port < nof_q_pairs; ++q_pair_in_port)
+  {
+    res = jer2_arad_egr_ofp_scheduling_wfq_get_unsafe(
+          unit,
+          tm_port,
+          core,
+          q_pair_in_port,
+          &(info->ofp_wfq_q_pair[q_pair_in_port])
+        );
+    DNX_SAND_CHECK_FUNC_RESULT(res, 40, exit);
+  }  
+  /* Get WFQ weights }*/
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR( "error in jer2_arad_egr_ofp_scheduling_get_unsafe()",0,0);
+}   
+/*
+ *    Internal conversion to the table entry format
+ */
+static
+  int
+    jer2_arad_egr_q_prio_map_entry_get(
+      DNX_SAND_IN  int                              unit,
+      DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIO_MAPPING_TYPE     map_type_ndx,
+      DNX_SAND_IN  uint32                           tc_ndx,
+      DNX_SAND_IN  uint32                           dp_ndx,
+      DNX_SAND_IN  uint32                           map_profile_ndx,
+      DNX_SAND_OUT JER2_ARAD_EGQ_TC_DP_MAP_TBL_ENTRY     *entry
+    )
+{
+    uint8 is_egr_mc = FALSE;
+    DNXC_INIT_FUNC_DEFS;
+
+    JER2_ARAD_EGQ_TC_DP_MAP_TBL_ENTRY_clear(entry);
+
+    entry->map_profile = map_profile_ndx;
+    entry->dp = dp_ndx;
+    entry->tc = tc_ndx;
+
+    switch(map_type_ndx)
+    {
+        case JER2_ARAD_EGR_UCAST_TO_SCHED:
+            is_egr_mc = FALSE;
+            break;
+
+        case JER2_ARAD_EGR_MCAST_TO_UNSCHED:
+            is_egr_mc = TRUE;
+            break;
+
+        default:
+            DNXC_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_DNXC_MSG_STR( "JER2_ARAD_MAP_TYPE_NDX_OUT_OF_RANGE_ERR")));
+    }
+
+    entry->is_egr_mc = is_egr_mc;  
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+
+/*********************************************************************
+*     Sets egress queue priority per traffic class and drop
+ *     precedence.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+int
+  jer2_arad_egr_q_prio_set(
+    DNX_SAND_IN  int                            unit,
+    DNX_SAND_IN  int                            core,
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIO_MAPPING_TYPE   map_type_ndx,
+    DNX_SAND_IN  uint32                         tc_ndx,
+    DNX_SAND_IN  uint32                         dp_ndx,
+    DNX_SAND_IN  uint32                         map_profile_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIORITY            *priority
+  )
+{
+    JER2_ARAD_EGQ_TC_DP_MAP_TBL_ENTRY entry;
+    JER2_ARAD_EGQ_TC_DP_MAP_TBL_DATA tbl_data;
+    int rv;
+    DNXC_INIT_FUNC_DEFS;
+
+    JER2_ARAD_EGQ_TC_DP_MAP_TBL_ENTRY_clear(&entry);
+
+    rv = jer2_arad_egr_q_prio_map_entry_get(
+          unit,
+          map_type_ndx,
+          tc_ndx,
+          dp_ndx,
+          map_profile_ndx,
+          &entry
+        );
+    DNXC_IF_ERR_EXIT(rv);
+
+    tbl_data.dp = priority->dp;
+    tbl_data.tc = priority->tc;
+
+    rv = jer2_arad_egq_tc_dp_map_tbl_set_unsafe(
+          unit,
+          core,
+          &entry,
+          &tbl_data
+        );
+    DNXC_IF_ERR_EXIT(rv);
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+
+/*********************************************************************
+*     Sets egress queue priority per traffic class and drop
+ *     precedence.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+int
+  jer2_arad_egr_q_prio_get(
+    DNX_SAND_IN  int                            unit,
+    DNX_SAND_IN  int                            core,
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIO_MAPPING_TYPE   map_type_ndx,
+    DNX_SAND_IN  uint32                         tc_ndx,
+    DNX_SAND_IN  uint32                         dp_ndx,
+    DNX_SAND_IN  uint32                         map_profile_ndx,
+    DNX_SAND_OUT JER2_ARAD_EGR_Q_PRIORITY            *priority
+  )
+{
+    JER2_ARAD_EGQ_TC_DP_MAP_TBL_ENTRY entry;
+    JER2_ARAD_EGQ_TC_DP_MAP_TBL_DATA tbl_data;
+    int rv;
+    DNXC_INIT_FUNC_DEFS;
+
+    jer2_arad_JER2_ARAD_EGR_Q_PRIORITY_clear(priority);
+    JER2_ARAD_EGQ_TC_DP_MAP_TBL_ENTRY_clear(&entry);
+
+    rv = jer2_arad_egr_q_prio_map_entry_get(
+          unit,
+          map_type_ndx,
+          tc_ndx,
+          dp_ndx,
+          map_profile_ndx,
+          &entry
+        );
+    DNXC_IF_ERR_EXIT(rv);
+
+    rv = jer2_arad_egq_tc_dp_map_tbl_get_unsafe(
+          unit,
+          core,
+          &entry,
+          &tbl_data
+        );
+    DNXC_IF_ERR_EXIT(rv);
+
+    priority->dp = tbl_data.dp;
+    priority->tc = tbl_data.tc;
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+
+/*********************************************************************
+*     Function description
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+int
+  jer2_arad_egr_q_profile_map_set(
+    DNX_SAND_IN  int                    unit,
+    DNX_SAND_IN  int                    core_id,
+    DNX_SAND_IN  uint32                 tm_port,
+    DNX_SAND_IN  uint32                 map_profile_id
+  )
+{
+    JER2_ARAD_EGQ_PPCT_TBL_DATA ppct_tbl_data;
+    uint32 base_q_pair;
+    int rv;
+    DNXC_INIT_FUNC_DEFS;
+
+    /* Retreive base_q_pair */
+    DNXC_IF_ERR_EXIT( dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core_id, tm_port, &base_q_pair));
+
+    rv = jer2_arad_egq_ppct_tbl_get_unsafe(
+          unit,
+          core_id,
+          base_q_pair,
+          &ppct_tbl_data
+        );
+    DNXC_IF_ERR_EXIT(rv);
+
+    ppct_tbl_data.cos_map_profile = map_profile_id;
+
+    rv = jer2_arad_egq_ppct_tbl_set_unsafe(
+          unit,
+          core_id,
+          base_q_pair,
+          &ppct_tbl_data
+        );
+    DNXC_IF_ERR_EXIT(rv);
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+
+/*********************************************************************
+*     Function description
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+int
+  jer2_arad_egr_q_profile_map_get(
+    DNX_SAND_IN  int                    unit,
+    DNX_SAND_IN  int                    core_id,
+    DNX_SAND_IN  uint32                 tm_port,
+    DNX_SAND_OUT uint32                 *map_profile_id
+  )
+{
+    JER2_ARAD_EGQ_PPCT_TBL_DATA tbl_data;  
+    uint32 base_q_pair;   
+    DNXC_INIT_FUNC_DEFS;
+
+    /* Retreive base_q_pair */
+    DNXC_IF_ERR_EXIT(dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core_id, tm_port, &base_q_pair));
+
+    DNXC_IF_ERR_EXIT(jer2_arad_egq_ppct_tbl_get_unsafe(unit,  core_id, base_q_pair, &tbl_data));
+
+    *map_profile_id = tbl_data.cos_map_profile;
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+
+/*********************************************************************
+*     Function description
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+int
+  jer2_arad_egr_q_cgm_interface_set(
+    DNX_SAND_IN  int                    unit,
+    DNX_SAND_IN  int                    core_id,
+    DNX_SAND_IN  uint32                 tm_port,
+    DNX_SAND_IN  uint32                 cgm_interface
+  )
+{
+    JER2_ARAD_EGQ_PPCT_TBL_DATA ppct_tbl_data;
+    uint32 base_q_pair;
+    int rv;
+    DNXC_INIT_FUNC_DEFS;
+
+    /* Retreive base_q_pair */
+    DNXC_IF_ERR_EXIT( dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core_id, tm_port, &base_q_pair));
+
+    rv = jer2_arad_egq_ppct_tbl_get_unsafe(
+          unit,
+          core_id,
+          base_q_pair,
+          &ppct_tbl_data
+        );
+    DNXC_IF_ERR_EXIT(rv);
+
+    ppct_tbl_data.cgm_interface = cgm_interface;
+
+    rv = jer2_arad_egq_ppct_tbl_set_unsafe(
+          unit,
+          core_id,
+          base_q_pair,
+          &ppct_tbl_data
+        );
+    DNXC_IF_ERR_EXIT(rv);
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+/*********************************************************************
+*     Function description
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_dsp_pp_to_base_q_pair_get_unsafe(
+    DNX_SAND_IN  int                     unit,
+    DNX_SAND_IN  int                     core,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID              ofp_ndx,
+    DNX_SAND_OUT uint32                     *base_q_pair
+  )
+{
+
+  uint32
+    res = DNX_SAND_OK;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DSP_PP_TO_BASE_Q_PAIR_GET_UNSAFE);
+  DNX_SAND_CHECK_NULL_INPUT(base_q_pair);
+
+  DNX_SAND_ERR_IF_ABOVE_NOF(ofp_ndx, JER2_ARAD_NOF_FAP_PORTS, JER2_ARAD_FAP_PORT_ID_INVALID_ERR, 10, exit);
+  res = dnx_port_sw_db_tm_port_to_base_q_pair_get(
+                  unit,
+                  core,
+                  ofp_ndx,
+                  base_q_pair);   
+  DNX_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_dsp_pp_to_base_q_pair_get_unsafe()", ofp_ndx, 0);
+}
+
+uint32
+  jer2_arad_egr_dsp_pp_to_base_q_pair_set_verify(
+    DNX_SAND_IN  int                      unit,
+    DNX_SAND_IN  int                      core,
+    DNX_SAND_IN  uint32                   tm_port,
+    DNX_SAND_IN  uint32                   base_q_pair
+  )
+{
+  uint32
+    res = DNX_SAND_OK;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DSP_PP_TO_BASE_Q_PAIR_SET_VERIFY);
+
+  res = jer2_arad_fap_port_id_verify(unit, tm_port);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+  
+  DNX_SAND_ERR_IF_ABOVE_MAX(base_q_pair, JER2_ARAD_EGR_BASE_Q_PAIRS_NDX_MAX, JER2_ARAD_EGR_BASE_Q_PAIR_NDX_OUT_OF_RANGE_ERR, 30, exit);
+
+  if (SOC_DNX_CONFIG((unit))->tm.queue_level_interface_enable) 
+  {
+    if (base_q_pair == 16 || base_q_pair == 24) {
+        /* When queue level interface is on OTM base q pair 16,24 are invalid */
+        DNX_SAND_SET_ERROR_CODE(JER2_ARAD_EGR_BASE_Q_PAIR_NDX_OUT_OF_RANGE_ERR, 40, exit);
+    }
+  }
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_dsp_pp_to_base_q_pair_set_verify()", tm_port, base_q_pair);
+}
+
+uint32
+  jer2_arad_egr_dsp_pp_to_base_q_pair_get_verify(
+    DNX_SAND_IN  int                      unit,
+    DNX_SAND_IN  int                      core_id,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID         ofp_ndx
+  )
+{
+  uint32
+    res = DNX_SAND_OK;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DSP_PP_TO_BASE_Q_PAIR_GET_VERIFY);
+
+  res = jer2_arad_fap_port_id_verify(unit, ofp_ndx);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  if (core_id != SOC_CORE_ALL && (core_id < 0 || core_id >= SOC_DNX_CONFIG(unit)->core_mode.nof_active_cores)) {
+      DNX_SAND_SET_ERROR_CODE(DNX_SAND_VALUE_OUT_OF_RANGE_ERR, 20, exit);
+  }
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_dsp_pp_to_base_q_pair_get_verify()", ofp_ndx, 0);
+}
+
+/*********************************************************************
+*     Function description
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+int
+  jer2_arad_egr_dsp_pp_to_base_q_pair_set(
+    DNX_SAND_IN  int        unit,
+    DNX_SAND_IN  int        core_id,
+    DNX_SAND_IN  uint32     tm_port,
+    DNX_SAND_IN  uint32     base_q_pair
+  )
+{
+    uint32
+        data,
+        memlock = 0;
+    DNXC_INIT_FUNC_DEFS;
+
+    /* Update HW - EGQ*/
+    MEM_LOCK(unit, EGQ_DSP_PTR_MAPm);
+    memlock = 1;
+
+    /* verify */
+    DNXC_SAND_IF_ERR_EXIT(jer2_arad_egr_dsp_pp_to_base_q_pair_set_verify(unit, core_id, tm_port, base_q_pair));
+
+    
+    DNXC_LEGACY_FIXME_ASSERT;
+#ifdef FIXME_DNX_LEGACY  
+    rv = jer2_arad_pp_egq_dsp_ptr_map_tbl_get_unsafe(unit, core_id, tm_port, &dsp_tbl_data);
+    DNXC_IF_ERR_EXIT(rv);
+
+    dsp_tbl_data.out_tm_port = base_q_pair;
+
+    rv = jer2_arad_pp_egq_dsp_ptr_map_tbl_set_unsafe(unit, core_id, tm_port,&dsp_tbl_data);
+    DNXC_IF_ERR_EXIT(rv);
+#endif 
+
+    memlock = 0;
+    MEM_UNLOCK(unit, EGQ_DSP_PTR_MAPm);
+
+    /* SCH - same mapping as EGQ */
+    DNXC_IF_ERR_EXIT(READ_SCH_DSP_2_PORT_MAP_DSPPm(unit, SCH_BLOCK(unit, core_id), tm_port, &data));
+    soc_SCH_DSP_2_PORT_MAP_DSPPm_field32_set(unit, &data, DSP_2_PORT_MAP_DSPPf, base_q_pair);
+    DNXC_IF_ERR_EXIT(WRITE_SCH_DSP_2_PORT_MAP_DSPPm(unit, SCH_BLOCK(unit, core_id), tm_port, &data));
+
+exit:
+    if(memlock) {
+        MEM_UNLOCK(unit, EGQ_DSP_PTR_MAPm);
+    }
+    DNXC_FUNC_RETURN;
+}
+
+uint32
+  JER2_ARAD_EGR_Q_PRIORITY_verify(
+    DNX_SAND_IN  JER2_ARAD_EGR_Q_PRIORITY *info
+  )
+{
+  DNX_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  DNX_SAND_CHECK_NULL_INPUT(info);
+
+  DNX_SAND_ERR_IF_ABOVE_MAX(info->tc, JER2_ARAD_EGR_Q_PRIORITY_TC_MAX, JER2_ARAD_EGR_TC_OUT_OF_RANGE_ERR, 10, exit);
+  DNX_SAND_ERR_IF_ABOVE_MAX(info->dp, JER2_ARAD_EGR_Q_PRIORITY_DP_MAX, JER2_ARAD_EGR_DP_OUT_OF_RANGE_ERR, 11, exit);
+
+  DNX_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in JER2_ARAD_EGR_Q_PRIORITY_verify()",0,0);
+}
+
+int
+  jer2_arad_egr_dsp_pp_priorities_mode_set(
+    DNX_SAND_IN  int                            unit,
+    DNX_SAND_IN  int                            core_id,
+    DNX_SAND_IN  uint32                         tm_port,
+    DNX_SAND_IN  JER2_ARAD_EGR_PORT_PRIORITY_MODE    priority_mode
+  )
+{
+    uint32 egq_priority_val;   
+    uint32
+        ps,
+        nof_q_pairs,
+        curr_q_pair,
+        priority_i,
+        fld_val,    
+        base_q_pair;
+    uint64
+        data,
+        field_val;
+    uint32
+        data32[2];
+    uint32
+        data_sch,
+        field_sch_val;
+    uint32
+        pct_data[JER2_ARAD_EGQ_PCT_TBL_ENTRY_SIZE];
+    soc_field_t
+        egress_tc_field;
+    DNXC_INIT_FUNC_DEFS;
+  
+    DNXC_IF_ERR_EXIT(dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core_id, tm_port, &base_q_pair));
+
+    
+    DNXC_LEGACY_FIXME_ASSERT;
+#ifdef FIXME_DNX_LEGACY
+    ps = JER2_ARAD_BASE_PORT_TC2PS(v);
+#else 
+    ps = base_q_pair;
+#endif 
+
+
+    switch (priority_mode)
+    {
+        case JER2_ARAD_EGR_PORT_ONE_PRIORITY:
+            nof_q_pairs = 1;
+            egq_priority_val = JER2_ARAD_EGQ_PS_MODE_ONE_PRIORITY_VAL;
+            break;
+        case JER2_ARAD_EGR_PORT_TWO_PRIORITIES:
+            nof_q_pairs = 2;
+            egq_priority_val = JER2_ARAD_EGQ_PS_MODE_TWO_PRIORITY_VAL;
+            break;
+        case JER2_ARAD_EGR_PORT_EIGHT_PRIORITIES:
+            nof_q_pairs = 8;
+            egq_priority_val = JER2_ARAD_EGQ_PS_MODE_EIGHT_PRIORITY_VAL;
+            break;
+        default:
+            DNXC_EXIT_WITH_ERR(SOC_E_PARAM, (_BSL_DNXC_MSG("Invalid priority mode %d"), priority_mode));
+    }
+  
+    /* EGQ */
+    DNXC_IF_ERR_EXIT(READ_EGQ_PS_MODEr(unit, core_id, &data));
+    field_val = soc_reg64_field_get(unit, EGQ_PS_MODEr, data, PS_MODEf);
+
+    data32[0] = COMPILER_64_LO(field_val);
+    data32[1] = COMPILER_64_HI(field_val);
+
+    SHR_BITCOPY_RANGE(data32,ps*JER2_ARAD_EGQ_PS_PRIORITY_NOF_BITS,&egq_priority_val,0,JER2_ARAD_EGQ_PS_PRIORITY_NOF_BITS);
+
+    COMPILER_64_SET(field_val, data32[1], data32[0]);
+
+    soc_reg64_field_set(unit, EGQ_PS_MODEr, &data, PS_MODEf ,field_val);    
+    DNXC_IF_ERR_EXIT(WRITE_EGQ_PS_MODEr(unit, core_id, data));
+
+    /* SCH */
+    DNXC_IF_ERR_EXIT(READ_SCH_PS_1P_PRIORITY_MODE_REGISTERr(unit, core_id, &data_sch));
+    field_sch_val = soc_reg_field_get(unit, SCH_PS_1P_PRIORITY_MODE_REGISTERr, data_sch, PS_1P_PRIORITY_MODE_BITMAPf);
+    if (priority_mode == JER2_ARAD_EGR_PORT_ONE_PRIORITY) {
+        field_sch_val |= DNX_SAND_BIT(ps);
+    } else {
+        field_sch_val &= DNX_SAND_RBIT(ps);
+    }
+    soc_reg_field_set(unit, SCH_PS_1P_PRIORITY_MODE_REGISTERr, &data_sch, PS_1P_PRIORITY_MODE_BITMAPf, field_sch_val);
+    DNXC_IF_ERR_EXIT(WRITE_SCH_PS_1P_PRIORITY_MODE_REGISTERr(unit, core_id, data_sch));
+
+    DNXC_IF_ERR_EXIT(READ_SCH_PS_2P_PRIORITY_MODE_REGISTERr(unit, core_id, &data_sch));
+    field_sch_val = soc_reg_field_get(unit, SCH_PS_2P_PRIORITY_MODE_REGISTERr, data_sch, PS_2P_PRIORITY_MODE_BITMAPf);
+    if (priority_mode == JER2_ARAD_EGR_PORT_TWO_PRIORITIES) {
+        field_sch_val |= DNX_SAND_BIT(ps);
+    } else {
+        field_sch_val &= DNX_SAND_RBIT(ps);
+    }
+    soc_reg_field_set(unit, SCH_PS_2P_PRIORITY_MODE_REGISTERr, &data_sch, PS_2P_PRIORITY_MODE_BITMAPf, field_sch_val);
+    DNXC_IF_ERR_EXIT(WRITE_SCH_PS_2P_PRIORITY_MODE_REGISTERr(unit, core_id, data_sch));
+
+    /* 
+    *  In case of 1/2 P have default TCG Scheme:
+    *  For 1P set 1:1 mapping between HR : TCG_NDX
+    *  For 2P set HR [i,i+1] to TCG i
+    */
+    if (priority_mode == JER2_ARAD_EGR_PORT_ONE_PRIORITY || priority_mode == JER2_ARAD_EGR_PORT_TWO_PRIORITIES) 
+    {
+        /* Run over all HRs within the port */
+        fld_val = 0;
+        for (priority_i = 0; priority_i < JER2_ARAD_SCH_PORT_NOF_PORTS_PER_ENPORT_TBL_LINE; ++priority_i) {
+            uint32 tcg_ndx = 0;
+            if (priority_mode == JER2_ARAD_EGR_PORT_ONE_PRIORITY) {
+                /* Set tcg static index */    
+                tcg_ndx = priority_i;    
+            }
+            if (priority_mode == JER2_ARAD_EGR_PORT_TWO_PRIORITIES) {
+                /* Set tcg static index */
+                tcg_ndx = (priority_i % 2 == 0) ? priority_i:(priority_i-1) ;    
+            }
+
+            SHR_BITCOPY_RANGE(&fld_val, priority_i * JER2_ARAD_NOF_TCG_IN_BITS, &tcg_ndx, 0, JER2_ARAD_NOF_TCG_IN_BITS);
+        }
+
+        DNXC_IF_ERR_EXIT(READ_SCH_PORT_SCHEDULER_MAP_PSMm(unit, SCH_BLOCK(unit, core_id), ps, &data_sch));
+        soc_SCH_PORT_SCHEDULER_MAP_PSMm_field32_set(unit, &data_sch, TC_PG_MAPf, fld_val);  
+        DNXC_IF_ERR_EXIT(WRITE_SCH_PORT_SCHEDULER_MAP_PSMm(unit, SCH_BLOCK(unit, core_id), ps, &data_sch));
+        
+        /* set tcg shaper to maximum for 1 and 2 priority ports */
+        if (SOC_IS_ARADPLUS_AND_BELOW(unit)) {
+            data_sch = 0x7FFFFFF;
+            DNXC_IF_ERR_EXIT(WRITE_SCH_CIR_SHAPERS_STATIC_TABEL_CSSTm(unit, SCH_BLOCK(unit, core_id), base_q_pair, &data_sch));  
+        }
+    }
+
+    egress_tc_field = (SOC_IS_QUX(unit) ? COS_MAP_PROFILEf : EGRESS_TCf);
+    /* Set COS MAP profile equals Egress TC queue  */
+    for (curr_q_pair = base_q_pair; curr_q_pair < base_q_pair + nof_q_pairs; curr_q_pair++)
+    {
+        DNXC_IF_ERR_EXIT(READ_EGQ_PCTm(unit, EGQ_BLOCK(unit, core_id), curr_q_pair, pct_data));
+        soc_EGQ_PCTm_field32_set(unit, pct_data, egress_tc_field, curr_q_pair-base_q_pair);
+        DNXC_IF_ERR_EXIT(WRITE_EGQ_PCTm(unit, EGQ_BLOCK(unit, core_id), curr_q_pair, pct_data));
+    }
+
+    if (SOC_DNX_CONFIG((unit))->tm.queue_level_interface_enable)
+    {
+        soc_port_if_t interface_type;
+        soc_port_t logical_port;
+        int curr_mc_q_pair;
+
+        DNXC_IF_ERR_EXIT(dnx_port_sw_db_tm_to_local_port_get(unit, core_id, tm_port, &logical_port));
+        DNXC_IF_ERR_EXIT(dnx_port_sw_db_interface_type_get(unit, logical_port, &interface_type));
+    
+        if(SOC_PORT_IF_ILKN == interface_type) {
+            
+            for (curr_q_pair = base_q_pair; curr_q_pair < base_q_pair + nof_q_pairs; curr_q_pair++)
+            {
+                curr_mc_q_pair = JER2_ARAD_EGR_QUEUING_MC_QUEUE_OFFSET(curr_q_pair); 
+
+                DNXC_IF_ERR_EXIT(READ_EGQ_PCTm(unit, EGQ_BLOCK(unit, core_id), curr_mc_q_pair, pct_data));
+                soc_EGQ_PCTm_field32_set(unit, pct_data, egress_tc_field, curr_q_pair-base_q_pair);
+                DNXC_IF_ERR_EXIT(WRITE_EGQ_PCTm(unit, EGQ_BLOCK(unit, core_id), curr_mc_q_pair, pct_data));
+            }
+      
+        }
+    }
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+
+uint32
+  jer2_arad_egr_dsp_pp_priorities_mode_set_verify(
+    DNX_SAND_IN  int                      unit,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID               ofp_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_PORT_PRIORITY_MODE    priority_mode
+  )
+{
+  uint32
+    res = DNX_SAND_OK;
+  
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DSP_PP_PRIORITIES_MODE_SET_VERIFY);
+
+  res = jer2_arad_fap_port_id_verify(unit, ofp_ndx);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  DNX_SAND_ERR_IF_ABOVE_MAX(priority_mode, JER2_ARAD_EGR_PORT_PRIORITY_MAX, JER2_ARAD_EGR_PRIORITY_OUT_OF_RANGE_ERR, 10, exit);
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_dsp_pp_priorities_mode_set_verify()", ofp_ndx, 0);
+}
+
+uint32
+  jer2_arad_egr_dsp_pp_priorities_mode_get_verify(
+    DNX_SAND_IN  int                     unit,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID              ofp_ndx
+  )
+{
+  uint32
+    res = DNX_SAND_OK;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DSP_PP_PRIORITIES_MODE_GET_VERIFY);
+
+  res = jer2_arad_fap_port_id_verify(unit, ofp_ndx);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_dsp_pp_priorities_mode_get_verify()", ofp_ndx, 0);
+}
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "jer2_arad_egr_dsp_pp_to_base_q_pair_set_unsafe" API.
+ *     Refer to "jer2_arad_egr_dsp_pp_to_base_q_pair_set_unsafe" API for
+ *     details.
+*********************************************************************/
+uint32
+  jer2_arad_egr_dsp_pp_priorities_mode_get_unsafe(
+    DNX_SAND_IN  int                      unit,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID               ofp_ndx,
+    DNX_SAND_OUT JER2_ARAD_EGR_PORT_PRIORITY_MODE    *priority_mode
+  )
+{
+  uint32
+    nof_q_pairs,
+    res;
+  int core=0;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DSP_PP_PRIORITIES_MODE_GET_UNSAFE);
+
+  DNX_SAND_CHECK_NULL_INPUT(priority_mode);
+
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2455, exit, dnx_port_sw_db_tm_port_to_out_port_priority_get(unit, core, ofp_ndx, &nof_q_pairs));
+
+  switch (nof_q_pairs)
+  {
+  case 1:
+    *priority_mode = JER2_ARAD_EGR_PORT_ONE_PRIORITY;
+    break;
+  case 2:
+    *priority_mode = JER2_ARAD_EGR_PORT_TWO_PRIORITIES;
+    break;
+  case 8:
+    *priority_mode = JER2_ARAD_EGR_PORT_EIGHT_PRIORITIES;
+    break;
+  default:
+    DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR,10,exit);
+  }
+
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_dsp_pp_priorities_mode_get_unsafe()", ofp_ndx, 0);
+}
+
+uint32
+  jer2_arad_egr_dsp_pp_shaper_mode_set_unsafe(
+    DNX_SAND_IN  int                      unit,
+    DNX_SAND_IN  int                            core,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID               ofp_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_PORT_SHAPER_MODE      shaper_mode
+  )
+{
+  uint32
+    base_q_pair,
+    nof_q_pairs,
+    curr_q_pair;
+  uint32
+    shaper_val;
+  uint32 res;
+  soc_reg_above_64_val_t
+    data,
+    field_val;
+  
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DSP_PP_SHAPER_MODE_SET_UNSAFE);
+
+  SOC_REG_ABOVE_64_CLEAR(data);
+  SOC_REG_ABOVE_64_CLEAR(field_val);
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2000, exit, dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, ofp_ndx, &base_q_pair));
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2010, exit, dnx_port_sw_db_tm_port_to_out_port_priority_get(unit, core, ofp_ndx, &nof_q_pairs));
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2790, exit, READ_EGQ_PACKET_RATE_SHAPER_ENr(unit, core, data));
+  soc_reg_above_64_field_get(unit,EGQ_PACKET_RATE_SHAPER_ENr,data,PACKET_RATE_SHAPER_ENf,field_val);
+
+  shaper_val = (shaper_mode == JER2_ARAD_EGR_PORT_SHAPER_PACKET_MODE) ? 1:0;
+
+  /* Set all related q_pairs for the given port */
+  for (curr_q_pair = base_q_pair; curr_q_pair < base_q_pair + nof_q_pairs; curr_q_pair++)
+  {
+    SHR_BITCOPY_RANGE(field_val,curr_q_pair*JER2_ARAD_EGQ_SHAPER_MODE_NOF_BITS,&shaper_val,0,JER2_ARAD_EGQ_SHAPER_MODE_NOF_BITS);
+  } 
+  soc_reg_above_64_field_set(unit,EGQ_PACKET_RATE_SHAPER_ENr,data,PACKET_RATE_SHAPER_ENf,field_val);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2800, exit, WRITE_EGQ_PACKET_RATE_SHAPER_ENr(unit, core, data));
+
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_dsp_pp_shaper_mode_get_unsafe()", ofp_ndx, 0);
+}
+
+uint32
+  jer2_arad_egr_dsp_pp_shaper_mode_set_verify(
+    DNX_SAND_IN  int                      unit,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID               ofp_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_PORT_SHAPER_MODE      shaper_mode
+  )
+{
+  uint32
+    res = DNX_SAND_OK;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DSP_PP_SHAPER_MODE_SET_VERIFY);
+
+  res = jer2_arad_fap_port_id_verify(unit, ofp_ndx);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_dsp_pp_shaper_mode_set_verify()", ofp_ndx, 0);
+}
+
+uint32
+  jer2_arad_egr_dsp_pp_shaper_mode_get_verify(
+    DNX_SAND_IN  int                      unit,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID               ofp_ndx
+  )
+{
+  uint32
+    res = DNX_SAND_OK;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DSP_PP_SHAPER_MODE_GET_VERIFY);
+
+  res = jer2_arad_fap_port_id_verify(unit, ofp_ndx);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_dsp_pp_shaper_mode_get_verify()", ofp_ndx, 0);
+}
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "jer2_arad_egr_dsp_pp_shaper_mode_set_unsafe" API.
+ *     Refer to "jer2_arad_egr_dsp_pp_shaper_mode_set_unsafe" API for
+ *     details.
+*********************************************************************/
+uint32
+  jer2_arad_egr_dsp_pp_shaper_mode_get_unsafe(
+    DNX_SAND_IN  int                      unit,
+    DNX_SAND_IN  JER2_ARAD_FAP_PORT_ID               ofp_ndx,
+    DNX_SAND_OUT JER2_ARAD_EGR_PORT_SHAPER_MODE     *shaper_mode
+  )
+{
+  uint32
+    base_q_pair;
+  soc_reg_above_64_val_t
+    data,
+    field_val;
+  uint32
+    shaper_val = 0,
+    res;
+  int core=0;
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_DSP_PP_SHAPER_MODE_GET_UNSAFE);
+
+  SOC_REG_ABOVE_64_CLEAR(data);
+  SOC_REG_ABOVE_64_CLEAR(field_val);
+
+  DNX_SAND_CHECK_NULL_INPUT(shaper_mode);
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2000, exit, dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, ofp_ndx,&base_q_pair));
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2900, exit, READ_EGQ_PACKET_RATE_SHAPER_ENr(unit, REG_PORT_ANY, data));
+  soc_reg_above_64_field_get(unit,EGQ_PACKET_RATE_SHAPER_ENr,data,PACKET_RATE_SHAPER_ENf,field_val);
+
+  SHR_BITCOPY_RANGE(&shaper_val,0,field_val,base_q_pair*JER2_ARAD_EGQ_SHAPER_MODE_NOF_BITS,JER2_ARAD_EGQ_SHAPER_MODE_NOF_BITS);
+
+  switch (shaper_val)
+  {
+  case 0:
+    *shaper_mode = JER2_ARAD_EGR_PORT_SHAPER_DATA_MODE;
+    break;
+  case 1:
+    *shaper_mode = JER2_ARAD_EGR_PORT_SHAPER_PACKET_MODE;
+    break;
+  default:
+    DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR,10,exit);
+  }
+
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_dsp_pp_shaper_mode_get_unsafe()", ofp_ndx, 0);
+}
+
+uint32    
+  jer2_arad_egr_queuing_global_drop_set_unsafe(
+      DNX_SAND_IN  int   unit,
+      DNX_SAND_IN  int   core, 
+      DNX_SAND_IN  soc_dnx_cosq_threshold_type_t threshold_type,
+      DNX_SAND_IN  int    threshold_value,
+      DNX_SAND_IN  soc_dnx_cosq_threshold_global_type_t drop_type 
+  )
+{ 
+    uint32 res = DNX_SAND_OK;
+    soc_reg_above_64_val_t reg;
+       
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_GLOBAL_DROP_SET_UNSAFE);
+
+    if ((threshold_type == soc_dnx_cosq_threshold_packet_descriptors) || (threshold_type == soc_dnx_cosq_threshold_available_packet_descriptors))
+    {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1110, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr(unit, core, reg));
+        switch (drop_type)
+        {
+            case soc_dnx_cosq_threshold_global_type_unicast:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_UNICAST_PACKET_DESCRIPTORSf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_multicast:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_MULTICAST_PACKET_DESCRIPTORSf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, SERVICE_POOL_0_MAXIMUM_PACKET_DESCRIPTORSf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, SERVICE_POOL_1_MAXIMUM_PACKET_DESCRIPTORSf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_total:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_TOTAL_PACKET_DESCRIPTORSf, threshold_value);
+                break;
+            default:
+                break;
+        }
+
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1120, exit, WRITE_CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr(unit, core, reg));
+    }
+    else if ((threshold_type == soc_dnx_cosq_threshold_data_buffers) || (threshold_type == soc_dnx_cosq_threshold_available_data_buffers))
+    {
+
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1130, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr(unit, core, reg));
+        switch (drop_type)
+        {
+            case soc_dnx_cosq_threshold_global_type_unicast:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_UNICAST_DATA_BUFFERSf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_multicast:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_MULTICAST_DATA_BUFFERSf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, SERVICE_POOL_0_MAXIMUM_DATA_BUFFERSf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, SERVICE_POOL_1_MAXIMUM_DATA_BUFFERSf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_total:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_TOTAL_DATA_BUFFERSf, threshold_value);
+                break;
+            default:
+                break;
+        }
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1140, exit, WRITE_CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr(unit, core, reg));
+    }
+    else
+    {
+        DNX_SAND_SET_ERROR_CODE(JER2_ARAD_EGR_THRESH_TYPE_OUT_OF_RANGE_ERR, 1170, exit);
+    }
+
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_global_drop_set_unsafe()", 0, 0);
+}
+
+uint32    
+  jer2_arad_egr_queuing_global_drop_get_unsafe(
+      DNX_SAND_IN  int   unit,
+      DNX_SAND_IN  int   core, 
+      DNX_SAND_IN  soc_dnx_cosq_threshold_type_t threshold_type,
+      DNX_SAND_OUT int*    threshold_value,
+      DNX_SAND_IN  soc_dnx_cosq_threshold_global_type_t drop_type 
+  )
+{ 
+    uint32 res = DNX_SAND_OK;
+    soc_reg_above_64_val_t reg;
+
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_GLOBAL_DROP_GET_UNSAFE);
+
+    if ((threshold_type == soc_dnx_cosq_threshold_packet_descriptors) || (threshold_type == soc_dnx_cosq_threshold_available_packet_descriptors))
+    {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1110, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr(unit, core, reg));
+        switch (drop_type)
+        {
+            case soc_dnx_cosq_threshold_global_type_unicast:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_UNICAST_PACKET_DESCRIPTORSf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_multicast:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_MULTICAST_PACKET_DESCRIPTORSf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, SERVICE_POOL_0_MAXIMUM_PACKET_DESCRIPTORSf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, SERVICE_POOL_1_MAXIMUM_PACKET_DESCRIPTORSf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_total:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_TOTAL_PACKET_DESCRIPTORSf);
+                break;
+            default:
+                break;
+        }
+    }
+    else if ((threshold_type == soc_dnx_cosq_threshold_data_buffers) || (threshold_type == soc_dnx_cosq_threshold_available_data_buffers))
+    {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1130, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr(unit, core, reg));
+        switch (drop_type)
+        {
+            case soc_dnx_cosq_threshold_global_type_unicast:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_UNICAST_DATA_BUFFERSf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_multicast:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_MULTICAST_DATA_BUFFERSf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, SERVICE_POOL_0_MAXIMUM_DATA_BUFFERSf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, SERVICE_POOL_1_MAXIMUM_DATA_BUFFERSf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_total:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_TOTAL_DATA_BUFFERSf);
+                break;
+            default:
+                break;
+        }
+    }
+    else
+    {
+        DNX_SAND_SET_ERROR_CODE(JER2_ARAD_EGR_THRESH_TYPE_OUT_OF_RANGE_ERR, 1170, exit);
+    }
+
+    JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+    DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_global_drop_get_unsafe()", 0, 0);
+
+}
+
+
+uint32
+  jer2_arad_egr_queuing_sp_tc_drop_set_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core,
+    DNX_SAND_IN    int    tc,
+    DNX_SAND_IN    soc_dnx_cosq_threshold_type_t threshold_type,
+    DNX_SAND_IN    int    threshold_value,
+    DNX_SAND_IN    soc_dnx_cosq_threshold_global_type_t drop_type
+  )
+{
+    soc_reg_above_64_val_t reg;
+    uint32 res = DNX_SAND_OK;
+
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_SP_TC_DROP_SET_UNSAFE);
+
+    if (threshold_type == soc_dnx_cosq_threshold_data_buffers || threshold_type == soc_dnx_cosq_threshold_available_data_buffers)
+    {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1100, exit, READ_CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr(unit, core, reg));
+        if (drop_type == soc_dnx_cosq_threshold_global_type_service_pool_0)
+        {
+            switch (tc)
+            {
+                case 0:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_0_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 1:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_1_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 2:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_2_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 3:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_3_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 4:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_4_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 5:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_5_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 6:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_6_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 7:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_7_MAXIMUMLIMITf, threshold_value);
+                    break;
+            }
+        }
+        else /* service pool 1 */
+        {
+            switch (tc)
+            {
+                case 0:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_0_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 1:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_1_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 2:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_2_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 3:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_3_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 4:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_4_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 5:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_5_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 6:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_6_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 7:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_7_MAXIMUMLIMITf, threshold_value);
+                    break;
+            }
+        }
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1110, exit, WRITE_CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr(unit, core, reg));
+    }
+    else if ((threshold_type == soc_dnx_cosq_threshold_packet_descriptors) || (threshold_type == soc_dnx_cosq_threshold_available_packet_descriptors))
+    {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1120, exit, READ_CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr(unit, core, reg));
+
+        if (drop_type == soc_dnx_cosq_threshold_global_type_service_pool_0)
+        {
+            switch (tc)
+            {
+                case 0:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_0_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 1:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_1_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 2:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_2_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 3:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_3_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 4:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_4_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 5:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_5_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 6:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_6_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 7:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_7_MAXIMUMLIMITf, threshold_value);
+                    break;
+            }
+        }
+        else /* service pool 1 */
+        {
+            switch (tc)
+            {
+                case 0:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_0_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 1:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_1_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 2:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_2_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 3:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_3_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 4:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_4_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 5:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_5_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 6:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_6_MAXIMUMLIMITf, threshold_value);
+                    break;
+                case 7:
+                    soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_7_MAXIMUMLIMITf, threshold_value);
+                    break;
+            }
+        }
+
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1130, exit, WRITE_CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr(unit, core, reg));
+    }
+    
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_sp_tc_drop_set_unsafe()", 0, 0);
+
+}
+
+uint32
+  jer2_arad_egr_queuing_sp_tc_drop_get_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core,
+    DNX_SAND_IN    int    tc,
+    DNX_SAND_IN    soc_dnx_cosq_threshold_type_t threshold_type,
+    DNX_SAND_OUT   int*   threshold_value,
+    DNX_SAND_IN    soc_dnx_cosq_threshold_global_type_t drop_type
+  )
+{
+    soc_reg_above_64_val_t reg;
+    uint32 res = DNX_SAND_OK;
+
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_SP_TC_DROP_GET_UNSAFE);
+
+    if ((threshold_type == soc_dnx_cosq_threshold_data_buffers) || (threshold_type == soc_dnx_cosq_threshold_available_data_buffers))
+    {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1100, exit, READ_CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr(unit, core, reg));
+        if (drop_type == soc_dnx_cosq_threshold_global_type_service_pool_0)
+        {
+            switch (tc)
+            {
+                case 0:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_0_MAXIMUMLIMITf);
+                    break;
+                case 1:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_1_MAXIMUMLIMITf);
+                    break;
+                case 2:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_2_MAXIMUMLIMITf);
+                    break;
+                case 3:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_3_MAXIMUMLIMITf);
+                    break;
+                case 4:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_4_MAXIMUMLIMITf);
+                    break;
+                case 5:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_5_MAXIMUMLIMITf);
+                    break;
+                case 6:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_6_MAXIMUMLIMITf);
+                    break;
+                case 7:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_7_MAXIMUMLIMITf);
+                    break;
+            }
+        }
+        else /* service pool 1 */
+        {
+            switch (tc)
+            {
+                case 0:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_0_MAXIMUMLIMITf);
+                    break;
+                case 1:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_1_MAXIMUMLIMITf);
+                    break;
+                case 2:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_2_MAXIMUMLIMITf);
+                    break;
+                case 3:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_3_MAXIMUMLIMITf);
+                    break;
+                case 4:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_4_MAXIMUMLIMITf);
+                    break;
+                case 5:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_5_MAXIMUMLIMITf);
+                    break;
+                case 6:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_6_MAXIMUMLIMITf);
+                    break;
+                case 7:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_7_MAXIMUMLIMITf);
+                    break;
+            }
+        }
+    }
+    else if ((threshold_type == soc_dnx_cosq_threshold_packet_descriptors) || (threshold_type == soc_dnx_cosq_threshold_available_packet_descriptors))
+    {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1120, exit, READ_CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr(unit, core, reg));
+
+        if (drop_type == soc_dnx_cosq_threshold_global_type_service_pool_0)
+        {
+            switch (tc)
+            {
+                case 0:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_0_MAXIMUMLIMITf);
+                    break;
+                case 1:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_1_MAXIMUMLIMITf);
+                    break;
+                case 2:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_2_MAXIMUMLIMITf);
+                    break;
+                case 3:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_3_MAXIMUMLIMITf);
+                    break;
+                case 4:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_4_MAXIMUMLIMITf);
+                    break;
+                case 5:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_5_MAXIMUMLIMITf);
+                    break;
+                case 6:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_6_MAXIMUMLIMITf);
+                    break;
+                case 7:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_7_MAXIMUMLIMITf);
+                    break;
+            }
+        }
+        else /* service pool 1 */
+        {
+            switch (tc)
+            {
+                case 0:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_0_MAXIMUMLIMITf);
+                    break;
+                case 1:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_1_MAXIMUMLIMITf);
+                    break;
+                case 2:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_2_MAXIMUMLIMITf);
+                    break;
+                case 3:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_3_MAXIMUMLIMITf);
+                    break;
+                case 4:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_4_MAXIMUMLIMITf);
+                    break;
+                case 5:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_5_MAXIMUMLIMITf);
+                    break;
+                case 6:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_6_MAXIMUMLIMITf);
+                    break;
+                case 7:
+                    *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_7_MAXIMUMLIMITf);
+                    break;
+            }
+        }
+    }
+    
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_sp_tc_drop_get_unsafe()", 0, 0);
+
+}
+
+
+uint32
+  jer2_arad_egr_queuing_sp_reserved_set_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core,
+    DNX_SAND_IN    int    tc,
+    DNX_SAND_IN    soc_dnx_cosq_threshold_type_t threshold_type,
+    DNX_SAND_IN    int    threshold_value,
+    DNX_SAND_IN    soc_dnx_cosq_threshold_global_type_t drop_type
+  )
+{
+    soc_reg_above_64_val_t reg;
+    uint64 reg_64;
+    uint32 res = DNX_SAND_OK;
+
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_SP_RESERVED_SET_UNSAFE);
+    if (tc == -1) /* Not per a spcific tc */
+    {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1120, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr(unit, core, &reg_64));
+        if ((threshold_type == soc_dnx_cosq_threshold_packet_descriptors) || (threshold_type == soc_dnx_cosq_threshold_available_packet_descriptors))
+        {
+            switch (drop_type)
+            {
+                case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                    soc_reg64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, &reg_64, RESERVED_P_DS_SERVICE_POOL_0f, threshold_value);
+                    break;
+                case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                    soc_reg64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, &reg_64, RESERVED_P_DS_SERVICE_POOL_1f, threshold_value);
+                    break;
+                default:
+                    break;
+            }
+        }
+        else /*data buffers*/
+        {
+            switch (drop_type)
+            {
+                case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                    soc_reg64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, &reg_64, RESERVED_D_BS_SERVICE_POOL_0f, threshold_value);
+                    break;
+                case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                    soc_reg64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, &reg_64, RESERVED_D_BS_SERVICE_POOL_1f, threshold_value);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1130, exit, WRITE_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr(unit, core, reg_64));
+    }
+    else /* specific TC */
+    {
+        if ((threshold_type == soc_dnx_cosq_threshold_data_buffers) || (threshold_type == soc_dnx_cosq_threshold_available_data_buffers))
+        {
+            DNX_SAND_SOC_IF_ERROR_RETURN(res, 1140, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr(unit, core, reg));
+
+            if (drop_type == soc_dnx_cosq_threshold_global_type_service_pool_0)
+            {
+                switch (tc)
+                {
+                    case 0:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_0_SERVICE_POOL_0f, threshold_value);
+                        break;
+                    case 1:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_1_SERVICE_POOL_0f, threshold_value);
+                        break;
+                    case 2:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_2_SERVICE_POOL_0f, threshold_value);
+                        break;
+                    case 3:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_3_SERVICE_POOL_0f, threshold_value);
+                        break;
+                    case 4:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_4_SERVICE_POOL_0f, threshold_value);
+                        break;
+                    case 5:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_5_SERVICE_POOL_0f, threshold_value);
+                        break;
+                    case 6:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_6_SERVICE_POOL_0f, threshold_value);
+                        break;
+                    case 7:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_7_SERVICE_POOL_0f, threshold_value);
+                        break;
+                    default:
+                      LOG_ERROR(BSL_LS_SOC_EGRESS,
+                                (BSL_META_U(unit,
+                                            "Invalid tc value %d\n"),tc));
+          
+                      DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR, 1142, exit);
+                }
+            }
+            else /* service pool 1 */
+            {
+                switch (tc)
+                {
+                    case 0:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_0_SERVICE_POOL_1f, threshold_value);
+                        break;
+                    case 1:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_1_SERVICE_POOL_1f, threshold_value);
+                        break;
+                    case 2:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_2_SERVICE_POOL_1f, threshold_value);
+                        break;
+                    case 3:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_3_SERVICE_POOL_1f, threshold_value);
+                        break;
+                    case 4:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_4_SERVICE_POOL_1f, threshold_value);
+                        break;
+                    case 5:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_5_SERVICE_POOL_1f, threshold_value);
+                        break;
+                    case 6:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_6_SERVICE_POOL_1f, threshold_value);
+                        break;
+                    case 7:
+                        soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_7_SERVICE_POOL_1f, threshold_value);
+                        break;
+                    default:
+                      LOG_ERROR(BSL_LS_SOC_EGRESS,
+                                (BSL_META_U(unit,
+                                            "Invalid tc value %d\n"),tc));
+          
+                      DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR, 1148, exit);
+                }
+            }
+            DNX_SAND_SOC_IF_ERROR_RETURN(res, 1150, exit, WRITE_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr(unit, core, reg));
+        }
+        else {
+          LOG_ERROR(BSL_LS_SOC_EGRESS,
+                   (BSL_META_U(unit,
+                               "TC specific threshold is not supported for this type %d\n"),threshold_type));
+          
+          DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR, 1160, exit);
+        }
+    }
+ JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+    DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_sp_reserved_set_unsafe()", 0, 0);;
+}
+
+
+uint32
+  jer2_arad_egr_queuing_sp_reserved_get_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core,
+    DNX_SAND_IN    int    tc,
+    DNX_SAND_IN    soc_dnx_cosq_threshold_type_t threshold_type,
+    DNX_SAND_OUT    int*    threshold_value,
+    DNX_SAND_IN    soc_dnx_cosq_threshold_global_type_t drop_type
+  )
+{
+    soc_reg_above_64_val_t reg;
+    uint64 reg_64;
+    uint32 res = DNX_SAND_OK;
+
+    DNX_SAND_INIT_ERROR_DEFINITIONS(0);
+    if (tc == -1) /* Not per a spcific tc */
+    {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1120, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr(unit, core, &reg_64));
+        if ((threshold_type == soc_dnx_cosq_threshold_packet_descriptors) || (threshold_type == soc_dnx_cosq_threshold_available_packet_descriptors))
+        {
+            switch (drop_type)
+            {
+                case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                    *threshold_value = soc_reg64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, reg_64, RESERVED_P_DS_SERVICE_POOL_0f);
+                    break;
+                case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                    *threshold_value = soc_reg64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, reg_64, RESERVED_P_DS_SERVICE_POOL_1f);
+                    break;
+                default:
+                    break;
+            }
+        }
+        else /*data buffers*/
+        {
+            switch (drop_type)
+            {
+                case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                    *threshold_value = soc_reg64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, reg_64, RESERVED_D_BS_SERVICE_POOL_0f);
+                    break;
+                case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                    *threshold_value = soc_reg64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, reg_64, RESERVED_D_BS_SERVICE_POOL_1f);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    else /* specific TC */
+    {
+        if ((threshold_type == soc_dnx_cosq_threshold_data_buffers) || (threshold_type == soc_dnx_cosq_threshold_available_data_buffers))
+        {
+            DNX_SAND_SOC_IF_ERROR_RETURN(res, 1140, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr(unit, core, reg));
+
+            if (drop_type == soc_dnx_cosq_threshold_global_type_service_pool_0)
+            {
+                switch (tc)
+                {
+                    case 0:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_0_SERVICE_POOL_0f);
+                        break;
+                    case 1:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_1_SERVICE_POOL_0f);
+                        break;
+                    case 2:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_2_SERVICE_POOL_0f);
+                        break;
+                    case 3:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_3_SERVICE_POOL_0f);
+                        break;
+                    case 4:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_4_SERVICE_POOL_0f);
+                        break;
+                    case 5:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_5_SERVICE_POOL_0f);
+                        break;
+                    case 6:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_6_SERVICE_POOL_0f);
+                        break;
+                    case 7:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_7_SERVICE_POOL_0f);
+                        break;
+                    default:
+                      LOG_ERROR(BSL_LS_SOC_EGRESS,
+                                (BSL_META_U(unit,
+                                            "Invalid tc value %d\n"),tc));
+          
+                      DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR, 1148, exit);
+                }
+            }
+            else /* service pool 1 */
+            {
+                switch (tc)
+                {
+                    case 0:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_0_SERVICE_POOL_1f);
+                        break;
+                    case 1:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_1_SERVICE_POOL_1f);
+                        break;
+                    case 2:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_2_SERVICE_POOL_1f);
+                        break;
+                    case 3:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_3_SERVICE_POOL_1f);
+                        break;
+                    case 4:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_4_SERVICE_POOL_1f);
+                        break;
+                    case 5:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_5_SERVICE_POOL_1f);
+                        break;
+                    case 6:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_6_SERVICE_POOL_1f);
+                        break;
+                    case 7:
+                        *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_7_SERVICE_POOL_1f);
+                        break;
+                    default:
+                      LOG_ERROR(BSL_LS_SOC_EGRESS,
+                                (BSL_META_U(unit,
+                                            "Invalid tc value %d\n"),tc));
+          
+                      DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR, 1148, exit);
+                }
+            }
+        }
+        else {
+          LOG_ERROR(BSL_LS_SOC_EGRESS,
+                   (BSL_META_U(unit,
+                               "TC specific threshold is not supported for this type %d\n"),threshold_type));
+          
+          DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR, 1150, exit);
+        }
+    }
+ JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+    DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_sp_reserved_get_unsafe()", 0, 0);;
+}
+
+
+uint32 
+  jer2_arad_egr_queuing_sch_unsch_drop_set_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core,
+    DNX_SAND_IN    int    threshold_type,
+    DNX_SAND_IN    DNX_TMC_EGR_QUEUING_DEV_TH *dev_thresh
+  )
+{
+    soc_reg_above_64_val_t mem;
+    int prio;
+    uint32 res = DNX_SAND_OK;
+    uint32 field_32, offset;
+
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_SCH_UNSCH_DROP_SET_UNSAFE);
+
+    /* EGQ_PDCT_TABLEm */
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1210, exit, READ_EGQ_PDCT_TABLEm(unit, EGQ_BLOCK(unit, core), threshold_type, mem));
+    field_32 = dev_thresh->thresh_type[threshold_type].uc.descriptors;
+    soc_EGQ_PDCT_TABLEm_field_set(unit, mem, PORT_UC_PD_DIS_THf, &field_32);
+    field_32 = dev_thresh->thresh_type[threshold_type].mc_shared.descriptors;
+    soc_EGQ_PDCT_TABLEm_field_set(unit, mem, PORT_MC_PD_SHARED_MAX_THf, &field_32);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1220, exit, WRITE_EGQ_PDCT_TABLEm(unit, EGQ_BLOCK(unit, core), threshold_type, mem));
+
+    /* EGQ_PQST_TABLEm */
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1230, exit, READ_EGQ_PQST_TABLEm(unit, EGQ_BLOCK(unit, core), threshold_type, mem));
+    field_32 = dev_thresh->thresh_type[threshold_type].uc.buffers;
+    soc_EGQ_PQST_TABLEm_field_set(unit, mem, PORT_UC_DB_DIS_THf, &field_32);
+    field_32 = dev_thresh->thresh_type[threshold_type].mc_shared.buffers;
+    soc_EGQ_PQST_TABLEm_field_set(unit, mem, PORT_MC_DB_SHARED_THf, &field_32);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1240, exit, WRITE_EGQ_PQST_TABLEm(unit, EGQ_BLOCK(unit, core), threshold_type, mem));
+    /* EGQ_QDCT_TABLEm */
+
+    for (prio = 0; prio < DNX_TMC_EGR_NOF_Q_PRIO_JER2_ARAD; prio++) 
+    {
+        offset = JER2_ARAD_EGQ_QDCT_TABLE_KEY_ENTRY(threshold_type,prio);        
+        if(dev_thresh->thresh_type[threshold_type].reserved[prio].descriptors > SOC_DNX_DEFS_GET(unit, egq_qdct_pd_max_val))
+        {
+          DNX_SAND_SET_ERROR_CODE(JER2_ARAD_EGR_QDCT_PD_VALUE_OUT_OF_RANGE, 5, exit);
+        }
+
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1250, exit, READ_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), offset, mem));
+        field_32 = dev_thresh->thresh_type[threshold_type].reserved[prio].descriptors;
+        soc_EGQ_QDCT_TABLEm_field_set(unit, mem, QUEUE_MC_PD_RSVD_THf, &field_32);
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1260, exit, WRITE_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), offset, mem));
+    }
+  
+
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_sch_unsch_drop_set_unsafe()", 0, 0);
+}
+
+uint32
+  jer2_arad_egr_queuing_global_fc_set_unsafe(
+      DNX_SAND_IN  int   unit,
+      DNX_SAND_IN  int   core, 
+      DNX_SAND_IN  soc_dnx_cosq_threshold_type_t threshold_type,
+      DNX_SAND_IN  int    threshold_value, 
+      DNX_SAND_IN  soc_dnx_cosq_threshold_global_type_t drop_type
+  )
+{
+    uint32 res = DNX_SAND_OK;
+    soc_reg_above_64_val_t reg;
+
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_GLOBAL_FC_SET_UNSAFE);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1110, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr(unit, core, reg));
+
+    if (threshold_type == soc_dnx_cosq_threshold_data_buffers || threshold_type == soc_dnx_cosq_threshold_available_data_buffers )
+    {
+        switch (drop_type)
+        {
+            case soc_dnx_cosq_threshold_global_type_unicast:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, UNICAST_DATA_BUFFERS_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_multicast:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_DATA_BUFFERS_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_total:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, TOTAL_DATA_BUFFERS_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_DATA_BUFFERS_SERVICE_POOL_0_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_DATA_BUFFERS_SERVICE_POOL_1_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            default:
+
+                break;
+        }
+    }
+    else if (threshold_type == soc_dnx_cosq_threshold_packet_descriptors || threshold_type == soc_dnx_cosq_threshold_available_packet_descriptors || threshold_type == soc_dnx_cosq_threshold_buffer_descriptors)
+    {
+        switch (drop_type)
+        {
+            case soc_dnx_cosq_threshold_global_type_unicast:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, UNICAST_PACKET_DESCRIPTORS_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_multicast:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_PACKET_DESCRIPTORS_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_total:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, TOTAL_PACKET_DESCRIPTORS_FLOW_CONTROLLIMITf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_PACKET_DESCRIPTORS_SERVICE_POOL_0_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_PACKET_DESCRIPTORS_SERVICE_POOL_1_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            default:
+                break;
+        }
+    }
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1120, exit, WRITE_CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr(unit, core, reg));
+
+    JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_global_fc_set_unsafe()", 0, 0);
+}
+
+uint32
+  jer2_arad_egr_queuing_global_fc_get_unsafe(
+      DNX_SAND_IN  int   unit,
+      DNX_SAND_IN  int   core, 
+      DNX_SAND_IN  soc_dnx_cosq_threshold_type_t threshold_type,
+      DNX_SAND_OUT int*    threshold_value, 
+      DNX_SAND_IN  soc_dnx_cosq_threshold_global_type_t drop_type
+  )
+{
+    uint32 res = DNX_SAND_OK;
+    soc_reg_above_64_val_t reg;
+
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_GLOBAL_FC_GET_UNSAFE);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1110, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr(unit, core, reg));
+
+    if (threshold_type == soc_dnx_cosq_threshold_data_buffers || threshold_type == soc_dnx_cosq_threshold_available_data_buffers)
+    {
+        switch (drop_type)
+        {
+            case soc_dnx_cosq_threshold_global_type_unicast:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, UNICAST_DATA_BUFFERS_FLOW_CONTROL_LIMITf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_multicast:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_DATA_BUFFERS_FLOW_CONTROL_LIMITf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_total:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, TOTAL_DATA_BUFFERS_FLOW_CONTROL_LIMITf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_DATA_BUFFERS_SERVICE_POOL_0_FLOW_CONTROL_LIMITf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_DATA_BUFFERS_SERVICE_POOL_1_FLOW_CONTROL_LIMITf);
+                break;
+            default:               
+                break;
+        }
+    }
+    else if (threshold_type == soc_dnx_cosq_threshold_packet_descriptors || threshold_type == soc_dnx_cosq_threshold_available_packet_descriptors || threshold_type == soc_dnx_cosq_threshold_buffer_descriptors)
+    {
+        switch (drop_type)
+        {
+            case soc_dnx_cosq_threshold_global_type_unicast:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, UNICAST_PACKET_DESCRIPTORS_FLOW_CONTROL_LIMITf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_multicast:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_PACKET_DESCRIPTORS_FLOW_CONTROL_LIMITf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_total:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, TOTAL_PACKET_DESCRIPTORS_FLOW_CONTROLLIMITf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_0:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_PACKET_DESCRIPTORS_SERVICE_POOL_0_FLOW_CONTROL_LIMITf);
+                break;
+            case soc_dnx_cosq_threshold_global_type_service_pool_1:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_FLOW_CONTROL_THRESHOLDSr, reg, MULTICAST_PACKET_DESCRIPTORS_SERVICE_POOL_1_FLOW_CONTROL_LIMITf);
+                break;
+            default:
+                break;
+        }
+    }
+
+    JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_global_fc_get_unsafe()", 0, 0);
+}
+
+uint32
+  jer2_arad_egr_queuing_mc_tc_fc_set_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core,
+    DNX_SAND_IN    int    tc,
+    DNX_SAND_IN    soc_dnx_cosq_threshold_type_t threshold_type,
+    DNX_SAND_IN    int    threshold_value
+  )
+{
+    uint32 res = DNX_SAND_OK;
+    soc_reg_above_64_val_t reg;
+
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_MC_TC_FC_SET_UNSAFE);
+
+    if (threshold_type == soc_dnx_cosq_threshold_packet_descriptors || threshold_type == soc_dnx_cosq_threshold_available_packet_descriptors || threshold_type == soc_dnx_cosq_threshold_buffer_descriptors)
+    {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1100, exit, READ_CGM_CGM_MC_PD_TC_FC_THr(unit, core, reg));
+        switch (tc)
+        {
+            case 0:
+                soc_reg_above_64_field32_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_0f, threshold_value);
+                break;
+            case 1:
+                soc_reg_above_64_field32_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_1f, threshold_value);
+                break;
+            case 2:
+                soc_reg_above_64_field32_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_2f, threshold_value);
+                break;
+            case 3:
+                soc_reg_above_64_field32_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_3f, threshold_value);
+                break;
+            case 4:
+                soc_reg_above_64_field32_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_4f, threshold_value);
+                break;
+            case 5:
+                soc_reg_above_64_field32_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_5f, threshold_value);
+                break;
+            case 6:
+                soc_reg_above_64_field32_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_6f, threshold_value);
+                break;
+            case 7:
+                soc_reg_above_64_field32_set(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_7f, threshold_value);
+                break;
+            default:
+                break;
+        }
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1110, exit, WRITE_CGM_CGM_MC_PD_TC_FC_THr(unit, core, reg));
+    }
+    else if (threshold_type == soc_dnx_cosq_threshold_data_buffers || threshold_type == soc_dnx_cosq_threshold_available_data_buffers) {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1120, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr(unit, core, reg));
+        switch (tc)
+        {
+            case 0:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_0_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case 1:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_1_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case 2:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_2_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case 3:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_3_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case 4:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_4_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case 5:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_5_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case 6:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_6_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            case 7:
+                soc_reg_above_64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_7_FLOW_CONTROL_LIMITf, threshold_value);
+                break;
+            default:
+                break;
+        }
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1130, exit, WRITE_CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr(unit, core, reg));
+    }
+
+    JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+    DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_mc_tc_fc_set_unsafe()", 0, 0);
+}
+
+uint32
+  jer2_arad_egr_queuing_mc_tc_fc_get_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core,
+    DNX_SAND_IN    int    tc,
+    DNX_SAND_IN    soc_dnx_cosq_threshold_type_t threshold_type,
+    DNX_SAND_OUT   int*   threshold_value
+  )
+{
+    uint32 res = DNX_SAND_OK;
+    soc_reg_above_64_val_t reg;
+
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_MC_TC_FC_SET_UNSAFE);
+
+    if (threshold_type == soc_dnx_cosq_threshold_packet_descriptors || threshold_type == soc_dnx_cosq_threshold_available_packet_descriptors || threshold_type == soc_dnx_cosq_threshold_buffer_descriptors) {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1100, exit, READ_CGM_CGM_MC_PD_TC_FC_THr(unit, core, reg));
+        switch (tc)
+        {
+            case 0:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_0f);
+                break;
+            case 1:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_1f);
+                break;
+            case 2:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_2f);
+                break;
+            case 3:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_3f);
+                break;
+            case 4:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_4f);
+                break;
+            case 5:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_5f);
+                break;
+            case 6:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_6f);
+                break;
+            case 7:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CGM_MC_PD_TC_FC_THr, reg, CGM_MC_PD_TC_FC_TH_7f);
+                break;
+            default:
+                break;
+        }
+    }
+    else if (threshold_type == soc_dnx_cosq_threshold_data_buffers || threshold_type == soc_dnx_cosq_threshold_available_data_buffers) {
+        DNX_SAND_SOC_IF_ERROR_RETURN(res, 1120, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr(unit, core, reg));
+        switch (tc)
+        {
+            case 0:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_0_FLOW_CONTROL_LIMITf);
+                break;
+            case 1:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_1_FLOW_CONTROL_LIMITf);
+                break;
+            case 2:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_2_FLOW_CONTROL_LIMITf);
+                break;
+            case 3:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_3_FLOW_CONTROL_LIMITf);
+                break;
+            case 4:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_4_FLOW_CONTROL_LIMITf);
+                break;
+            case 5:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_5_FLOW_CONTROL_LIMITf);
+                break;
+            case 6:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_6_FLOW_CONTROL_LIMITf);
+                break;
+            case 7:
+                *threshold_value = soc_reg_above_64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_FLOW_CONTROL_PER_TC_THREHOSLDSr, reg, MULTICAST_DATA_BUFFERS_TC_7_FLOW_CONTROL_LIMITf);
+                break;
+            default:
+                break;
+        }
+    }
+
+    JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+    DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_mc_tc_fc_get_unsafe()", 0, 0);
+}
+
+
+
+uint32    
+  jer2_arad_egr_queuing_dev_set_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core,
+    DNX_SAND_IN          JER2_ARAD_EGR_QUEUING_DEV_TH    *info
+  )
+{
+  uint32
+    res = DNX_SAND_OK;
+  soc_reg_above_64_val_t
+    field,
+    reg,
+    mem;
+  uint64
+    reg_64;
+  uint32
+    field_32;
+  uint8
+    index;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_DEV_SET_UNSAFE);
+  DNX_SAND_CHECK_NULL_INPUT(info);
+  /* CGM_CGM_GENERAL_PD_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1110, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr(unit, core, reg));
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->global.uc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_UNICAST_PACKET_DESCRIPTORSf, field);
+
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->global.mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_MULTICAST_PACKET_DESCRIPTORSf, field);
+
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->global.total.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_TOTAL_PACKET_DESCRIPTORSf, field);
+
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool[0].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, SERVICE_POOL_0_MAXIMUM_PACKET_DESCRIPTORSf, field);
+
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool[1].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, SERVICE_POOL_1_MAXIMUM_PACKET_DESCRIPTORSf, field);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1120, exit, WRITE_CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr(unit, core, reg));
+
+  /* CGM_CGM_GENERAL_DB_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1130, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr(unit, core, reg));
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->global.uc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_UNICAST_DATA_BUFFERSf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->global.mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_MULTICAST_DATA_BUFFERSf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->global.total.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_TOTAL_DATA_BUFFERSf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool[0].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, SERVICE_POOL_0_MAXIMUM_DATA_BUFFERSf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool[1].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, SERVICE_POOL_1_MAXIMUM_DATA_BUFFERSf, field);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1140, exit, WRITE_CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr(unit, core, reg));
+
+  /* CGM_CGM_MC_PD_SP_TC_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1142, exit, READ_CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr(unit, core, reg));
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][0].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_0_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][1].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_1_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][2].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_2_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][3].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_3_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][4].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_4_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][5].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_5_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][6].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_6_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][7].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_7_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][0].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_0_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][1].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_1_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][2].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_2_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][3].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_3_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][4].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_4_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][5].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_5_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][6].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_6_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][7].mc.descriptors, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_7_MAXIMUMLIMITf, field);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1147, exit, WRITE_CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr(unit, core, reg));
+
+  /* CGM_CGM_MC_DB_SP_TC_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1150, exit, READ_CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr(unit, core, reg));
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][0].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_0_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][1].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_1_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][2].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_2_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][3].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_3_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][4].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_4_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][5].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_5_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][6].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_6_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][7].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_7_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][0].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_0_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][1].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_1_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][2].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_2_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][3].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_3_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][4].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_4_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][5].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_5_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][6].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_6_MAXIMUMLIMITf, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][7].mc.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_7_MAXIMUMLIMITf, field);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1160, exit, WRITE_CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr(unit, core, reg));
+
+  /* CGM_CGM_MC_RSVD_MAX_VALr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1170, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr(unit, core, &reg_64));
+  soc_reg64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, &reg_64, RESERVED_P_DS_SERVICE_POOL_0f, info->pool[0].reserved.descriptors);
+  soc_reg64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, &reg_64, RESERVED_P_DS_SERVICE_POOL_1f, info->pool[1].reserved.descriptors);
+  soc_reg64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, &reg_64, RESERVED_D_BS_SERVICE_POOL_0f, info->pool[0].reserved.buffers);
+  soc_reg64_field32_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, &reg_64, RESERVED_D_BS_SERVICE_POOL_1f, info->pool[1].reserved.buffers);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1180, exit, WRITE_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr(unit, core, reg_64));
+
+  /* CGM_CGM_MC_RSVD_DB_SP_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1190, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr(unit, core, reg));
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][0].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_0_SERVICE_POOL_0f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][1].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_1_SERVICE_POOL_0f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][2].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_2_SERVICE_POOL_0f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][3].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_3_SERVICE_POOL_0f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][4].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_4_SERVICE_POOL_0f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][5].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_5_SERVICE_POOL_0f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][6].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_6_SERVICE_POOL_0f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[0][7].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_7_SERVICE_POOL_0f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][0].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_0_SERVICE_POOL_1f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][1].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_1_SERVICE_POOL_1f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][2].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_2_SERVICE_POOL_1f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][3].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_3_SERVICE_POOL_1f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][4].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_4_SERVICE_POOL_1f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][5].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_5_SERVICE_POOL_1f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][6].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_6_SERVICE_POOL_1f, field);
+  SOC_REG_ABOVE_64_CLEAR(field);
+  SHR_BITCOPY_RANGE(field, 0, &info->pool_tc[1][7].reserved.buffers, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_set(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_7_SERVICE_POOL_1f, field);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1200, exit, WRITE_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr(unit, core, reg));
+
+  /* EGQ_PDCT_TABLEm */
+  for(index = 0; index < JER2_ARAD_NOF_THRESH_TYPES; ++index) {
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1210, exit, READ_EGQ_PDCT_TABLEm(unit, EGQ_BLOCK(unit, core), index, mem));
+    field_32 = info->thresh_type[index].uc.descriptors;
+    soc_EGQ_PDCT_TABLEm_field_set(unit, mem, PORT_UC_PD_DIS_THf, &field_32);
+    field_32 = info->thresh_type[index].mc_shared.descriptors;
+    soc_EGQ_PDCT_TABLEm_field_set(unit, mem, PORT_MC_PD_SHARED_MAX_THf, &field_32);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1220, exit, WRITE_EGQ_PDCT_TABLEm(unit, EGQ_BLOCK(unit, core), index, mem));
+  }
+
+  /* EGQ_PQST_TABLEm */
+  for(index = 0; index < JER2_ARAD_NOF_THRESH_TYPES; ++index) {
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1230, exit, READ_EGQ_PQST_TABLEm(unit, EGQ_BLOCK(unit, core), index, mem));
+    field_32 = info->thresh_type[index].uc.buffers;
+    soc_EGQ_PQST_TABLEm_field_set(unit, mem, PORT_UC_DB_DIS_THf, &field_32);
+    field_32 = info->thresh_type[index].mc_shared.buffers;
+    soc_EGQ_PQST_TABLEm_field_set(unit, mem, PORT_MC_DB_SHARED_THf, &field_32);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1240, exit, WRITE_EGQ_PQST_TABLEm(unit, EGQ_BLOCK(unit, core), index, mem));
+  }
+  /* EGQ_QDCT_TABLEm */
+  for(index = 0; index < JER2_ARAD_NOF_THRESH_TYPES*JER2_ARAD_NOF_TRAFFIC_CLASSES; ++index) {
+    if(info->thresh_type[index/JER2_ARAD_NOF_TRAFFIC_CLASSES].reserved[index%JER2_ARAD_NOF_TRAFFIC_CLASSES].descriptors > SOC_DNX_DEFS_GET(unit, egq_qdct_pd_max_val))
+    {
+      DNX_SAND_SET_ERROR_CODE(JER2_ARAD_EGR_QDCT_PD_VALUE_OUT_OF_RANGE, 5, exit);
+    }
+
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1250, exit, READ_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), index, mem));
+    field_32 = info->thresh_type[index/JER2_ARAD_NOF_TRAFFIC_CLASSES].reserved[index%JER2_ARAD_NOF_TRAFFIC_CLASSES].descriptors;
+    soc_EGQ_QDCT_TABLEm_field_set(unit, mem, QUEUE_MC_PD_RSVD_THf, &field_32);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1260, exit, WRITE_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), index, mem));
+  }
+
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_dev_set_unsafe()", 0, 0);
+}
+
+uint32
+  jer2_arad_egr_queuing_dev_get_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core,
+    DNX_SAND_OUT          JER2_ARAD_EGR_QUEUING_DEV_TH    *info
+  )
+{
+  uint32
+      res = DNX_SAND_OK;
+  soc_reg_above_64_val_t
+    field,
+    reg,
+    mem;
+  uint64
+    reg_64;
+  uint8
+    index;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_DEV_GET_UNSAFE);
+  DNX_SAND_CHECK_NULL_INPUT(info);
+
+  jer2_arad_JER2_ARAD_EGR_QUEUING_DEV_TH_clear(info);
+  /* CGM_CGM_GENERAL_PD_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1360, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr(unit, core, reg));
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_UNICAST_PACKET_DESCRIPTORSf, field);
+  SHR_BITCOPY_RANGE(&info->global.uc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_MULTICAST_PACKET_DESCRIPTORSf, field);
+  SHR_BITCOPY_RANGE(&info->global.mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, MAXIMUM_TOTAL_PACKET_DESCRIPTORSf, field);
+  SHR_BITCOPY_RANGE(&info->global.total.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, SERVICE_POOL_0_MAXIMUM_PACKET_DESCRIPTORSf, field);
+  SHR_BITCOPY_RANGE(&info->pool[0].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_PD_THRESHOLDSr, reg, SERVICE_POOL_1_MAXIMUM_PACKET_DESCRIPTORSf, field);
+  SHR_BITCOPY_RANGE(&info->pool[1].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+
+  /* CGM_CGM_GENERAL_DB_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1370, exit, READ_CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr(unit, core, reg));
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_UNICAST_DATA_BUFFERSf, field);
+  SHR_BITCOPY_RANGE(&info->global.uc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_MULTICAST_DATA_BUFFERSf, field);
+  SHR_BITCOPY_RANGE(&info->global.mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, MAXIMUM_TOTAL_DATA_BUFFERSf, field);
+  SHR_BITCOPY_RANGE(&info->global.total.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, SERVICE_POOL_0_MAXIMUM_DATA_BUFFERSf, field);
+  SHR_BITCOPY_RANGE(&info->pool[0].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_GLOBAL_DB_THRESHOLDSr, reg, SERVICE_POOL_1_MAXIMUM_DATA_BUFFERSf, field);
+  SHR_BITCOPY_RANGE(&info->pool[1].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+
+  /* CGM_CGM_MC_PD_SP_TC_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1375, exit, READ_CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr(unit, core, reg));
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_0_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][0].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_1_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][1].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_2_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][2].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_3_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][3].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_4_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][4].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_5_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][5].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_6_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][6].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_0_TC_7_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][7].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_0_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][0].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_1_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][1].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_2_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][2].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_3_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][3].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_4_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][4].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_5_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][5].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_6_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][6].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_PD_SERVICE_POOL_THRESHOLDSr, reg, PD_SERVICE_POOL_1_TC_7_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][7].mc.descriptors, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_PD_NOF_BITS);
+
+  /* CGM_CGM_MC_DB_SP_TC_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1380, exit, READ_CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr(unit, core, reg));
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_0_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][0].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_1_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][1].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_2_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][2].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_3_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][3].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_4_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][4].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_5_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][5].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_6_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][6].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_0_TC_7_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][7].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_0_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][0].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_1_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][1].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_2_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][2].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_3_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][3].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_4_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][4].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_5_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][5].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_6_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][6].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_DB_SERVICE_POOL_MAXIMUM_THRESHOLDSr, reg, DB_SERVICE_POOL_1_TC_7_MAXIMUMLIMITf, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][7].mc.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+
+  /* CGM_CGM_MC_RSVD_MAX_VALr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1390, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr(unit, core, &reg_64));
+  info->pool[0].reserved.descriptors = soc_reg64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, reg_64, RESERVED_P_DS_SERVICE_POOL_0f);
+  info->pool[1].reserved.descriptors = soc_reg64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, reg_64, RESERVED_P_DS_SERVICE_POOL_1f);
+  info->pool[0].reserved.buffers = soc_reg64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, reg_64, RESERVED_D_BS_SERVICE_POOL_0f);
+  info->pool[1].reserved.buffers = soc_reg64_field32_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCESr, reg_64, RESERVED_D_BS_SERVICE_POOL_1f);
+
+  /* CGM_CGM_MC_RSVD_DB_SP_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1400, exit, READ_CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr(unit, core, reg));
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_0_SERVICE_POOL_0f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][0].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_1_SERVICE_POOL_0f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][1].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_2_SERVICE_POOL_0f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][2].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_3_SERVICE_POOL_0f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][3].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_4_SERVICE_POOL_0f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][4].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_5_SERVICE_POOL_0f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][5].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_6_SERVICE_POOL_0f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][6].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_7_SERVICE_POOL_0f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[0][7].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_0_SERVICE_POOL_1f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][0].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_1_SERVICE_POOL_1f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][1].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_2_SERVICE_POOL_1f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][2].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_3_SERVICE_POOL_1f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][3].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_4_SERVICE_POOL_1f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][4].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_5_SERVICE_POOL_1f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][5].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_6_SERVICE_POOL_1f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][6].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+  soc_reg_above_64_field_get(unit, CGM_CONGESTION_MANAGEMENT_MULTICAST_RESERVED_RESOURCES_PER_CLASSr, reg, RESERVED_DATA_BUFFERS_TC_7_SERVICE_POOL_1f, field);
+  SHR_BITCOPY_RANGE(&info->pool_tc[1][7].reserved.buffers, 0, field, 0, JER2_ARAD_EGQ_THRESHOLD_DBUFF_NOF_BITS);
+
+  /* EGQ_PDCT_TABLEm */
+  for(index = 0; index < JER2_ARAD_NOF_THRESH_TYPES; ++index) {
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1410, exit, READ_EGQ_PDCT_TABLEm(unit, EGQ_BLOCK(unit,core), index, mem));
+    soc_EGQ_PDCT_TABLEm_field_get(unit, mem, PORT_UC_PD_DIS_THf, &info->thresh_type[index].uc.descriptors);
+    soc_EGQ_PDCT_TABLEm_field_get(unit, mem, PORT_MC_PD_SHARED_MAX_THf, &info->thresh_type[index].mc_shared.descriptors);
+  }
+
+
+  /* EGQ_PQST_TABLEm */
+  for(index = 0; index < JER2_ARAD_NOF_THRESH_TYPES; ++index) {
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1420, exit, READ_EGQ_PQST_TABLEm(unit, EGQ_BLOCK(unit, core), index, mem));
+    soc_EGQ_PQST_TABLEm_field_get(unit, mem, PORT_UC_DB_DIS_THf, &info->thresh_type[index].uc.buffers);
+    soc_EGQ_PQST_TABLEm_field_get(unit, mem, PORT_MC_DB_SHARED_THf, &info->thresh_type[index].mc_shared.buffers);
+  }
+  /* EGQ_QDCT_TABLEm */
+  for(index = 0; index < JER2_ARAD_NOF_THRESH_TYPES*JER2_ARAD_NOF_TRAFFIC_CLASSES; ++index) {
+
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1430, exit, READ_EGQ_QDCT_TABLEm(unit, EGQ_BLOCK(unit, core), index, mem));
+    soc_EGQ_QDCT_TABLEm_field_get(
+                                    unit,
+                                    mem,
+                                    QUEUE_MC_PD_RSVD_THf,
+                                    &info->thresh_type[index/JER2_ARAD_NOF_TRAFFIC_CLASSES].reserved[index%JER2_ARAD_NOF_TRAFFIC_CLASSES].descriptors
+                                  );
+  }
+
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_dev_get_unsafe()", 0, 0);
+}
+
+uint32    
+  jer2_arad_egr_queuing_mc_cos_map_set_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core,
+    DNX_SAND_IN    uint32    tc_ndx,
+    DNX_SAND_IN    uint32    dp_ndx,
+    DNX_SAND_IN JER2_ARAD_EGR_QUEUING_MC_COS_MAP    *info
+  )
+{
+  uint32
+      res = DNX_SAND_OK;
+  uint32
+    reg[1],
+    field;
+  uint8
+    index;
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_MC_COS_MAP_SET_UNSAFE);
+  DNX_SAND_CHECK_NULL_INPUT(info);
+
+  DNX_SAND_ERR_IF_ABOVE_MAX(tc_ndx, JER2_ARAD_EGR_Q_PRIORITY_TC_MAX, JER2_ARAD_EGR_TC_OUT_OF_RANGE_ERR, 10, exit);
+  DNX_SAND_ERR_IF_ABOVE_MAX(dp_ndx, JER2_ARAD_EGR_Q_PRIORITY_DP_MAX, JER2_ARAD_EGR_DP_OUT_OF_RANGE_ERR, 11, exit);
+
+  /* CGM_CGM_MAP_TC_TO_SPr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1530, exit, READ_CGM_CGM_MAP_TC_TO_SPr(unit, core, reg));
+  if(info->pool_id) {
+    SHR_BITSET(reg, info->tc_group);
+  }
+  else
+  {
+    SHR_BITCLR(reg, info->tc_group);
+  }
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1540, exit, WRITE_CGM_CGM_MAP_TC_TO_SPr(unit, core, *reg));
+
+  /* EGQ_MC_SP_TC_MAPm */
+  index = 0;
+  index |= (dp_ndx);
+  index |= (tc_ndx)<<2;
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1550, exit, READ_EGQ_MC_SP_TC_MAPm(unit, EGQ_BLOCK(unit, core), index, reg));
+  field = info->tc_group;
+  soc_EGQ_MC_SP_TC_MAPm_field_set(unit, reg, CGM_MC_TCf, &field);
+  /* CGM MC SE equals to DP index. CGM_MC_SE is being used later for CGM_DP_ELIGIBLE_TO_USE_RESOURCESr */
+  field = dp_ndx;
+  soc_EGQ_MC_SP_TC_MAPm_field_set(unit, reg, CGM_MC_SEf, &field);
+  field = info->pool_id;
+  soc_EGQ_MC_SP_TC_MAPm_field_set(unit, reg, CGM_MC_SPf, &field);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1560, exit, WRITE_EGQ_MC_SP_TC_MAPm(unit, EGQ_BLOCK(unit, core), index, reg));
+
+  /* EGQ_MC_PRIORITY_LOOKUP_TABLEr */
+  index = ((tc_ndx)<<2) | dp_ndx;
+  *reg = 0;
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1570, exit, READ_EGQ_MC_PRIORITY_LOOKUP_TABLEr(unit, core, reg));
+
+  if(!info->pool_id) {
+    SHR_BITSET(reg, index);
+  }
+  else
+  {
+    SHR_BITCLR(reg, index);
+  }
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1580, exit, WRITE_EGQ_MC_PRIORITY_LOOKUP_TABLEr(unit, core, *reg));
+  /* CGM_DP_ELIGIBLE_TO_USE_RESOURCESr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1590, exit, READ_CGM_CGM_DP_ELIGIBLE_TO_USE_RESOURCESr(unit, core, reg));
+  index = ((info->pool_id) << 2) | dp_ndx;
+  if(info->pool_eligibility) {
+    SHR_BITSET(reg, index);
+  }
+  else
+  {
+    SHR_BITCLR(reg, index);
+  }
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1600, exit, WRITE_CGM_CGM_DP_ELIGIBLE_TO_USE_RESOURCESr(unit, core, *reg));
+
+
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_mc_cos_map_set_unsafe()", tc_ndx, dp_ndx);
+}
+
+uint32    
+  jer2_arad_egr_queuing_mc_cos_map_get_unsafe(
+    DNX_SAND_IN     int    unit,
+    DNX_SAND_IN     int    core,
+    DNX_SAND_IN     uint32    tc_ndx,
+    DNX_SAND_IN     uint32    dp_ndx,
+    DNX_SAND_OUT JER2_ARAD_EGR_QUEUING_MC_COS_MAP    *info
+  )
+{
+  uint32
+      res = DNX_SAND_OK;
+  uint32
+    reg[1];
+  uint8
+    index;
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_MC_COS_MAP_GET_UNSAFE);
+  DNX_SAND_CHECK_NULL_INPUT(info);
+
+  jer2_arad_JER2_ARAD_EGR_QUEUING_MC_COS_MAP_clear(info);
+
+  DNX_SAND_ERR_IF_ABOVE_MAX(tc_ndx, JER2_ARAD_EGR_Q_PRIORITY_TC_MAX, JER2_ARAD_EGR_TC_OUT_OF_RANGE_ERR, 10, exit);
+  DNX_SAND_ERR_IF_ABOVE_MAX(dp_ndx, JER2_ARAD_EGR_Q_PRIORITY_DP_MAX, JER2_ARAD_EGR_DP_OUT_OF_RANGE_ERR, 11, exit);
+
+  index = 0;
+  index |= (dp_ndx);
+  index |= (tc_ndx)<<2;
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1660, exit, READ_EGQ_MC_SP_TC_MAPm(unit, EGQ_BLOCK(unit, core), index, reg));
+  soc_EGQ_MC_SP_TC_MAPm_field_get(unit, reg, CGM_MC_TCf, &info->tc_group);  
+  soc_EGQ_MC_SP_TC_MAPm_field_get(unit, reg, CGM_MC_SPf, &info->pool_id);
+
+  /* CGM_DP_ELIGIBLE_TO_USE_RESOURCESr */
+  if (SOC_IS_QAX(unit)) {
+      DNX_SAND_SOC_IF_ERROR_RETURN(res, 1590, exit, READ_ECGM_CGM_DP_ELIGIBLE_TO_USE_RESOURCESr(unit, reg));
+  } else {
+      DNX_SAND_SOC_IF_ERROR_RETURN(res, 1590, exit, READ_CGM_CGM_DP_ELIGIBLE_TO_USE_RESOURCESr(unit, core, reg));
+  }
+  index = ((info->pool_id) << 2) | dp_ndx;
+
+  info->pool_eligibility = (SHR_BITGET(reg, index)) ? 1:0;
+  
+  
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_mc_cos_map_get_unsafe()", tc_ndx, dp_ndx);
+}
+
+uint32    
+  jer2_arad_egr_queuing_if_fc_set_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    JER2_ARAD_INTERFACE_ID    if_ndx,
+    DNX_SAND_IN          JER2_ARAD_EGR_QUEUING_IF_FC    *info
+  )
+{
+    
+    DNXC_LEGACY_FIXME_ASSERT;
+#ifdef FIXME_DNX_LEGACY
+  uint32
+      res = DNX_SAND_OK;
+  uint32
+    if_internal_id;
+  soc_reg_above_64_val_t
+    reg_above_64;
+  JER2_ARAD_NIF_TYPE
+    nif_type;
+  JER2_ARAD_MGMT_ILKN_TDM_DEDICATED_QUEUING_MODE
+    ilkn_tdm_dedicated_queuing;
+  uint32 
+    nof_if_to_be_set = 1;
+  uint32
+      i;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_IF_FC_SET_UNSAFE);
+  DNX_SAND_CHECK_NULL_INPUT(info);
+
+  
+  if_internal_id = jer2_arad_nif2intern_id(unit, if_ndx);
+  nif_type = jer2_arad_nif_id2type(if_ndx);
+  ilkn_tdm_dedicated_queuing = SOC_DNX_CONFIG(unit)->jer2_arad->init.ilkn_tdm_dedicated_queuing;
+
+  if ((nif_type == JER2_ARAD_NIF_TYPE_ILKN) && (ilkn_tdm_dedicated_queuing == JER2_ARAD_MGMT_ILKN_TDM_DEDICATED_QUEUING_MODE_ON)) {
+      nof_if_to_be_set = 2;
+  }
+
+  if(if_internal_id == JER2_ARAD_NIF_ID_NONE)
+  {
+    DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR, 10, exit);
+  }
+
+
+  for (i=0; i <  nof_if_to_be_set; ++i,++if_internal_id) {
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1760, exit, READ_CGM_CGM_MAP_IF_2_THr(unit, REG_PORT_ANY, reg_above_64));
+    SHR_BITCOPY_RANGE(reg_above_64, if_internal_id*3, &info->uc_profile, 0, 3);
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1770, exit, WRITE_CGM_CGM_MAP_IF_2_THr(unit, REG_PORT_ANY, reg_above_64));
+
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1780, exit, READ_CGM_CGM_MC_INTERFACE_MAP_THr(unit, REG_PORT_ANY, reg_above_64));
+    if(if_internal_id*2 > 31) {
+    reg_above_64[1] |= (info->mc_pd_profile & 0x3) << (2 * if_internal_id - 32);
+    }
+    else
+    {
+    reg_above_64[0] |= (info->mc_pd_profile & 0x3) << (2 * if_internal_id);
+    }
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 1790, exit, WRITE_CGM_CGM_MC_INTERFACE_MAP_THr(unit, REG_PORT_ANY, reg_above_64));
+  }
+
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_if_fc_set_unsafe()", 0, 0);
+#endif 
+    return -1;
+}
+
+soc_error_t
+jer2_arad_egr_queuing_is_high_priority_port_get(int unit, int core, uint32 tm_port, int *is_high_priority)
+{
+    DNX_TMC_EGR_OFP_SCH_INFO info;
+
+    DNXC_INIT_FUNC_DEFS;
+
+    DNX_TMC_EGR_OFP_SCH_INFO_clear(&info);
+
+    /* retrieved from HW */
+    DNXC_SAND_IF_ERR_EXIT(MBCM_DNX_DRIVER_CALL(unit,mbcm_dnx_egr_ofp_scheduling_get,(unit, core, tm_port, &info)));
+
+    if (info.nif_priority == DNX_TMC_EGR_OFP_INTERFACE_PRIO_HIGH) {
+        *is_high_priority = TRUE;
+    } else {
+        *is_high_priority = FALSE;
+    }
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+
+uint32    
+  jer2_arad_egr_queuing_if_fc_get_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    JER2_ARAD_INTERFACE_ID    if_ndx,
+    DNX_SAND_OUT          JER2_ARAD_EGR_QUEUING_IF_FC    *info
+  )
+{
+    
+    DNXC_LEGACY_FIXME_ASSERT;
+#ifdef FIXME_DNX_LEGACY
+
+  uint32
+      res = DNX_SAND_OK;
+  uint32
+    if_internal_id;
+  soc_reg_above_64_val_t
+    reg_above_64;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_IF_FC_GET_UNSAFE);
+  DNX_SAND_CHECK_NULL_INPUT(info);
+
+  jer2_arad_JER2_ARAD_EGR_QUEUING_IF_FC_clear(info);
+
+  if_internal_id = jer2_arad_nif2intern_id(unit, if_ndx);
+
+  if(if_internal_id == JER2_ARAD_NIF_ID_NONE)
+  {
+    DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR, 10, exit);
+  }
+  if (SOC_IS_QAX(unit)) {
+      DNX_SAND_SOC_IF_ERROR_RETURN(res, 1870, exit, READ_ECGM_CGM_MAP_IF_2_THr(unit, reg_above_64));
+      info->uc_profile = 0;
+      SHR_BITCOPY_RANGE(&info->uc_profile, 0, reg_above_64, if_internal_id*3, 3);
+
+      DNX_SAND_SOC_IF_ERROR_RETURN(res, 1880, exit, READ_ECGM_CGM_MC_INTERFACE_MAP_THr(unit, reg_above_64));
+  } else {
+      DNX_SAND_SOC_IF_ERROR_RETURN(res, 1870, exit, READ_CGM_CGM_MAP_IF_2_THr(unit, REG_PORT_ANY, reg_above_64));
+      info->uc_profile = 0;
+      SHR_BITCOPY_RANGE(&info->uc_profile, 0, reg_above_64, if_internal_id*3, 3);
+
+      DNX_SAND_SOC_IF_ERROR_RETURN(res, 1880, exit, READ_CGM_CGM_MC_INTERFACE_MAP_THr(unit, REG_PORT_ANY, reg_above_64));
+  }
+  info->mc_pd_profile = 0;
+  if(if_internal_id*2 > 31) {
+    info->mc_pd_profile |= (reg_above_64[1] >> (2*if_internal_id - 32)) & 0x3;
+  }
+  else
+  {
+    info->mc_pd_profile |= (reg_above_64[0] >> (2*if_internal_id)) & 0x3;
+  }
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_if_fc_get_unsafe()", 0, 0);
+#endif 
+    return -1;
+}
+
+uint32    
+  jer2_arad_egr_queuing_if_fc_uc_set_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core, 
+    DNX_SAND_IN    uint32    uc_if_profile_ndx,
+    DNX_SAND_IN          JER2_ARAD_EGR_QUEUING_IF_UC_FC    *info
+  )
+{
+  uint32
+      res = DNX_SAND_OK;
+  soc_reg_above_64_val_t
+    pd,
+    size_256,
+    pd_field,
+    size_256_field;
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_IF_FC_UC_SET_UNSAFE);
+  DNX_SAND_CHECK_NULL_INPUT(info);
+  SOC_REG_ABOVE_64_CLEAR(pd_field);
+  SOC_REG_ABOVE_64_CLEAR(size_256_field);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1970, exit, READ_CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr(unit, core, pd));
+  SHR_BITCOPY_RANGE(pd_field, 0, &info->pd_th, 0, JER2_ARAD_EGQ_PD_INTERFACE_NOF_BITS);
+
+  /* CGM_CGM_UC_SIZE_256_INTERFACE_FC_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1980, exit, READ_CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr(unit, core, size_256));
+  SHR_BITCOPY_RANGE(size_256_field, 0, &info->size256_th, 0, JER2_ARAD_EGQ_SIZE_256_INTERFACE_NOF_BITS);
+
+  switch(uc_if_profile_ndx) {
+    case 0:
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_0f, pd_field);
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_0f, size_256_field);
+      break;
+    case 1:
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_1f, pd_field);
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_1f, size_256_field);
+      break;
+    case 2:
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_2f, pd_field);
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_2f, size_256_field);
+      break;
+    case 3:
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_3f, pd_field);
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_3f, size_256_field);
+      break;
+    case 4:
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_4f, pd_field);
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_4f, size_256_field);
+      break;
+    case 5:
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_5f, pd_field);
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_5f, size_256_field);
+      break;
+    case 6:
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_6f, pd_field);
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_6f, size_256_field);
+      break;
+    case 7:
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_7f, pd_field);
+      soc_reg_above_64_field_set(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_7f, size_256_field);
+      break;
+    default:
+      DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR,10,exit);
+  }
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 1990, exit, WRITE_CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr(unit, core, pd));
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2000, exit, WRITE_CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr(unit, core, size_256));
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_if_fc_uc_set_unsafe()", 0, 0);
+}
+
+uint32    
+  jer2_arad_egr_queuing_if_fc_uc_get_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core,
+    DNX_SAND_IN    uint32    uc_if_profile_ndx,
+    DNX_SAND_OUT          JER2_ARAD_EGR_QUEUING_IF_UC_FC    *info
+  )
+{
+  uint32
+      res = DNX_SAND_OK;
+  soc_reg_above_64_val_t
+    pd,
+    size_256,
+    pd_field,
+    size_256_field;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_IF_FC_UC_GET_UNSAFE);
+  DNX_SAND_CHECK_NULL_INPUT(info);
+
+  jer2_arad_JER2_ARAD_EGR_QUEUING_IF_UC_FC_clear(info);
+  /* CGM_CGM_UC_PD_INTERFACE_FC_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2100, exit, READ_CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr(unit, core, pd));
+
+  /* CGM_CGM_UC_SIZE_256_INTERFACE_FC_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2110, exit, READ_CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr(unit, core, size_256));
+
+  switch(uc_if_profile_ndx) {
+    case 0:
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_0f, pd_field);
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_0f, size_256_field);
+      break;
+    case 1:
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_1f, pd_field);
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_1f, size_256_field);
+      break;
+    case 2:
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_2f, pd_field);
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_2f, size_256_field);
+      break;
+    case 3:
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_3f, pd_field);
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_3f, size_256_field);
+      break;
+    case 4:
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_4f, pd_field);
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_4f, size_256_field);
+      break;
+    case 5:
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_5f, pd_field);
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_5f, size_256_field);
+      break;
+    case 6:
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_6f, pd_field);
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_6f, size_256_field);
+      break;
+    case 7:
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_PD_INTERFACE_FC_MAX_THr, pd, CGM_UC_PD_INTERFACE_FC_MAX_TH_7f, pd_field);
+      soc_reg_above_64_field_get(unit, CGM_CGM_UC_SIZE_256_INTERFACE_FC_MAX_THr, size_256, CGM_UC_SIZE_256_INTERFACE_FC_MAX_TH_7f, size_256_field);
+      break;
+    default:
+      DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR,10,exit);
+  }
+  SHR_BITCOPY_RANGE(&info->pd_th, 0, pd_field, 0, JER2_ARAD_EGQ_PD_INTERFACE_NOF_BITS);
+  SHR_BITCOPY_RANGE(&info->size256_th, 0, size_256_field, 0, JER2_ARAD_EGQ_SIZE_256_INTERFACE_NOF_BITS);
+
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_if_fc_uc_get_unsafe()", 0, 0);
+}
+
+uint32    
+  jer2_arad_egr_queuing_if_fc_mc_set_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    int    core, 
+    DNX_SAND_IN    uint32    mc_if_profile_ndx,
+    DNX_SAND_IN uint32    pd_th
+  )
+{
+  uint32
+      res = DNX_SAND_OK;
+  uint64
+    reg;
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_IF_FC_MC_SET_UNSAFE);
+  /* CGM_CGM_MC_INTERFACE_PD_THr */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2210, exit, READ_CGM_CGM_MC_INTERFACE_PD_THr(unit, core, &reg));
+  switch(mc_if_profile_ndx) {
+    case 0:
+      soc_reg64_field32_set(unit, CGM_CGM_MC_INTERFACE_PD_THr, &reg, CGM_MC_INTERFACE_PD_TH_0f, pd_th);
+      break;
+    case 1:
+      soc_reg64_field32_set(unit, CGM_CGM_MC_INTERFACE_PD_THr, &reg, CGM_MC_INTERFACE_PD_TH_1f, pd_th);
+      break;
+    case 2:
+      soc_reg64_field32_set(unit, CGM_CGM_MC_INTERFACE_PD_THr, &reg, CGM_MC_INTERFACE_PD_TH_2f, pd_th);
+      break;
+    case 3:
+      soc_reg64_field32_set(unit, CGM_CGM_MC_INTERFACE_PD_THr, &reg, CGM_MC_INTERFACE_PD_TH_3f, pd_th);
+      break;
+    default:
+      DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR,10,exit);
+  }
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2220, exit, WRITE_CGM_CGM_MC_INTERFACE_PD_THr(unit, core, reg));
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_if_fc_mc_set_unsafe()", 0, 0);
+}
+
+uint32    
+  jer2_arad_egr_queuing_if_fc_mc_get_unsafe(
+    DNX_SAND_IN     int    unit,
+    DNX_SAND_IN     uint32    mc_if_profile_ndx,
+    DNX_SAND_OUT uint32   *pd_th
+  )
+{
+  uint32
+      res = DNX_SAND_OK;
+  uint64
+    reg;
+  uint32
+    temp_pd_th = 0;
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_IF_FC_MC_GET_UNSAFE);
+  DNX_SAND_CHECK_NULL_INPUT(pd_th);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 2320, exit, READ_CGM_CGM_MC_INTERFACE_PD_THr(unit, REG_PORT_ANY, &reg));
+  switch(mc_if_profile_ndx) {
+    case 0:
+      temp_pd_th = soc_reg64_field32_get(unit, CGM_CGM_MC_INTERFACE_PD_THr, reg, CGM_MC_INTERFACE_PD_TH_0f);
+      break;
+    case 1:
+      temp_pd_th = soc_reg64_field32_get(unit, CGM_CGM_MC_INTERFACE_PD_THr, reg, CGM_MC_INTERFACE_PD_TH_1f);
+      break;
+    case 2:
+      temp_pd_th = soc_reg64_field32_get(unit, CGM_CGM_MC_INTERFACE_PD_THr, reg, CGM_MC_INTERFACE_PD_TH_2f);
+      break;
+    case 3:
+      temp_pd_th = soc_reg64_field32_get(unit, CGM_CGM_MC_INTERFACE_PD_THr, reg, CGM_MC_INTERFACE_PD_TH_3f);
+      break;
+    default:
+      DNX_SAND_SET_ERROR_CODE(DNX_SAND_ERR,10,exit);
+  }
+  *pd_th = temp_pd_th;
+  JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_if_fc_mc_get_unsafe()", 0, 0);
+}
+
+
+uint32 
+  jer2_arad_egr_queuing_if_uc_map_set_unsafe(
+    DNX_SAND_IN  int        unit,
+    DNX_SAND_IN  int        core,
+    DNX_SAND_IN  soc_port_if_t interface_type,
+    DNX_SAND_IN  uint32     internal_if_id,
+    DNX_SAND_IN  int        profile
+  )
+{
+    uint32
+      res = DNX_SAND_OK;
+    int i;
+    uint32 nof_if_to_be_set=1, profile_num;
+    uint32 internal_interface_id = internal_if_id;
+    soc_reg_above_64_val_t reg_above_64;
+    JER2_ARAD_MGMT_ILKN_TDM_DEDICATED_QUEUING_MODE
+        ilkn_tdm_dedicated_queuing;
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_IF_UC_MAP_SET);
+   
+    ilkn_tdm_dedicated_queuing = SOC_DNX_CONFIG(unit)->jer2_arad->init.ilkn_tdm_dedicated_queuing;
+
+    if ((interface_type == SOC_PORT_IF_ILKN) && (ilkn_tdm_dedicated_queuing == JER2_ARAD_MGMT_ILKN_TDM_DEDICATED_QUEUING_MODE_ON)) {
+        nof_if_to_be_set = 2;
+    }
+
+    profile_num = profile;
+    if (SOC_IS_QAX(unit)) {
+        for (i=0; i <  nof_if_to_be_set; i++)
+        {
+            DNX_SAND_SOC_IF_ERROR_RETURN(res, 1760, exit, READ_ECGM_CGM_MAP_IF_2_THr(unit, reg_above_64));
+            SHR_BITCOPY_RANGE(reg_above_64, internal_interface_id*3, &profile_num, 0, 3);
+            DNX_SAND_SOC_IF_ERROR_RETURN(res, 1770, exit, WRITE_ECGM_CGM_MAP_IF_2_THr(unit, reg_above_64));
+            internal_interface_id ++;
+        }
+    } else {
+        for (i=0; i <  nof_if_to_be_set; i++)
+        {
+            DNX_SAND_SOC_IF_ERROR_RETURN(res, 1760, exit, READ_CGM_CGM_MAP_IF_2_THr(unit, core, reg_above_64));
+            SHR_BITCOPY_RANGE(reg_above_64, internal_interface_id*3, &profile_num, 0, 3);
+            DNX_SAND_SOC_IF_ERROR_RETURN(res, 1770, exit, WRITE_CGM_CGM_MAP_IF_2_THr(unit, core, reg_above_64));
+            internal_interface_id ++;
+        }
+    }
+    JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+    DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_if_uc_map_set_unsafe()", 0, 0);
+}
+
+uint32 
+  jer2_arad_egr_queuing_if_mc_map_set_unsafe(
+    DNX_SAND_IN  int        unit,
+    DNX_SAND_IN  int        core,
+    DNX_SAND_IN  soc_port_if_t interface_type,
+    DNX_SAND_IN  uint32     internal_if_id,
+    DNX_SAND_IN  int        profile
+  )
+{
+    uint32
+      res = DNX_SAND_OK;
+    int i;
+    uint32 nof_if_to_be_set=1, profile_num, internal_interface_id = internal_if_id;
+    soc_reg_above_64_val_t reg_above_64;
+    JER2_ARAD_MGMT_ILKN_TDM_DEDICATED_QUEUING_MODE
+        ilkn_tdm_dedicated_queuing;
+    DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_IF_UC_MAP_SET);
+   
+    ilkn_tdm_dedicated_queuing = SOC_DNX_CONFIG(unit)->jer2_arad->init.ilkn_tdm_dedicated_queuing;
+
+    if ((interface_type == SOC_PORT_IF_ILKN) && (ilkn_tdm_dedicated_queuing == JER2_ARAD_MGMT_ILKN_TDM_DEDICATED_QUEUING_MODE_ON)) {
+        nof_if_to_be_set = 2;
+    }
+
+    profile_num = profile;
+    if (SOC_IS_QAX(unit)) {
+        for (i=0; i <  nof_if_to_be_set; i++)
+        {
+            DNX_SAND_SOC_IF_ERROR_RETURN(res, 1780, exit, READ_ECGM_CGM_MC_INTERFACE_MAP_THr(unit, reg_above_64));
+            SHR_BITCOPY_RANGE(reg_above_64, internal_interface_id*2, &profile_num, 0 , 2);
+            DNX_SAND_SOC_IF_ERROR_RETURN(res, 1790, exit, WRITE_ECGM_CGM_MC_INTERFACE_MAP_THr(unit, reg_above_64));
+            internal_interface_id++;
+        }
+    } else {
+        for (i=0; i <  nof_if_to_be_set; i++)
+        {
+            DNX_SAND_SOC_IF_ERROR_RETURN(res, 1780, exit, READ_CGM_CGM_MC_INTERFACE_MAP_THr(unit, core, reg_above_64));
+            SHR_BITCOPY_RANGE(reg_above_64, internal_interface_id*2, &profile_num, 0 , 2);
+            DNX_SAND_SOC_IF_ERROR_RETURN(res, 1790, exit, WRITE_CGM_CGM_MC_INTERFACE_MAP_THr(unit, core, reg_above_64));
+            internal_interface_id++;
+        }
+    }
+
+    JER2_ARAD_DO_NOTHING_AND_EXIT;
+exit:
+    DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_if_mc_map_set_unsafe()", 0, 0);
+}
+
+/*********************************************************************
+*     Function description
+*       Associate the queue-pair (Port,Priority) to traffic class
+*     groups (TCG) attributes.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  jer2_arad_egr_queuing_ofp_tcg_set_unsafe(
+    DNX_SAND_IN  int                            unit,
+    DNX_SAND_IN  int                            core,
+    DNX_SAND_IN  uint32                         tm_port,
+    DNX_SAND_IN  JER2_ARAD_EGR_QUEUING_TCG_INFO      *tcg_info
+  )
+{
+  uint32
+      res = DNX_SAND_OK,
+    data,
+    field_val;
+  uint32
+    ps,
+    priority_i,
+    tcg_i,
+    base_q_pair,
+    nof_priorities;
+  uint8
+    is_one_member;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_OFP_TCG_SET_UNSAFE);
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 3, exit, dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, tm_port, &base_q_pair));
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 5, exit, dnx_port_sw_db_tm_port_to_out_port_priority_get(unit, core, tm_port, &nof_priorities));
+
+  if (nof_priorities != JER2_ARAD_TCG_NOF_PRIORITIES_SUPPORT)
+  {
+    DNX_SAND_SET_ERROR_CODE(JER2_ARAD_TCG_NOT_SUPPORTED_ERR, 10, exit);
+  }
+
+  /* If last four tcgs are only a single member TCG. In that case, verify first that the required 
+     tcg_ndx is not mapped by other q-pair */
+  /* Check each single member TCG that only one priority is mapped to { */
+  for (tcg_i = JER2_ARAD_EGR_SINGLE_MEMBER_TCG_START; tcg_i <= JER2_ARAD_EGR_SINGLE_MEMBER_TCG_END; tcg_i++)
+  {
+    is_one_member = FALSE;
+    for (priority_i = 0; priority_i < nof_priorities; ++priority_i) 
+    {
+      if (tcg_info->tcg_ndx[priority_i] == tcg_i)
+      {
+        if (is_one_member)
+        {
+          /* More than one member set to this tcg */
+          DNX_SAND_SET_ERROR_CODE(JER2_ARAD_TCG_SINGLE_MEMBER_ERR, 100+tcg_i, exit);
+        }
+        else
+        {
+          is_one_member = TRUE;
+        }
+      }     
+    }
+  }
+  DNXC_LEGACY_FIXME_ASSERT;
+#ifdef FIXME_DNX_LEGACY
+  ps = JER2_ARAD_BASE_PORT_TC2PS(base_q_pair);
+#else 
+  ps = base_q_pair;
+#endif 
+
+  
+  /* Set tcg indexs */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 20, exit, READ_EGQ_EPS_PRIO_MAPm(unit, EGQ_BLOCK(unit, core), ps, &data));  
+  field_val = soc_EGQ_EPS_PRIO_MAPm_field32_get(unit,&data,EPS_PRIO_MAPf);
+
+  for (priority_i = 0; priority_i < nof_priorities; ++priority_i)
+  {
+    
+    res = dnx_sand_bitstream_set_any_field(&(tcg_info->tcg_ndx[priority_i]),priority_i*JER2_ARAD_EGQ_NOF_TCG_IN_BITS,JER2_ARAD_EGQ_NOF_TCG_IN_BITS,&field_val);
+    DNX_SAND_CHECK_FUNC_RESULT(res, 50, exit);
+  }
+  
+  soc_EGQ_EPS_PRIO_MAPm_field32_set(unit,&data,EPS_PRIO_MAPf,field_val);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 100, exit, WRITE_EGQ_EPS_PRIO_MAPm(unit, EGQ_BLOCK(unit, core), ps, &data));  
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_ofp_tcg_set_unsafe()", tm_port, 0);
+}
+
+uint32
+  jer2_arad_egr_queuing_ofp_tcg_get_unsafe(
+    DNX_SAND_IN  int                            unit,
+    DNX_SAND_IN  int                            core,
+    DNX_SAND_IN  uint32                         tm_port,
+    DNX_SAND_OUT JER2_ARAD_EGR_QUEUING_TCG_INFO      *tcg_info
+  )
+{
+  uint32
+    res,
+    data,
+    field_val;
+  uint32
+    base_q_pair,
+    priority_i,
+    nof_priorities,
+    ps;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_OFP_TCG_GET_UNSAFE);
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 10, exit, dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, tm_port, &base_q_pair));
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 10, exit, dnx_port_sw_db_tm_port_to_out_port_priority_get(unit, core, tm_port, &nof_priorities));
+
+  if (nof_priorities != JER2_ARAD_TCG_NOF_PRIORITIES_SUPPORT)
+  {
+    DNX_SAND_SET_ERROR_CODE(JER2_ARAD_TCG_NOT_SUPPORTED_ERR, 10, exit);
+  }
+
+  DNXC_LEGACY_FIXME_ASSERT;
+#ifdef FIXME_DNX_LEGACY
+    ps = JER2_ARAD_BASE_PORT_TC2PS(base_q_pair);
+#else 
+    ps = base_q_pair;
+#endif 
+
+  
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 20, exit, READ_EGQ_EPS_PRIO_MAPm(unit,  EGQ_BLOCK(unit, core), ps, &data));  
+  field_val = soc_EGQ_EPS_PRIO_MAPm_field32_get(unit,&data,EPS_PRIO_MAPf);
+
+  for (priority_i = 0; priority_i < nof_priorities; ++priority_i)
+  {    
+    res = dnx_sand_bitstream_get_any_field(&field_val,priority_i*JER2_ARAD_EGQ_NOF_TCG_IN_BITS,JER2_ARAD_EGQ_NOF_TCG_IN_BITS,&(tcg_info->tcg_ndx[priority_i]));
+    DNX_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+  }
+
+  
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_ofp_tcg_get_unsafe()", tm_port, 0);
+}
+
+uint32
+  jer2_arad_egr_queuing_ofp_tcg_set_verify(
+    DNX_SAND_IN  int                      unit,
+    DNX_SAND_IN  int                      core,
+    DNX_SAND_IN  uint32                   tm_port,    
+    DNX_SAND_IN  JER2_ARAD_EGR_QUEUING_TCG_INFO      *tcg_info
+  )
+{
+  uint32
+      res = DNX_SAND_OK;
+  uint32
+    priority_i,
+    nof_priorities;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_OFP_TCG_SET_VERIFY);
+
+
+  res = dnx_port_sw_db_tm_port_to_out_port_priority_get(unit, core, tm_port, &nof_priorities);
+  DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 15, exit);
+
+  if (nof_priorities != JER2_ARAD_TCG_NOF_PRIORITIES_SUPPORT)
+  {
+    DNX_SAND_SET_ERROR_CODE(JER2_ARAD_TCG_NOT_SUPPORTED_ERR, 32, exit);
+  }
+
+  for (priority_i=0;priority_i < nof_priorities; ++priority_i)
+  {
+/*
+ * COVERITY
+ *
+ * JER2_ARAD_TCG_MIN may be changed to be bigger than 0.
+ */
+/* coverity[unsigned_compare] */
+    DNX_SAND_ERR_IF_OUT_OF_RANGE(
+      tcg_info->tcg_ndx[priority_i], JER2_ARAD_TCG_MIN, JER2_ARAD_TCG_MAX,
+      JER2_ARAD_TCG_OUT_OF_RANGE_ERR, 40, exit
+      );
+  }
+  
+
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_ofp_tcg_set_verify()", tm_port, 0);
+}
+
+uint32
+  jer2_arad_egr_queuing_tcg_weight_set_unsafe(
+    DNX_SAND_IN  int                       unit,
+    DNX_SAND_IN  int                       core,
+    DNX_SAND_IN  uint32                    tm_port,
+    DNX_SAND_IN  JER2_ARAD_TCG_NDX              tcg_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_TCG_SCH_WFQ      *tcg_weight
+  )
+{
+  uint32
+    res,
+    is_tcg_weight_val,
+    place_bit,
+    field_val;
+  uint32
+    ps = 0,
+    base_q_pair;    
+  soc_reg_above_64_val_t
+    data_above_64,
+    field_above_64;
+  soc_field_t
+    field_name;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_TCG_WEIGHT_SET_UNSAFE);
+
+  SOC_REG_ABOVE_64_CLEAR(data_above_64);
+  SOC_REG_ABOVE_64_CLEAR(field_above_64);
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 5, exit, dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, tm_port, &base_q_pair));
+  
+  /* Set TCG weight valid { */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 10, exit, READ_EGQ_WFQ_TCG_DISr(unit, core, data_above_64));
+  soc_reg_above_64_field_get(unit, EGQ_WFQ_TCG_DISr, data_above_64, WFQ_TCG_DISf, field_above_64);
+
+  /* Corresponded bit is Base + TCG_NDX (0-255) */
+  place_bit = base_q_pair + tcg_ndx;
+  is_tcg_weight_val = tcg_weight->tcg_weight_valid ? 0:1;
+  if (is_tcg_weight_val)
+  {
+    res = dnx_sand_bitstream_set_bit(field_above_64, place_bit);
+    DNX_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+  }
+  else
+  {
+    res = dnx_sand_bitstream_reset_bit(field_above_64, place_bit);
+    DNX_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+  }
+  
+  soc_reg_above_64_field_set(unit, EGQ_WFQ_TCG_DISr, data_above_64, WFQ_TCG_DISf,field_above_64);
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 40, exit, WRITE_EGQ_WFQ_TCG_DISr(unit, core, data_above_64));
+  /* Set TCG weight valid } */
+
+  if (tcg_weight->tcg_weight_valid)
+  {
+    /* Set TCG weight only in case of valid { */
+    SOC_REG_ABOVE_64_CLEAR(data_above_64);
+  DNXC_LEGACY_FIXME_ASSERT;
+#ifdef FIXME_DNX_LEGACY
+    ps = JER2_ARAD_BASE_PORT_TC2PS(base_q_pair);
+#else 
+    ps = base_q_pair;
+#endif 
+
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 45, exit, READ_EGQ_DWM_8Pm(unit, EGQ_BLOCK(unit, core), ps, data_above_64));  
+
+    switch (tcg_ndx)
+    {
+    case 0:
+      field_name = WEIGHT_0f;
+      break;
+    case 1:
+      field_name = WEIGHT_1f;
+      break;
+    case 2:
+      field_name = WEIGHT_2f;
+      break;
+    case 3:
+      field_name = WEIGHT_3f;
+      break;
+    case 4:
+      field_name = WEIGHT_4f;
+      break;
+    case 5:
+      field_name = WEIGHT_5f;
+      break;
+    case 6:
+      field_name = WEIGHT_6f;
+      break;
+    case 7:
+      field_name = WEIGHT_7f;
+      break;
+    default:
+      DNX_SAND_SET_ERROR_CODE(JER2_ARAD_TCG_OUT_OF_RANGE_ERR, 50, exit);
+    }
+
+    field_val = tcg_weight->tcg_weight;
+
+    soc_EGQ_DWM_8Pm_field32_set(unit,data_above_64,field_name,field_val);
+
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 60, exit, WRITE_EGQ_DWM_8Pm(unit, EGQ_BLOCK(unit, core), ps, data_above_64));    
+    /* Set TCG weight } */
+  }
+    
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_tcg_weight_set_unsafe()", tm_port, tcg_ndx);
+}
+
+
+uint32
+  jer2_arad_egr_queuing_tcg_weight_get_unsafe(
+    DNX_SAND_IN  int                       unit,
+    DNX_SAND_IN  int                       core,
+    DNX_SAND_IN  uint32                    tm_port,
+    DNX_SAND_IN  JER2_ARAD_TCG_NDX              tcg_ndx,
+    DNX_SAND_OUT JER2_ARAD_EGR_TCG_SCH_WFQ      *tcg_weight
+  )
+{
+  uint32
+    res,    
+    place_bit,
+    field_val;
+  uint32
+    ps = 0,
+    base_q_pair;    
+  soc_reg_above_64_val_t
+    data_above_64,
+    field_above_64;
+  soc_field_t
+    field_name;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_TCG_WEIGHT_GET_UNSAFE);
+  
+  SOC_REG_ABOVE_64_CLEAR(data_above_64);
+  SOC_REG_ABOVE_64_CLEAR(field_above_64);
+
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 5, exit, dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, tm_port, &base_q_pair));
+
+  /* Get TCG weight valid { */
+  DNX_SAND_SOC_IF_ERROR_RETURN(res, 10, exit, READ_EGQ_WFQ_TCG_DISr(unit, core, data_above_64));
+  soc_reg_above_64_field_get(unit, EGQ_WFQ_TCG_DISr, data_above_64, WFQ_TCG_DISf, field_above_64);
+
+  /* Corresponded bit is Base + TCG_NDX (0-255) */
+  place_bit = base_q_pair + tcg_ndx;
+  tcg_weight->tcg_weight_valid = !DNX_SAND_NUM2BOOL(dnx_sand_bitstream_test_bit(field_above_64,place_bit));
+  /* Get TCG weight valid } */
+
+  if (tcg_weight->tcg_weight_valid)
+  {
+    /* Get TCG weight only in case of valid { */
+    SOC_REG_ABOVE_64_CLEAR(data_above_64);
+  DNXC_LEGACY_FIXME_ASSERT;
+#ifdef FIXME_DNX_LEGACY
+    ps = JER2_ARAD_BASE_PORT_TC2PS(base_q_pair);
+#else 
+    ps = base_q_pair;
+#endif 
+
+    DNX_SAND_SOC_IF_ERROR_RETURN(res, 45, exit, READ_EGQ_DWM_8Pm(unit, EGQ_BLOCK(unit, core), ps, data_above_64));  
+
+    switch (tcg_ndx)
+    {
+    case 0:
+      field_name = WEIGHT_0f;
+      break;
+    case 1:
+      field_name = WEIGHT_1f;
+      break;
+    case 2:
+      field_name = WEIGHT_2f;
+      break;
+    case 3:
+      field_name = WEIGHT_3f;
+      break;
+    case 4:
+      field_name = WEIGHT_4f;
+      break;
+    case 5:
+      field_name = WEIGHT_5f;
+      break;
+    case 6:
+      field_name = WEIGHT_6f;
+      break;
+    case 7:
+      field_name = WEIGHT_7f;
+      break;
+    default:
+      DNX_SAND_SET_ERROR_CODE(JER2_ARAD_TCG_OUT_OF_RANGE_ERR, 50, exit);
+    }
+
+    field_val = soc_EGQ_DWM_8Pm_field32_get(unit,data_above_64,field_name);
+    tcg_weight->tcg_weight = field_val;
+  }
+
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_tcg_weight_get_unsafe()", tm_port, tcg_ndx);
+}
+
+uint32
+  jer2_arad_egr_queuing_tcg_weight_set_verify_unsafe(
+    DNX_SAND_IN  int                       unit,
+    DNX_SAND_IN  int                       core,
+    DNX_SAND_IN  uint32                    tm_port,
+    DNX_SAND_IN  JER2_ARAD_TCG_NDX              tcg_ndx,
+    DNX_SAND_IN  JER2_ARAD_EGR_TCG_SCH_WFQ      *tcg_weight
+  )
+{
+  uint32
+    res;
+  uint32
+    base_q_pair,
+    nof_priorities;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_TCG_WEIGHT_SET_VERIFY_UNSAFE);
+
+   res = dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, tm_port, &base_q_pair);
+   DNX_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+  if (base_q_pair == JER2_ARAD_EGQ_PORT_ID_INVALID)
+  {
+    DNX_SAND_SET_ERROR_CODE(JER2_ARAD_SCH_INVALID_PORT_ID_ERR, 30, exit)
+  }
+
+  /* API functionality only when port is with 8 priorities. */
+
+  res = dnx_port_sw_db_tm_port_to_out_port_priority_get(unit, core, tm_port, &nof_priorities); 
+  DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 31, exit);
+
+  if (nof_priorities != JER2_ARAD_TCG_NOF_PRIORITIES_SUPPORT)
+  {
+    DNX_SAND_SET_ERROR_CODE(JER2_ARAD_TCG_NOT_SUPPORTED_ERR, 32, exit);
+  }
+
+  /* Verify TCG */
+/*
+ * COVERITY
+ *
+ * JER2_ARAD_TCG_MIN may be changed to be bigger than 0.
+ */
+/* coverity[unsigned_compare] */
+  DNX_SAND_ERR_IF_OUT_OF_RANGE(
+          tcg_ndx, JER2_ARAD_TCG_MIN, JER2_ARAD_TCG_MAX, 
+          JER2_ARAD_TCG_OUT_OF_RANGE_ERR, 35, exit
+        );
+
+  /* Verify TCG weight */
+  if (tcg_weight->tcg_weight_valid)
+  {
+/*
+ * COVERITY
+ *
+ * JER2_ARAD_EGQ_TCG_WEIGHT_MIN may be changed to be bigger than 0.
+ */
+/* coverity[unsigned_compare] */
+    DNX_SAND_ERR_IF_OUT_OF_RANGE(
+            tcg_weight->tcg_weight, JER2_ARAD_EGQ_TCG_WEIGHT_MIN, JER2_ARAD_EGQ_TCG_WEIGHT_MAX, 
+            JER2_ARAD_SCH_TCG_WEIGHT_OUT_OF_RANGE_ERR, 35, exit
+          );
+  }
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_tcg_weight_set_verify_unsafe()", tm_port, tcg_ndx);
+}
+
+uint32
+  jer2_arad_egr_queuing_tcg_weight_get_verify_unsafe(
+    DNX_SAND_IN  int                       unit,
+    DNX_SAND_IN  int                       core,
+    DNX_SAND_IN  uint32                    tm_port,
+    DNX_SAND_IN  JER2_ARAD_TCG_NDX              tcg_ndx,
+    DNX_SAND_IN JER2_ARAD_EGR_TCG_SCH_WFQ       *tcg_weight
+  )
+{
+  uint32
+    res;
+  uint32
+    base_q_pair,
+    nof_priorities;
+
+  DNX_SAND_INIT_ERROR_DEFINITIONS(JER2_ARAD_EGR_QUEUING_TCG_WEIGHT_GET_VERIFY_UNSAFE);
+
+
+  res = dnx_port_sw_db_tm_port_to_base_q_pair_get(unit, core, tm_port, &base_q_pair);
+  DNX_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+  if (base_q_pair == JER2_ARAD_EGQ_PORT_ID_INVALID)
+  {
+    DNX_SAND_SET_ERROR_CODE(JER2_ARAD_SCH_INVALID_PORT_ID_ERR, 30, exit)
+  }
+
+  /* API functionality only when port is with 8 priorities. */
+  res = dnx_port_sw_db_tm_port_to_out_port_priority_get(unit, core, tm_port, &nof_priorities); 
+  DNX_SAND_SOC_CHECK_FUNC_RESULT(res, 31, exit);
+
+  if (nof_priorities != JER2_ARAD_TCG_NOF_PRIORITIES_SUPPORT)
+  {
+    DNX_SAND_SET_ERROR_CODE(JER2_ARAD_TCG_NOT_SUPPORTED_ERR, 32, exit);
+  }
+
+  /* Verify TCG */
+/*
+ * COVERITY
+ *
+ * JER2_ARAD_TCG_MIN may be changed to be bigger than 0.
+ */
+/* coverity[unsigned_compare] */
+  DNX_SAND_ERR_IF_OUT_OF_RANGE(
+          tcg_ndx, JER2_ARAD_TCG_MIN, JER2_ARAD_TCG_MAX, 
+          JER2_ARAD_TCG_OUT_OF_RANGE_ERR, 35, exit
+        );
+  
+exit:
+  DNX_SAND_EXIT_AND_SEND_ERROR("error in jer2_arad_egr_queuing_tcg_weight_get_verify_unsafe()", tm_port, tcg_ndx);
+}
+
+int    
+  jer2_arad_egr_queuing_partition_scheme_set_unsafe(
+    DNX_SAND_IN    int    unit,
+    DNX_SAND_IN    JER2_ARAD_EGR_QUEUING_PARTITION_SCHEME    scheme
+  )
+{
+    uint32 set_val;
+
+    DNXC_INIT_FUNC_DEFS;
+
+    if(scheme == JER2_ARAD_EGR_QUEUING_PARTITION_SCHEME_DISCRETE) {
+        set_val = 1;
+    } else {
+        set_val = 0;
+    }
+
+    if (SOC_IS_QAX(unit)) {
+        DNXC_IF_ERR_EXIT(WRITE_ECGM_CGM_PD_TH_SP_OR_SHAREDr(unit, set_val));
+        DNXC_IF_ERR_EXIT(WRITE_ECGM_CGM_DB_TH_SP_OR_SHAREDr(unit, set_val));
+    } else {
+        DNXC_IF_ERR_EXIT(WRITE_CGM_CGM_PD_TH_SP_OR_SHAREDr(unit, SOC_CORE_ALL, set_val));
+        DNXC_IF_ERR_EXIT(WRITE_CGM_CGM_DB_TH_SP_OR_SHAREDr(unit, SOC_CORE_ALL, set_val));
+    }
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+
+#define READ_REGISTER_NO_PIPE(reg, out_variable) \
+  if (READ_##reg(unit, core, &(out_variable)) != SOC_E_NONE) { \
+    DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to read "#reg" unit %d core %d"), unit, core)); \
+  }
+
+
+#define READ_REGISTER_ARRAY_NO_PIPE(reg, i, out_variable) \
+  if (READ_##reg(unit, i, &(out_variable)) != SOC_E_NONE) { \
+    DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to read "#reg" at index %d unit %d"), i, unit)); \
+  }
+
+#define READ_REGISTER_ARRAY(reg, i, out_variable) \
+  if (READ_##reg(unit, core, i, &(out_variable)) != SOC_E_NONE) { \
+    DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to read "#reg" at index %d unit %d core %d"), i, unit, core)); \
+  }
+
+#define READ_MEMORY(mem, index1, index2, dma_mem) \
+  { \
+    int rv = soc_mem_array_read_range(unit, mem, 0, EGQ_BLOCK(unit, core), index1, index2, dma_mem); \
+    if (rv != SOC_E_NONE) { \
+      DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to read "#mem" at indices %d-%d unit %d: %s"), index1, index2, unit, soc_errmsg(rv))); \
+    } \
+  }
+
+#define CLEAR_MEMORY(mem, index1, index2, dma_mem) \
+  { \
+    int rv; \
+    *dma_mem = 0; \
+    rv = jer2_arad_fill_partial_table_with_entry(unit, mem, 0, 0, EGQ_BLOCK(unit, core), index1, index2, (void*)dma_mem); \
+    if (rv != SOC_E_NONE) { \
+      DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to re-initialize "#mem" at indices %d-%d unit %d: %s"), index1, index2, unit, soc_errmsg(rv))); \
+    } \
+  }
+
+#define OTM_PORTS_LAST_ARRAY_INDEX   (2*JER2_ARAD_EGR_CGM_OTM_PORTS_NUM-1)
+#define QUEUES_LAST_ARRAY_INDEX   (2*JER2_ARAD_EGR_CGM_OTM_PORTS_NUM-1)
+#define IF_LAST_ARRAY_INDEX     (2*JER2_ARAD_EGR_CGM_IF_NUM-1)
+
+/*
+Get Arad congestion statistics.
+Output will be returned in each of the first three structure pointers if it is not Null.
+
+If disable_updates is non zero, then maximum statistics update will be disabled during
+maximum statistics collection.
+This will provide correlated maximum statistics, at the expense of not updating
+the maximum statistics during the operation.
+
+If max_stats is not null, the maximum values are reset when they are read.
+The next read will contain maximum values from this function call.
+*/
+
+int soc_jer2_arad_egr_congestion_statistics_get(
+  int unit,
+  int core,
+  JER2_ARAD_EGR_CGM_CONGENSTION_STATS *cur_stats,   /* place current statistics output here */
+  JER2_ARAD_EGR_CGM_CONGENSTION_STATS *max_stats,   /* place maximum statistics output here */
+  JER2_ARAD_EGR_CGM_CONGENSTION_COUNTERS *counters, /* place counters output here */
+  const int disable_updates /* should the function disable maximum statistics updates when it collects them */
+  )
+{
+  int i;
+  int updates_are_disabled = 0;
+  uint32 value;
+  uint32 *dma_buf = 0;
+  uint32 *buf_ptr;
+#ifdef BCM_88690_A0
+  int dynamic_mem_access = 0;
+#endif
+  DNXC_INIT_FUNC_DEFS;
+
+  if (cur_stats != NULL || max_stats != NULL) { /* allocate DMA memory if needed */
+    int mem_size = 8 *   /* 4 byte words * 2 (UC, MC) * MAX{OTM_PORTS_LAST_ARRAY_INDEX, QUEUES_LAST_ARRAY_INDEX} */
+      (OTM_PORTS_LAST_ARRAY_INDEX > QUEUES_LAST_ARRAY_INDEX ? OTM_PORTS_LAST_ARRAY_INDEX : QUEUES_LAST_ARRAY_INDEX);
+
+    dma_buf = soc_cm_salloc(unit, mem_size, "cgm_statistics_mem"); /* allocate DMA memory buffer */
+    if (dma_buf == NULL) {
+        DNXC_EXIT_WITH_ERR(SOC_E_MEMORY, (_BSL_DNXC_MSG("Failed to allocate dma memory for statistics data")));
+    }
+  }
+
+  if (cur_stats != NULL) { /* collect current value statistics */
+
+    /* register providing current values */
+
+    /* Current total number of allocated packet descriptors */
+    READ_REGISTER_NO_PIPE(CGM_TOTAL_PACKET_DESCRIPTORS_COUNTERr, value);
+    cur_stats->pd = value; /* place the value into the 16 bits integer */
+    /* cur_stats->pd= soc_reg_field_get(unit, CGM_TOTAL_PACKET_DESCRIPTORS_COUNTERr, value, NUMBER_OF_ALLOCATED_PACKET_DESCRIPTORSf); */
+
+    /* Current total number of allocated Data Buffers */
+    READ_REGISTER_NO_PIPE(CGM_TOTAL_DATA_BUFFERS_COUNTERr, value);
+    cur_stats->db = value; /* place the value into the 16 bits integer */
+    /* cur_stats->db= soc_reg_field_get(unit, CGM_TOTAL_DATA_BUFFERS_COUNTERr, value, NUMBER_OF_ALLOCATED_DATA_BUFFERSf); */
+
+    /* Current number of packet descriptors allocated to unicast packets */
+    READ_REGISTER_NO_PIPE(CGM_UNICAST_PACKET_DESCRIPTORS_COUNTERr, value);
+    cur_stats->uc_pd = value; /* place the value into the 16 bits integer */
+    /* cur_stats->uc_pd= soc_reg_field_get(unit, CGM_UNICAST_PACKET_DESCRIPTORS_COUNTERr, value, UNICAST_PACKET_DESCRIPTORS_COUNTERf); */
+
+    /* Current number of packet descriptors allocated to multicast replication packets */
+    READ_REGISTER_NO_PIPE(CGM_MULTICAST_REPLICATIONS_PACKET_DESCRIPTORS_COUNTERr, value);
+    cur_stats->mc_pd = value; /* place the value into the 16 bits integer */
+    /* cur_stats->mc_pd= soc_reg_field_get(unit, CGM_MULTICAST_REPLICATIONS_PACKET_DESCRIPTORS_COUNTERr, value, NUMBER_OF_ALLOCATED_PACKET_DESCRIPTORSf); */
+
+    /* Current number of Data Buffers allocated to unicast packets */
+    READ_REGISTER_NO_PIPE(CGM_UNICAST_DATA_BUFFERS_COUNTERr, value);
+    cur_stats->uc_db = value; /* place the value into the 16 bits integer */
+    /* cur_stats->uc_db= soc_reg_field_get(unit, CGM_UNICAST_DATA_BUFFERS_COUNTERr, value, NUMBER_OF_UNICAST_DATA_BUFFERSf); */
+
+    /* Current number of Data Buffers allocated to multicast packets, regardless of number of replications */
+    READ_REGISTER_NO_PIPE(CGM_MULTICAST_DATA_BUFFERS_COUNTERr, value);
+    cur_stats->mc_db = value; /* place the value into the 16 bits integer */
+    /* cur_stats->mc_db= soc_reg_field_get(unit, CGM_MULTICAST_DATA_BUFFERS_COUNTERr, value, NUMBER_OF_MULTICAST_DATA_BUFFERSf); */
+
+#ifdef BCM_88690_A0
+    if (SOC_IS_JERICHO(unit)) {
+        /* Unicast and Multicast current packet descriptors per interface, for MC the data is size in 128 bytes */
+        READ_MEMORY(EGQ_FDCMm, 0, IF_LAST_ARRAY_INDEX, dma_buf);
+        for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_IF_NUM; ++i, ++buf_ptr) {
+          cur_stats->uc_pd_if[i] = soc_mem_field32_get(unit, EGQ_FDCMm, buf_ptr, FDCMf);
+        }
+        for (i = 0; i < JER2_ARAD_EGR_CGM_IF_NUM; ++i, ++buf_ptr) {
+          cur_stats->mc_pd_if[i] = soc_mem_field32_get(unit, EGQ_FDCMm, buf_ptr, FDCMf);
+        }
+
+        /* The size of this interface contributed by unicast and multicast packets, where the size is measured in 256B units. For MC the data is size in 128 bytes */
+        READ_MEMORY(EGQ_FQSMm, 0, IF_LAST_ARRAY_INDEX, dma_buf);
+        for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_IF_NUM; ++i, ++buf_ptr) {
+            cur_stats->uc_size_256_if[i] = soc_mem_field32_get(unit, EGQ_FQSMm, buf_ptr, FQSMf);
+        }
+        for (i = 0; i < JER2_ARAD_EGR_CGM_IF_NUM; ++i, ++buf_ptr) {
+            cur_stats->mc_size_256_if[i] = soc_mem_field32_get(unit, EGQ_FQSMm, buf_ptr, FQSMf);
+        }
+    } else
+#endif
+    {
+        /* Current number of packet descriptors allocated to unicast packets destined to this interface. */
+        for (i = SOC_REG_NUMELS(unit, CGM_UC_PD_IF_CNTr); i;) { /* 32 array elements */
+          --i;
+          READ_REGISTER_ARRAY_NO_PIPE(CGM_UC_PD_IF_CNTr, i, value);
+          cur_stats->uc_pd_if[i] = value; /* place the value into the 16 bits integer */
+          /* cur_stats->uc_pd_if[i] = soc_reg_field_get(unit, CGM_UC_PD_IF_CNTr, value, UC_PD_IF_CNT_Nf); */
+        }
+
+        /* Current number of packet descriptors allocated to Multicast replication packets destined to this interface */
+        for (i = SOC_REG_NUMELS(unit, CGM_MC_PD_IF_CNTr); i;) { /* 32 array elements */
+          --i;
+          READ_REGISTER_ARRAY_NO_PIPE(CGM_MC_PD_IF_CNTr, i, value);
+          cur_stats->mc_pd_if[i] = value; /* place the value into the 16 bits integer */
+          /* cur_stats->mc_pd_if[i] = soc_reg_field_get(unit, CGM_MC_PD_IF_CNTr, value, MC_PD_IF_CNT_Nf); */
+        }
+
+        /* The size of this interface contributed by unicast packets onlyuc_size_256_if */
+        for (i = SOC_REG_NUMELS(unit, CGM_UC_SIZE_256_IF_CNTr); i;) { /* 32 array elements */
+          --i;
+          READ_REGISTER_ARRAY_NO_PIPE(CGM_UC_SIZE_256_IF_CNTr, i, value);
+          cur_stats->uc_size_256_if[i] = value; /* place the value into the 16 bits integer */
+          /* cur_stats->uc_size_256_if[i] = soc_reg_field_get(unit, CGM_UC_SIZE_256_IF_CNTr, value, UC_SIZE_256_IF_CNT_Nf); */
+        }
+
+        /* The size of this interface contributed by Multicast replication packets only, where the size is measured in 256B units. */
+        for (i = SOC_REG_NUMELS(unit, CGM_MC_SIZE_256_IF_CNTr); i;) { /* 32 array elements */
+          --i;
+          READ_REGISTER_ARRAY_NO_PIPE(CGM_MC_SIZE_256_IF_CNTr, i, cur_stats->mc_size_256_if[i]);
+          /* cur_stats->mc_size_256_if[i] = soc_reg_field_get(unit, CGM_MC_SIZE_256_IF_CNTr, value, MC_SIZE_256_IF_CNT_Nf); */
+        }
+    }
+
+    /*
+    The memories need to be written to init the maximum value; unlike the registers which auto-initialize.
+    This why CLEAR_MEMORY() is used below.
+    */
+
+    /* Unicast and Multicast current packet descriptors per OTM-Port */
+    READ_MEMORY(EGQ_PDCMm, 0, OTM_PORTS_LAST_ARRAY_INDEX, dma_buf);
+    for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_OTM_PORTS_NUM; ++i, ++buf_ptr) {
+      cur_stats->uc_pd_port[i] = soc_mem_field32_get(unit, EGQ_PDCMm, buf_ptr, PDCMf); /* 15b field */
+    }
+    for (i = 0; i < JER2_ARAD_EGR_CGM_OTM_PORTS_NUM; ++i, ++buf_ptr) {
+      cur_stats->mc_pd_port[i] = soc_mem_field32_get(unit, EGQ_PDCMm, buf_ptr, PDCMf); /* 15b field */
+    }
+
+    /* Unicast and Multicast current Packet descriptors per queue */
+    READ_MEMORY(EGQ_QDCMm, 0, QUEUES_LAST_ARRAY_INDEX, dma_buf);
+    for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_QUEUES_NUM; ++i, ++buf_ptr) {
+      cur_stats->uc_pd_queue[i] = soc_mem_field32_get(unit, EGQ_QDCMm, buf_ptr, QDCMf); /* 15b field */
+    }
+    for (i = 0; i < JER2_ARAD_EGR_CGM_QUEUES_NUM; ++i, ++buf_ptr) {
+      cur_stats->mc_pd_queue[i] = soc_mem_field32_get(unit, EGQ_QDCMm, buf_ptr, QDCMf); /* 15b field */
+    }
+
+    /* Unicast and Multicast current data buffers per OTM-Port, for MC the data is size in 256 bytes */
+    READ_MEMORY(EGQ_PQSMm, 0, OTM_PORTS_LAST_ARRAY_INDEX, dma_buf);
+    for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_OTM_PORTS_NUM; ++i, ++buf_ptr) {
+      cur_stats->uc_db_port[i] = soc_mem_field32_get(unit, EGQ_PQSMm, buf_ptr, PQSMf); /* 18b field */
+    }
+    for (i = 0; i < JER2_ARAD_EGR_CGM_OTM_PORTS_NUM; ++i, ++buf_ptr) {
+      cur_stats->mc_db_port[i] = soc_mem_field32_get(unit, EGQ_PQSMm, buf_ptr, PQSMf); /* 18b field */
+    }
+
+    /* Unicast and Multicast current data buffers per queue, for MC the data is size in 256 bytes */
+    READ_MEMORY(EGQ_QQSMm, 0, QUEUES_LAST_ARRAY_INDEX, dma_buf);
+    for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_QUEUES_NUM; ++i, ++buf_ptr) {
+      cur_stats->uc_db_queue[i] = soc_mem_field32_get(unit, EGQ_QQSMm, buf_ptr, QQSMf); /* 18b field */
+    }
+    for (i = 0; i < JER2_ARAD_EGR_CGM_QUEUES_NUM; ++i, ++buf_ptr) {
+      cur_stats->mc_db_queue[i] = soc_mem_field32_get(unit, EGQ_QQSMm, buf_ptr, QQSMf); /* 18b field */
+    }
+
+
+    /* Current number of packet descriptors allocated to multicast replication packets bound to Service Pool0 */
+    READ_REGISTER_NO_PIPE(CGM_SERVICE_POOL_0_MULTICAST_PACKET_DESCRIPTORS_COUNTERr, value);
+    cur_stats->mc_pd_sp[0] = value; /* place the value into the 16 bits integer */
+    /* cur_stats->mc_pd_sp[0] = soc_reg_field_get(unit, CGM_SERVICE_POOL_0_MULTICAST_PACKET_DESCRIPTORS_COUNTERr, value, NUMBER_OF_MULTICAST_SP_0_PACKET_DESCRIPTORSf); */
+
+    /* Current number of packet descriptors allocated to multicast replication packets bound to Service Pool1 */
+    READ_REGISTER_NO_PIPE(CGM_SERVICE_POOL_1_MULTICAST_PACKET_DESCRIPTORS_COUNTERr, value);
+    cur_stats->mc_pd_sp[1] = value; /* place the value into the 16 bits integer */
+    /* cur_stats->mc_pd_sp[1] = soc_reg_field_get(unit, CGM_SERVICE_POOL_1_MULTICAST_PACKET_DESCRIPTORS_COUNTERr, value, NUMBER_OF_MULTICAST_SP_1_PACKET_DESCRIPTORSf); */
+
+    /* Current number of Data Buffers allocated to multicast packets bound to Service Pool0 */
+    READ_REGISTER_NO_PIPE(CGM_SERVICE_POOL_0_MULTICAST_DATA_BUFFERS_COUNTERr, value);
+    cur_stats->mc_db_sp[0] = value; /* place the value into the 16 bits integer */
+    /* cur_stats->mc_db_sp[0] = soc_reg_field_get(unit, CGM_SERVICE_POOL_0_MULTICAST_DATA_BUFFERS_COUNTERr, value, NUMBER_OF_MULTICAST_SP_0_DATA_BUFFERSf); */
+
+    /* Current number of Data Buffers allocated to multicast packets bound to Service Pool1 */
+    READ_REGISTER_NO_PIPE(CGM_SERVICE_POOL_1_MULTICAST_DATA_BUFFERS_COUNTERr, value);
+    cur_stats->mc_db_sp[1] = value; /* place the value into the 16 bits integer */
+    /* cur_stats->mc_db_sp[1] = soc_reg_field_get(unit, CGM_SERVICE_POOL_1_MULTICAST_DATA_BUFFERS_COUNTERr, value, NUMBER_OF_MULTICAST_SP_1_DATA_BUFFERSf); */
+
+
+    /* The number of MC-PD'S - Per SP per TC. Indicates the value of Multicast Packet Descriptors Counter ( Per SP per TC). Low 8 counters are for service-pool-0 and high 8 counters are for service-pool-1. */
+    for (i = SOC_REG_NUMELS(unit, CGM_MC_PD_SP_TC_CNTr); i;) { /* 16 array elements */
+      --i;
+      READ_REGISTER_ARRAY(CGM_MC_PD_SP_TC_CNTr, i, value);
+      cur_stats->mc_pd_sp_tc[i] = value; /* place the value into the 16 bits integer */
+      /* cur_stats->mc_pd_sp_tc[i] = soc_reg_field_get(unit, CGM_MC_PD_SP_TC_CNTr, value, MC_PD_SP_TC_CNT_Nf); */
+    }
+
+    /* The number of MC-DB'S - Per SP per TC. Indicates the value of Multicast Data buffers Counter ( Per SP per TC). Low 8 counters are for service-pool-0 and high 8 counters are for service-pool-1. */
+    for (i = SOC_REG_NUMELS(unit, CGM_MC_DB_SP_TC_CNTr); i;) { /* 16 array elements */
+      --i;
+      READ_REGISTER_ARRAY(CGM_MC_DB_SP_TC_CNTr, i, value);
+      cur_stats->mc_db_sp_tc[i] = value; /* place the value into the 16 bits integer */
+      /* cur_stats->mc_db_sp_tc[i] = soc_reg_field_get(unit, CGM_MC_DB_SP_TC_CNTr, value, MC_DB_SP_TC_CNT_Nf); */
+    }
+
+    /* Current number of available reserved packet descriptors in Service Pool0. This counter is loaded by the CPU with the maximum number of reserved resource and is decreased for every occupied reserved resource and increased whenever such a resource is reclaimed. */
+    READ_REGISTER_NO_PIPE(CGM_SERVICE_POOL_0_RESERVED_PACKET_DESCRIPTORSr, value);
+    cur_stats->mc_rsvd_pd_sp[0] = value; /* place the value into the 16 bits integer */
+    /* cur_stats->mc_rsvd_pd_sp[0] = soc_reg_field_get(unit, CGM_SERVICE_POOL_0_RESERVED_PACKET_DESCRIPTORSr, value, AVAILABLE_SP_0_RESERVED_PACKET_DESCRIPTORSf); */
+
+    /* Current number of available reserved packet descriptors in Service Pool1. This counter is loaded by the CPU with the maximum number of reserved resource and is decreased for every occupied reserved resource and increased whenever such a resource is reclaimed. */
+    READ_REGISTER_NO_PIPE(CGM_SERVICE_POOL_1_RESERVED_PACKET_DESCRIPTORSr, value);
+    cur_stats->mc_rsvd_pd_sp[1] = value; /* place the value into the 16 bits integer */
+    /* cur_stats->mc_rsvd_pd_sp[1] = soc_reg_field_get(unit, CGM_SERVICE_POOL_1_RESERVED_PACKET_DESCRIPTORSr, value,AVAILABLE_SP_1_RESERVED_PACKET_DESCRIPTORSf); */
+
+    /* Current number of available reserved Data Buffers in Service Pool0. This counter is loaded by the CPU with the maximum number of reserved resource and is decreased for every occupied reserved resource and increased whenever such a resource is reclaimed. */
+    READ_REGISTER_NO_PIPE(CGM_SERVICE_POOL_0_RESERVED_DATA_BUFFERSr, value);
+    cur_stats->mc_rsvd_db_sp[0] = value; /* place the value into the 16 bits integer */
+    /* cur_stats->mc_rsvd_db_sp[0] = soc_reg_field_get(unit, CGM_SERVICE_POOL_0_RESERVED_DATA_BUFFERSr, value, AVAILABLE_SP_0_RESERVED_DATA_BUFFERSf); */
+
+    /* Current number of available reserved Data Buffers in Service Pool1. This counter is loaded by the CPU with the maximum number of reserved resource and is decreased for every occupied reserved resource and increased whenever such a resource is reclaimed. */
+    READ_REGISTER_NO_PIPE(CGM_SERVICE_POOL_1_RESERVED_DATA_BUFFERSr, value);
+    cur_stats->mc_rsvd_db_sp[1] = value; /* place the value into the 16 bits integer */
+    /* cur_stats->mc_rsvd_db_sp[1] = soc_reg_field_get(unit, CGM_SERVICE_POOL_1_RESERVED_DATA_BUFFERSr, value, AVAILABLE_SP_1_RESERVED_DATA_BUFFERSf); */
+
+  } /* end of current value collection */
+
+
+  if (max_stats != NULL) { /* collect maximum value statistics */
+
+    /* disable maximum statistics updated if requested to do so */
+    if (disable_updates) {
+      if (WRITE_CGM_STATISTICS_TRACKING_CONTROLr(unit, core, 1)!= SOC_E_NONE) {
+        DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to disable maximum statistics updates")));
+      }
+      updates_are_disabled = 1; /* we need to later enable updates */
+    }
+
+
+    /* Indicates the maximum value that the Total Packet Descriptors Counter has reached since the last time it was read by the CPU. */
+    READ_REGISTER_NO_PIPE(CGM_CONGESTION_TRACKING_TOTAL_PD_MAX_VALUEr, value);
+    max_stats->pd = value; /* place the value into the 16 bits integer */
+    /* max_stats->pd = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_TOTAL_PD_MAX_VALUEr, value, CONGESTION_TRACKING_TOTAL_PD_MAX_VALUEf); */
+
+    /* Indicates the maximum value that the Total Data Buffers Counter has reached since the last time it was read by the CPU. */
+    READ_REGISTER_NO_PIPE(CGM_CONGESTION_TRACKING_TOTAL_DB_MAX_VALUEr, value);
+    max_stats->db = value; /* place the value into the 16 bits integer */
+    /* max_stats->db = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_TOTAL_DB_MAX_VALUEr, value, CONGESTION_TRACKING_TOTAL_DB_MAX_VALUEf); */
+
+    /* Indicates the maximum value that the Unicast Packet Descriptors Counter has reached since the last time it was read by the CPU. */
+    READ_REGISTER_NO_PIPE(CGM_CONGESTION_TRACKING_UNICAST_PD_MAX_VALUEr, value);
+    max_stats->uc_pd = value; /* place the value into the 16 bits integer */
+    /* max_stats->uc_pd = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_UNICAST_PD_MAX_VALUEr, value, CONGESTION_TRACKING_UNICAST_PD_MAX_VALUEf); */
+
+    /* Indicates the maximum value that the Multicast Packet Descriptors Counter has reached since the last time it was read by the CPU. */
+    READ_REGISTER_NO_PIPE(CGM_CONGESTION_TRACKING_MULTICAST_PD_MAX_VALUEr, value);
+    max_stats->mc_pd = value; /* place the value into the 16 bits integer */
+    /* max_stats->mc_pd = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_MULTICAST_PD_MAX_VALUEr, value, CONGESTION_TRACKING_MULTICAST_PD_MAX_VALUEf); */
+
+    /* Indicates the maximum value that the Unicast Data Buffers Counter has reached since the last time it was read by the CPU. */
+    READ_REGISTER_NO_PIPE(CGM_CONGESTION_TRACKING_UNICAST_DB_MAX_VALUEr, value);
+    max_stats->uc_db = value; /* place the value into the 16 bits integer */
+    /* max_stats->uc_db = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_UNICAST_DB_MAX_VALUEr, value, CONGESTION_TRACKING_UNICAST_DB_MAX_VALUEf); */
+
+    /* Indicates the maximum value that the Multicast Data Buffers Counter has reached since the last time it was read by the CPU. */
+    READ_REGISTER_NO_PIPE(CGM_CONGESTION_TRACKING_MULTICAST_DB_MAX_VALUEr, value);
+    max_stats->mc_db = value; /* place the value into the 16 bits integer */
+    /* max_stats->mc_db = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_MULTICAST_DB_MAX_VALUEr, value, CONGESTION_TRACKING_MULTICAST_DB_MAX_VALUEf); */
+
+    /*
+    The memories need to be written to init the maximum value; unlike the registers which auto-initialize.
+    This why CLEAR_MEMORY() is used below.
+    */
+#ifdef BCM_88690_A0
+    if (SOC_IS_JERICHO(unit)) {
+        /* This register needs to be set in order to write to dynamic tables. */
+        /* In Jericho the following tables are dynamic */
+        if (READ_EGQ_ENABLE_DYNAMIC_MEMORY_ACCESSr(unit, core, &value) != SOC_E_NONE) {
+            DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to read EGQ_ENABLE_DYNAMIC_MEMORY_ACCESSr at unit %d core %d"), unit, core));
+        }
+
+        if (0 == value) {
+            if (WRITE_EGQ_ENABLE_DYNAMIC_MEMORY_ACCESSr(unit, core, 1) != SOC_E_NONE) {
+                DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to write EGQ_ENABLE_DYNAMIC_MEMORY_ACCESSr at unit %d core %d"), unit, core));
+            }
+            dynamic_mem_access = 1;
+        }
+    }
+#endif
+
+#ifdef BCM_88690_A0
+    if (SOC_IS_JERICHO(unit)) {
+        /* Indicates the maximum value that the Interface Unicast and Multicast Packet Descriptors Counters has reached since the last time it was read by the CPU. For MC the data is size in 128 bytes */
+        READ_MEMORY(EGQ_FDCMAXm, 0, IF_LAST_ARRAY_INDEX, dma_buf);
+        for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_IF_NUM; ++i, ++buf_ptr) {
+            max_stats->uc_pd_if[i] = soc_mem_field32_get(unit, EGQ_FDCMAXm, buf_ptr, FDCMAXf);
+        }
+        for (i = 0; i < JER2_ARAD_EGR_CGM_IF_NUM; ++i, ++buf_ptr) {
+            max_stats->mc_pd_if[i] = soc_mem_field32_get(unit, EGQ_FDCMAXm, buf_ptr, FDCMAXf);
+        }
+        CLEAR_MEMORY(EGQ_FDCMAXm, 0, IF_LAST_ARRAY_INDEX, dma_buf);
+
+        /* Indicates the maximum Interface length, contributed by unicast packets, where length is mesured in units of 256 bytes. For MC the data is size in 128 bytes */
+        READ_MEMORY(EGQ_FQSMAXm, 0, IF_LAST_ARRAY_INDEX, dma_buf);
+        for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_IF_NUM; ++i, ++buf_ptr) {
+            max_stats->uc_size_256_if[i] = soc_mem_field32_get(unit, EGQ_FQSMAXm, buf_ptr, FQSMAXf);
+        }
+        for (i = 0; i < JER2_ARAD_EGR_CGM_IF_NUM; ++i, ++buf_ptr) {
+            max_stats->mc_size_256_if[i] = soc_mem_field32_get(unit, EGQ_FQSMAXm, buf_ptr, FQSMAXf);
+        }
+        CLEAR_MEMORY(EGQ_FQSMAXm, 0, IF_LAST_ARRAY_INDEX, dma_buf);
+    } else
+#endif
+    {
+        /* Indicates the maximum value that the Interface Unicast Packet Descriptors Counter has reached since the last time it was read by the CPU. */
+        for (i = SOC_REG_NUMELS(unit, CGM_UC_PD_IF_CNT_MAX_VALUEr); i;) { /* 32 array elements */
+          --i;
+          READ_REGISTER_ARRAY_NO_PIPE(CGM_UC_PD_IF_CNT_MAX_VALUEr, i, value);
+          max_stats->uc_pd_if[i] = value; /* place the value into the 16 bits integer */
+          /* max_stats->uc_pd_if[i] = soc_reg_field_get(unit, CGM_UC_PD_IF_CNT_MAX_VALUEr, value, UC_PD_IF_CNT_MAX_VAL_Nf); */
+        }
+
+        /* Indicates the maximum value that the Interface Multicast Packet Descriptors Counter has reached since the last time it was read by the CPU. */
+        for (i = SOC_REG_NUMELS(unit, CGM_MC_PD_IF_CNT_MAX_VALUEr); i;) { /* 32 array elements */
+          --i;
+          READ_REGISTER_ARRAY_NO_PIPE(CGM_MC_PD_IF_CNT_MAX_VALUEr, i, value);
+          max_stats->mc_pd_if[i] = value; /* place the value into the 16 bits integer */
+          /* max_stats->mc_pd_if[i] = soc_reg_field_get(unit, CGM_MC_PD_IF_CNT_MAX_VALUEr, value, MC_PD_IF_CNT_MAX_VAL_Nf); */
+        }
+
+        /* Indicates the maximum Interface length, contributed by unicast packets, where length is mesured in units of 256 bytes. */
+        for (i = SOC_REG_NUMELS(unit, CGM_UC_SIZE_256_IF_CNT_MAX_VALUEr); i;) { /* 32 array elements */
+          --i;
+          READ_REGISTER_ARRAY_NO_PIPE(CGM_UC_SIZE_256_IF_CNT_MAX_VALUEr, i, value);
+          max_stats->uc_size_256_if[i] = value; /* place the value into the 16 bits integer */
+          /* max_stats->uc_size_256_if[i] = soc_reg_field_get(unit, CGM_UC_SIZE_256_IF_CNT_MAX_VALUEr, value, UC_SIZE_256_IF_CNT_MAX_VAL_Nf); */
+        }
+
+        /* The maximum size of this interface contributed by Multicast replication packets only, where the size is measured in 256B units. */
+        /* Indicates the maximum value that the Interface Multicast Packet Descriptors Counter has reached since the last time it was read by the CPU. */
+        for (i = SOC_REG_NUMELS(unit, CGM_MC_SIZE_256_IF_CNT_MAX_VALUEr); i;) { /* 32 array elements */
+          --i;
+          READ_REGISTER_ARRAY_NO_PIPE(CGM_MC_SIZE_256_IF_CNT_MAX_VALUEr, i, max_stats->mc_size_256_if[i]);
+          /* max_stats->mc_size_256_if[i] = soc_reg_field_get(unit, CGM_MC_SIZE_256_IF_CNT_MAX_VALUEr, value, MC_SIZE_256_IF_CNT_MAX_VAL_Nf); */
+        }
+    }
+
+    /* Unicast and Multicast maximum packet descriptors per OTM-Port */
+    READ_MEMORY(EGQ_PDCMAXm, 0, OTM_PORTS_LAST_ARRAY_INDEX, dma_buf);
+    for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_OTM_PORTS_NUM; ++i, ++buf_ptr) {
+      max_stats->uc_pd_port[i] = soc_mem_field32_get(unit, EGQ_PDCMAXm, buf_ptr, PDCMAXf); /* 15b field */
+    }
+    for (i = 0; i < JER2_ARAD_EGR_CGM_OTM_PORTS_NUM; ++i, ++buf_ptr) {
+      max_stats->mc_pd_port[i] = soc_mem_field32_get(unit, EGQ_PDCMAXm, buf_ptr, PDCMAXf); /* 15b field */
+    }
+    CLEAR_MEMORY(EGQ_PDCMAXm, 0, OTM_PORTS_LAST_ARRAY_INDEX, dma_buf);
+
+    /* Unicast and Multicast maximum Packet descriptors per queue */
+    READ_MEMORY(EGQ_QDCMAXm, 0, QUEUES_LAST_ARRAY_INDEX, dma_buf);
+    for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_QUEUES_NUM; ++i, ++buf_ptr) {
+      max_stats->uc_pd_queue[i] = soc_mem_field32_get(unit, EGQ_QDCMAXm, buf_ptr, QDCMAXf); /* 15b field */
+    }
+    for (i = 0; i < JER2_ARAD_EGR_CGM_QUEUES_NUM; ++i, ++buf_ptr) {
+      max_stats->mc_pd_queue[i] = soc_mem_field32_get(unit, EGQ_QDCMAXm, buf_ptr, QDCMAXf); /* 15b field */
+    }
+    CLEAR_MEMORY(EGQ_QDCMAXm, 0, QUEUES_LAST_ARRAY_INDEX, dma_buf);
+
+    /* Unicast and Multicast maximum data buffers per OTM-Port */
+    READ_MEMORY(EGQ_PQSMAXm, 0, OTM_PORTS_LAST_ARRAY_INDEX, dma_buf);
+    for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_OTM_PORTS_NUM; ++i, ++buf_ptr) {
+      max_stats->uc_db_port[i] = soc_mem_field32_get(unit, EGQ_PQSMAXm, buf_ptr, PQSMAXf); /* 18b field */
+    }
+    for (i = 0; i < JER2_ARAD_EGR_CGM_OTM_PORTS_NUM; ++i, ++buf_ptr) {
+      max_stats->mc_db_port[i] = soc_mem_field32_get(unit, EGQ_PQSMAXm, buf_ptr, PQSMAXf); /* 18b field */
+    }
+    CLEAR_MEMORY(EGQ_PQSMAXm, 0, OTM_PORTS_LAST_ARRAY_INDEX, dma_buf);
+
+    /* Unicast and Multicast maximum data buffers per queue */
+    READ_MEMORY(EGQ_QQSMAXm, 0, QUEUES_LAST_ARRAY_INDEX, dma_buf);
+    for (i = 0, buf_ptr = dma_buf; i < JER2_ARAD_EGR_CGM_QUEUES_NUM; ++i, ++buf_ptr) {
+      max_stats->uc_db_queue[i] = soc_mem_field32_get(unit, EGQ_QQSMAXm, buf_ptr, QQSMAXf); /* 18b field */
+    }
+    for (i = 0; i < JER2_ARAD_EGR_CGM_QUEUES_NUM; ++i, ++buf_ptr) {
+      max_stats->mc_db_queue[i] = soc_mem_field32_get(unit, EGQ_QQSMAXm, buf_ptr, QQSMAXf); /* 18b field */
+    }
+    CLEAR_MEMORY(EGQ_QQSMAXm, 0, QUEUES_LAST_ARRAY_INDEX, dma_buf);
+
+#ifdef BCM_88690_A0
+    if (SOC_IS_JERICHO(unit)) {
+        /* Restore to previous value */
+        if (dynamic_mem_access) {
+            dynamic_mem_access = 0;
+            if (WRITE_EGQ_ENABLE_DYNAMIC_MEMORY_ACCESSr(unit, core, 0) != SOC_E_NONE) {
+                DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to write EGQ_ENABLE_DYNAMIC_MEMORY_ACCESSr at unit %d core %d"), unit, core));
+            }
+        }
+    }
+#endif
+
+
+    /* Indicates the maximum value that the Service Pool0 Multicast Packet Descriptors Counter has reached since the last time it was read by the CPU. */
+    READ_REGISTER_NO_PIPE(CGM_CONGESTION_TRACKING_MULTICAST_PDSP_0_MAX_VALUEr, value);
+    max_stats->mc_pd_sp[0] = value; /* place the value into the 16 bits integer */
+    /* max_stats->mc_pd_sp[0] = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_MULTICAST_PDSP_0_MAX_VALUEr, value, CONGESTION_TRACKING_MULTICAST_PDSP_0_MAX_VALUEf); */
+
+    /* Indicates the maximum value that the Service Pool1 Multicast Packet Descriptors Counter has reached since the last time it was read by the CPU. */
+    READ_REGISTER_NO_PIPE(CGM_CONGESTION_TRACKING_MULTICAST_PDSP_1_MAX_VALUEr, value);
+    max_stats->mc_pd_sp[1] = value; /* place the value into the 16 bits integer */
+    /* max_stats->mc_pd_sp[1] = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_MULTICAST_PDSP_1_MAX_VALUEr, value, CONGESTION_TRACKING_MULTICAST_PDSP_1_MAX_VALUEf); */
+
+    /* Indicates the maximum value that the Service Pool0 Multicast Data Buffers Counter has reached since the last time it was read by the CPU. */
+    READ_REGISTER_NO_PIPE(CGM_CONGESTION_TRACKING_MULTICAST_DBSP_0_MAX_VALUEr, value);
+    max_stats->mc_db_sp[0] = value; /* place the value into the 16 bits integer */
+    /* max_stats->mc_db_sp[0] = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_MULTICAST_DBSP_0_MAX_VALUEr, value, CONGESTION_TRACKING_MULTICAST_DBSP_0_MAX_VALUf); */
+
+    /* Indicates the maximum value that the Service Pool1 Multicast Data Buffers Counter has reached since the last time it was read by the CPU. */
+    READ_REGISTER_NO_PIPE(CGM_CONGESTION_TRACKING_MULTICAST_DBSP_1_MAX_VALUEr, value);
+    max_stats->mc_db_sp[1] = value; /* place the value into the 16 bits integer */
+    /* max_stats->mc_db_sp[1] = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_MULTICAST_DBSP_1_MAX_VALUEr, value, CONGESTION_TRACKING_MULTICAST_DBSP_1_MAX_VALUEf); */
+
+    /* The max number of MC-PD'S - Per SP per TC. Indicates the maximum value of Multicast Packet Descriptors Counter ( Per SP per TC). Low 8 counters are for service-pool-0 and high 8 counters are for service-pool-1. */
+    for (i = SOC_REG_NUMELS(unit, CGM_CONGESTION_TRACKING_MULTICAST_P_DPER_SP_TC_MAX_VALUEr); i;) { /* 16 array elements */
+      --i;
+      if (READ_CGM_CONGESTION_TRACKING_MULTICAST_P_DPER_SP_TC_MAX_VALUEr(unit, core, i, &value) != SOC_E_NONE) { \
+          DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to read CGM_CONGESTION_TRACKING_MULTICAST_P_DPER_SP_TC_MAX_VALUEr at index %d unit %d core %d"), i, unit, core)); \
+      }
+      max_stats->mc_pd_sp_tc[i] = value; /* place the value into the 16 bits integer */
+      /* max_stats->mc_pd_sp_tc[i] = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_MULTICAST_P_DPER_SP_TC_MAX_VALUEr, value, CONGESTION_TRACKING_MULTICAST_P_DPER_SP_TC_MAX_VALUEf); */
+    }
+
+    /* The max number of MC-DB'S - Per SP per TC. Indicates the maximum value of Multicast Data Buffers Counter ( Per SP per TC). Low 8 counters are for service-pool-0 and high 8 counters are for service-pool-1. */
+    for (i = SOC_REG_NUMELS(unit, CGM_CONGESTION_TRACKING_MULTICAST_D_BPER_SP_TC_MAX_VALUEr); i;) { /* 16 array elements */
+      --i;
+      if (READ_CGM_CONGESTION_TRACKING_MULTICAST_D_BPER_SP_TC_MAX_VALUEr(unit, core, i, &value) != SOC_E_NONE) { \
+          DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to read CGM_CONGESTION_TRACKING_MULTICAST_D_BPER_SP_TC_MAX_VALUEr at index %d unit %d core %d"), i, unit, core)); \
+      }
+      max_stats->mc_db_sp_tc[i] = value; /* place the value into the 16 bits integer */
+      /* max_stats->mc_db_sp_tc[i] = soc_reg_field_get(unit, CGM_CONGESTION_TRACKING_MULTICAST_D_BPER_SP_TC_MAX_VALUEr, value, CONGESTION_TRACKING_MULTICAST_D_BPER_SP_TC_MAX_VALUEf); */
+    }
+
+    /* disable maximum statistics updated if requested to do so */
+    if (updates_are_disabled) {
+      if (WRITE_CGM_STATISTICS_TRACKING_CONTROLr(unit, core, 0) != SOC_E_NONE) {
+        DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to re-enable maximum statistics updates")));
+      }
+      updates_are_disabled = 0;
+    }
+
+    /* these statistics are not supported for maximum values */
+    max_stats->mc_rsvd_pd_sp[0] = max_stats->mc_rsvd_pd_sp[1] =
+    max_stats->mc_rsvd_db_sp[0] = max_stats->mc_rsvd_db_sp[1] = 0;
+
+  } /* end of maximujm value collection */
+
+  if (counters != NULL) {
+    /* registers providing counter values */
+
+    /* counts the number of packets that were dropped due to lack of unicast packet descriptors */
+    READ_REGISTER_NO_PIPE(CGM_UNICAST_PACKET_DESCRIPTORS_DROP_COUNTERr, counters->uc_pd_dropped);
+    /* counters->uc_pd_dropped = soc_reg_field_get(unit, CGM_UNICAST_PACKET_DESCRIPTORS_DROP_COUNTERr, value, UNICAST_PACKET_DESCRIPTORS_DROP_COUNTERf); */
+
+    /* counts the number of packets that were dropped due to lack of multicast packet descriptors */
+    READ_REGISTER_NO_PIPE(CGM_MULTICAST_REPLICATIONS_PACKET_DESCRIPTORS_DROP_COUNTERr, counters->mc_rep_pd_dropped);
+    /* counters->mc_rep_pd_dropped = soc_reg_field_get(unit, CGM_MULTICAST_REPLICATIONS_PACKET_DESCRIPTORS_DROP_COUNTERr, value, MULTICAST_REPLICATIONS_PACKET_DESCRIPTORS_DROP_COUNTERf); */
+
+    /* counts the number of packets that were dropped by the RQP due to lack of unicast data buffers */
+    READ_REGISTER_NO_PIPE(CGM_UNICAST_DATA_BUFFERS_DROP_BY_RQP_COUNTERr, counters->uc_db_dropped_by_rqp);
+    /* counters->uc_db_dropped_by_rqp = soc_reg_field_get(unit, CGM_UNICAST_DATA_BUFFERS_DROP_BY_RQP_COUNTERr, value, UNICAST_DATA_BUFFERS_DROP_BY_RQP_COUNTERf); */
+
+    /* counts the number of packets that were dropped by the PQP due to lack of unicast data buffers */
+    READ_REGISTER_NO_PIPE(CGM_UNICAST_DATA_BUFFERS_DROP_BY_PQP_COUNTERr, counters->uc_db_dropped_by_pqp);
+    /* counters->uc_db_dropped_by_pqp = soc_reg_field_get(unit, CGM_UNICAST_DATA_BUFFERS_DROP_BY_PQP_COUNTERr, value, UNICAST_DATA_BUFFERS_DROP_BY_PQP_COUNTERf); */
+
+    /* Counts the number of packets that were dropped due to lack of multicast data buffers. Note that this counter does not count each replication drop but rather the packet drops before replication, i.e. when a packet with n replication is dropped due to lack of multicast data buffers, the counter is increased by one regardless of number of replications. */
+    READ_REGISTER_NO_PIPE(CGM_MULTICAST_DATA_BUFFERS_DROP_COUNTERr, counters->mc_db_dropped);
+    /* counters->mc_db_dropped = soc_reg_field_get(unit, CGM_MULTICAST_DATA_BUFFERS_DROP_COUNTERr, value, MULTICAST_DATA_BUFFERS_DROP_COUNTERf); */
+
+    /* Counts the number of multicast replications that were dropped due to reaching to the maximum port or queue length, where length is mesured in units of 256 bytes. */
+    READ_REGISTER_NO_PIPE(CGM_MULTICAST_REPLICATIONS_QUEUE_LENGTH_DROP_COUNTERr, counters->mc_rep_db_dropped);
+    /* counters->mc_rep_db_dropped = soc_reg_field_get(unit, CGM_MULTICAST_REPLICATIONS_QUEUE_LENGTH_DROP_COUNTERr, value, MULTICAST_REPLICATIONS_QUEUE_LENGTH_DROP_COUNTER)f; */
+  }
+
+exit:
+#ifdef BCM_88690_A0
+    if (SOC_IS_JERICHO(unit)) {
+        /* Restore to previous value if didn't do that already */
+        if (dynamic_mem_access) {
+            if (WRITE_EGQ_ENABLE_DYNAMIC_MEMORY_ACCESSr(unit, core, 0) != SOC_E_NONE) {
+                DNXC_EXIT_WITH_ERR(SOC_E_FAIL, (_BSL_DNXC_MSG("Failed to write EGQ_ENABLE_DYNAMIC_MEMORY_ACCESSr at unit %d core %d"), unit, core));
+            }
+        }
+    }
+#endif
+
+    /* disable maximum statistics updated if requested to do so */
+    if (updates_are_disabled) {
+        if(WRITE_CGM_STATISTICS_TRACKING_CONTROLr(unit, core, 0) != SOC_E_NONE) {
+            LOG_ERROR(BSL_LS_SOC_EGRESS,
+                    (BSL_META_U(unit,
+                            "Failed write to register CGM_STATISTICS_TRACKING_CONTRO")));
+        }
+    }
+
+    if (dma_buf) { /* free DMA memory if it was allocated */
+        soc_cm_sfree(unit, dma_buf);
+    }
+    DNXC_FUNC_RETURN;
+}
+
+uint32
+jer2_arad_egr_threshold_types_verify(
+   DNX_SAND_IN    int   unit,
+   DNX_SAND_IN    soc_dnx_cosq_threshold_type_t threshold_type)
+{
+    DNXC_INIT_FUNC_DEFS;
+
+    switch (threshold_type)
+    {
+        
+        case soc_dnx_cosq_threshold_bytes:
+        case soc_dnx_cosq_threshold_packet_descriptors:
+        case soc_dnx_cosq_threshold_packets:
+        case soc_dnx_cosq_threshold_data_buffers:
+        case soc_dnx_cosq_threshold_available_packet_descriptors:
+        case soc_dnx_cosq_threshold_available_data_buffers:
+        case soc_dnx_cosq_threshold_buffer_descriptor_buffers:
+        case soc_dnx_cosq_threshold_buffer_descriptors:
+        case soc_dnx_cosq_threshold_dbuffs:
+        case soc_dnx_cosq_threshold_full_dbuffs:
+        case soc_dnx_cosq_threshold_mini_dbuffs:
+        case soc_dnx_cosq_threshold_dynamic_weight:
+            break;
+        default:
+            DNXC_EXIT_WITH_ERR(SOC_E_UNAVAIL, (_BSL_DNXC_MSG("Invalid threshold type %d "), threshold_type));
+    }
+
+exit:
+    DNXC_FUNC_RETURN;
+}
+
+
+int 
+jer2_arad_egr_queuing_egr_interface_alloc(
+    DNX_SAND_IN  int             unit,
+    DNX_SAND_IN  soc_port_t      port
+    )
+{
+    return SOC_E_NONE;
+}
+
+int 
+jer2_arad_egr_queuing_egr_interface_free(
+    DNX_SAND_IN  int             unit,
+    DNX_SAND_IN  soc_port_t      port
+    )
+{
+    return SOC_E_NONE;
+}
+/* } */
+
+int jer2_arad_egr_queuing_init_thresholds(int unit, int port_rate, int nof_priorities, int nof_channels, DNX_TMC_EGR_QUEUING_CGM_INIT_THRESHOLDS* cgm_init_thresholds)
+{
+    DNXC_INIT_FUNC_DEFS;
+
+    cgm_init_thresholds->mc_reserved_pds  = 40; /* Default value - just in case */
+
+    if(port_rate <= 2500) { /* 1G */
+      cgm_init_thresholds->threshold_port = 128;
+      cgm_init_thresholds->port_mc_drop_pds = 135;
+      cgm_init_thresholds->port_mc_drop_dbs = 1350;
+      cgm_init_thresholds->threshold_queue = 128;
+      cgm_init_thresholds->mc_reserved_pds = 40;
+    } else if(port_rate <= 12500) { /* 10G */
+      cgm_init_thresholds->threshold_port = 250;
+      cgm_init_thresholds->port_mc_drop_pds = 1083;
+      cgm_init_thresholds->port_mc_drop_dbs = 10830;
+      switch(nof_priorities)
+      {
+      case 1:
+        cgm_init_thresholds->threshold_queue = 250;
+        break;
+      case 2:
+        cgm_init_thresholds->threshold_queue = 125;
+        cgm_init_thresholds->mc_reserved_pds = 160;
+        break;
+      case 8:
+      default:
+        cgm_init_thresholds->threshold_queue = 83;
+        cgm_init_thresholds->mc_reserved_pds = 40;
+      }
+    } else if(port_rate <= 48000) { /* 40G */
+      cgm_init_thresholds->threshold_port = 1000;
+      cgm_init_thresholds->port_mc_drop_pds = 4050;
+      cgm_init_thresholds->port_mc_drop_dbs = 43330;
+      switch(nof_priorities)
+      {
+      case 1:
+        cgm_init_thresholds->threshold_queue = 1000;
+        break;
+      case 2:
+        cgm_init_thresholds->threshold_queue = 500;
+        cgm_init_thresholds->mc_reserved_pds = 640;
+        break;
+      case 8:
+      default:
+        cgm_init_thresholds->threshold_queue = 333;
+        cgm_init_thresholds->mc_reserved_pds = 160;
+      }
+    } else if(port_rate <= 127000) { /* 100G , 120G */
+      cgm_init_thresholds->threshold_port = 2500;
+      cgm_init_thresholds->port_mc_drop_pds = 10830;
+      cgm_init_thresholds->port_mc_drop_dbs = 108300;
+      switch(nof_priorities)
+      {
+      case 1:
+        cgm_init_thresholds->threshold_queue = 2500;
+        break;
+      case 2:
+        cgm_init_thresholds->threshold_queue = 1250;
+        cgm_init_thresholds->mc_reserved_pds = 1600;
+        break;
+      case 8:
+      default:
+        cgm_init_thresholds->threshold_queue = 833;
+        cgm_init_thresholds->mc_reserved_pds = 400;
+      }
+    } else { /* 200G , 240G */
+      cgm_init_thresholds->threshold_port = 5000;
+      cgm_init_thresholds->port_mc_drop_pds = 21660;
+      cgm_init_thresholds->port_mc_drop_dbs = 216600;
+      switch(nof_priorities)
+      {
+      case 1:
+        cgm_init_thresholds->threshold_queue = 5000;
+        break;
+      case 2:
+        cgm_init_thresholds->threshold_queue = 2500;
+        cgm_init_thresholds->mc_reserved_pds = 3200;
+        break;
+      case 8:
+      default:
+        cgm_init_thresholds->threshold_queue = 1250;
+        cgm_init_thresholds->mc_reserved_pds = 800;
+      }
+    }
+
+    cgm_init_thresholds->mc_reserved_pds = cgm_init_thresholds->mc_reserved_pds / nof_channels;
+    cgm_init_thresholds->drop_pds_th = 6000;
+    cgm_init_thresholds->drop_dbs_th = 6000;
+    cgm_init_thresholds->drop_pds_th_tc = 4000;
+
+    DNXC_FUNC_RETURN;
+}
+
+#include <soc/dnx/legacy/SAND/Utils/sand_footer.h>
+
+#endif /* of #if defined(BCM_88690_A0) */
+

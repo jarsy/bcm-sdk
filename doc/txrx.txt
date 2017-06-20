@@ -1,0 +1,337 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+-------------------------------------------------------------------------
+                 Notes on BCM TX/RX API and Internals
+                   Broadcom Corp. December 18, 2002
+                     Last Updated: May 20, 2003
+-------------------------------------------------------------------------
+
+
+(1) Overview
+
+This document provides a description of the BCM RX API and the
+BCM TX API.  RX is more complex, so more of the document is dedicated
+to the RX API.
+
+
+(2) Related Documents
+
+    $SDK/doc/pkt.txt is referred to as pkt.txt.
+
+    Readers should particularly note comments related to TX in the
+    descriptions of pkt->opcode and pkt->tx_pbmp in pkt.txt.
+
+
+(3) The new BCM TX API
+
+(3.1) Goals and Requirements for bcm_tx
+
+    1.  Support packet gather for applications.
+
+    2.  Support tagged and untagged packets from applications.  bcm_tx
+        may transmit all packets to the switch with a VLAN tag in the
+        frame (except Hercules where the tag information is in the
+        HiGig header).
+
+    3.  Support HiGig and SL tags transparently.  The caller of
+        bcm_tx determines the exact contents of these tags, but should
+        not need to worry about the format of the tags.
+
+    4.  Support CRC regeneration, appending, forced error and
+        no-change.
+
+    5.  Provide a development path to non-runtime DV allocation.
+        This may mean a pool of DVs managed by bcm_tx.
+
+(3.2) The bcm_tx function
+
+    int bcm_tx(int unit, bcm_pkt_t *pkt, void *cookie);
+
+The cookie is passed back to the callback function if the packet
+is sent asynchronously.  Asynchronous transmit is indicated by a
+non-NULL callback in the packet structure (pkt->call_back).
+
+(3.3) BCM TX Mechanisms
+
+    1.  CRC:
+            See flags in pkt.txt.  Options exist to regenerate or
+        append.
+
+    2.  Synchronous/asynchronous call:
+            If pkt->call_back is not NULL, then the packet is sent
+        asynchronously.  See "Packet Macros and Data Members" in
+        pkt.txt for more information.
+            In addition, two cookies are provided for application
+        level, pkt->cookie and pkt->cookie2.  These are both of type
+        void *.
+
+    3.  Controlling the HiGig header:
+            The data in the HiGig header is altered by setting the
+        data members of the packet such as src_port and opcode.  These
+        are then installed in the higig header by calling
+        bcm_pkt_hghdr_setup.
+            Alternatively, the header can be directly accessed by
+        calling the BCM_PKT_HG_HDR(pkt) macro.  This exposes the data
+        buffer used to hold the HiGig header.  This buffer should be
+        maintained in network byte order.
+
+    4.  Controlling the SL tag:
+            The data in the SL tag is setup like the HiGig header.
+
+    5.  Port bitmaps:
+            The port bitmaps are explicitly exposed.  See "Packet
+        Macros and Data Members" in pkt.txt for more information.  The
+        function bcm_tx_pkt_l2_map can be used to generate the port
+        bitmaps.  (Not yet implemented).
+
+(3.4) Chains of TX packets
+
+Chains of packets may be sent with a single call to the BCM function
+
+    bcm_tx_array(int unit, bcm_pkt_t **pkt, int count,
+                 bcm_pkt_cb_f all_done_cb, void *cookie)
+
+which takes an array of packets passed as a pointer and a count, or
+
+    bcm_tx_list(int unit, bcm_pkt_t *pkt, bcm_pkt_cb_f all_done_cb,
+                void *cookie)
+
+which takes a linked list of packets, linked by the "next" data
+member.  Either of these may be done asynchronously with a single
+callback made once the chain is complete.  Per-packet callbacks are
+also supported, but not recommended.
+
+        
+(4) The new bcm_rx API
+
+Hardware changes in Strata-XGS permit multiple DMA receive channels
+to be active simultaneously, and permit mapping of different COS
+to different receive channels.
+
+To provide an API that permits control of these features, the BCM
+PMUX API has been deprecated and is being replaced by the BCM RX API.
+The new RX API features:
+
+    1.  Normal packet handling has been moved out of interrupt
+        context; 
+    2.  Special packet handlers can be installed for interrupt
+        handling; 
+    3.  Multiple DMA channels are supported and may be map to
+        different COSes;
+    4.  Packets are enqueued according to COS at interrupt level;
+    5.  Token bucket rate limiting is implemented on a per queue
+        basis;
+    6.  Global rate limiting is implemented as a token bucket
+        independent of per-queue rate limiting;
+    7.  Packet handling is managed with the bcm_pkt_t structure.
+
+The packet format returned by RX has been standardized to match
+bcm_pkt_t conventions.  The packet data is always in a single buffer in
+IEEE 802.1Q VLAN tagged format:
+
+        Destination MAC       6 bytes
+        Source MAC            6 bytes
+        VLAN Tag              4 bytes  (unless flagged otherwise)
+        "Payload"             N bytes  (including type/length, etc.)
+        CRC                   4 bytes
+
+Note that payload is in quotes as it may contain other header
+information such as the type/length field.  The term is used here
+because RX is aware of the packet format only up through the VLAN
+tag.
+
+Additional Broadcom tags (the SL tag and the HiGig header) are made
+available through the bcm_pkt_t structure.  They do not take up
+the application's packet buffer space (they are DMA'd into SOC layer
+DV structures and copied into the bcm_pkt_t structure).
+
+Per-queue rate limitting is configurable through calls to
+bcm_rx_cos_rate_get/set.  The max queue size and burst limits can also
+be controlled.
+
+
+(5) BCM RX Internals
+
+The following is for those who need to be familiar with the workings
+of RX for maintenance or customization.
+
+The user configuration is stored in the bcm_rx_cfg_t structure.  It
+may be re-initialized when RX is not running by calling
+bcm_rx_cfg_init.  This is highly recommended if multiple applications
+may be starting and stopping the RX subsystem.
+
+(5.1) Allocation and Free routines
+
+There is one set of allocation and free routines per unit that is used
+by RX and configured on RX initialization (bcm_rx_start).  Essentially,
+RX provides a gateway for all applications to use the alloc/free
+routines of the application controlling RX.
+
+These routines operate on packet buffers.
+
+[Ed note:  These functions originally operated on bcm_pkt_t
+structures.]
+
+
+(5.2) Chains, DVs and DCBs
+
+RX manages chains of packets.  This is a hardware concept detailed
+below.  The number of chains and the number of packets per chain are
+indicated in the bcm_rx_cfg_t structure declared in
+$SDK/include/bcm/rx.h and passed to RX through bcm_rx_start.  These
+affect the through-put and memory demands of RX.  In general, more
+packets/chain results in more throughput at the expense of more
+memory use.  The maximum permitted packets/chain is 16.
+
+A DCB is a hardware description of a single DMA operation.  A packet
+may be spread across several operations (DCBs) which are connected by
+the S/G (scatter/gather) bit in the DCB.  Additionally, DCBs may be
+"chained" together by the C (chain) bit in the DCB.  As long as the
+chain bit is set, the hardware will continue processing the DCBs in a
+list.
+
+For RX, each packet requires a fixed number of DCBs which is
+determined by the controlling unit type and whether SL stacking is
+enabled in the system.  If the SL stacking state is changed, then RX
+must be reconfigured (stopped and restarted with the new configuration).
+
+A DV is a SOC-layer software construct controlling an array of DCBs.
+Each hardware chain is controlled by one DV.  Hereafter, CHAIN and DV
+mean the same thing.
+
+RX views the DV as an array of packets.  An rx_dv_info_t structure is
+defined and attached to each DV (through the DV cookies).  This
+indicates various state of the DV including pointers to the packets
+that are controlled (filled) by the DV.
+
+A packet may be "stolen" by an application when the packet handler
+returns BCM_RX_HANDLED_OWNED.  Before that DV is restarted, RX will
+reallocate a packet at this position by calling bcm_rx_alloc.
+
+The hardware provides an interrupt each time a DCB completes, and a
+different interrupt each time the end of a chain is reached.  The SOC
+layer can also detect the end of a packet, and thus provides three
+possible callbacks: 1. For each DCB, 2. for the end of packet, and/or
+3. for end of a chain.  RX ensures that the end of a chain corresponds
+to the end of a packet as well.  RX expects to get end-of-packet and
+end-of-chain interrupts.
+
+(5.3) Operational overview
+
+The SOC layer allows the queuing of multiple DVs which are
+automatically restarted (by the driver layer software) when the
+hardware completes a chain.  Thus, RX allocates a collection of DVs,
+fills them and then queues them all to the SOC layer.  As packets
+arrive, packet done interrupts are routed to RX which first calls
+interrupt level packet handlers, then, if the packet is not handled,
+queues the packet for non-interrupt handling.
+
+Non-interrupt handling is managed by a separate thread.  The thread is
+awoken either because packets have been queued, or DVs need to be
+refilled and restarted.
+
+DVs can be scheduled to start in the future.  This is managed by the
+RX thread.  This simply means that negative values are legal in
+buckets.  Since there are a fixed number of DVs that can be started,
+that same number is the maximum number of outstanding tasks that can
+be waiting.
+
+(5.4) Rate limitting
+
+There are two levels of rate limitting:
+
+1.  Global: The number of interrupts the system receives is limitted
+by indicating a global limit in packets/second.  This will prevent DVs
+being setup (they get scheduled into the future).
+
+2.  Per COS: The number of callbacks made can be limited on a per COS
+basis.  This applies both to interrupt and non-interrupt callbacks.
+Note that this does not limit the interrupt load since the packets are
+still processed by the RX API.
+
+In addition, the maximum number of packets that will be enqueued can be
+limitted on a per-COS basis.
+
+All rate limitting is specified in packets/second and implemented with
+a leaky bucket algorithm.  Burst limits (the maximum number of tokens
+a bucket may hold) are implemented for both global and COS rate
+limitting.  The global burst limit is explicitly indicated by user
+configuration.
+
+Token buckets are updated by the rx_pkt_thread.  They max out at
+the programmed burst limit which must be positive.  Note that the
+value of the burst limit will significantly affect two things:
+
+    1.  The packet/second rate will initially appear higher if the
+        burst limit is high.
+    2.  A low burst limit will adversely affect performance.
+
+For rate limitting to be accurate, all channels must have the same
+number of packets per chain.  Hence this parameter is a per-unit
+setting.
+
+
+(6) Receive bench marks as of April 1, 2003
+
+The following tables reflect maximum packets/second for different
+boards with different RX settings.  In all cases, fixed length 1024
+byte packets were used.  The variables are:
+
+    CPU Type:   PPC 8245, PPC 8240, IDT RP332
+    Packets/chain:  4 or 16 (represents number of pkts/DMA operation).
+    Interrupt mode:  On or off; are packets handled in interrupt or
+        non-interrupt mode
+    Free buffer:  On or off; are packet buffers freed by handler or
+        reused by RX.
+
+All entries in these tables are in packets/second which corresponds to
+K-bytes/second.  Note that PMUX is only available in non-interrupt
+mode.  All tests are run over 4 seconds.  All tests are run with burst
+set to 1000.
+
+SDK 4.1:
+                     Last Updated: March 23, 2003
+
+            PPC 8245 based system on 2 x 5690 + 5670 board
+            ----------------------------------------------
+
+          PPC |    4           4           16            16
+         INTR |   intr      non-intr      intr        non-intr
+MODE/buffer   |
+--------------+-----------------------------------------------------
+RX/reuse      |  21036       18847       24961         26621
+RX/free       |   5846        6818        5407          5201
+PMUX/reuse    |    n/a       20766         n/a         18445
+PMUX/free     |    n/a       10321         n/a         10148
+
+
+                 PPC 8240 based system on 5615 board
+                 -----------------------------------
+
+          PPC |    4           4           16            16
+         INTR |   intr      non-intr      intr        non-intr
+MODE/buffer   |                                    
+--------------+-----------------------------------------------------
+RX/reuse      |  27554       24172       38008         30875
+RX/free       |   4512        4568        4977          4519
+PMUX/reuse    |    n/a       27246         n/a         16442
+PMUX/free     |    n/a        8179         n/a          8304
+
+
+              IDT RP334 based system on 2 x 5645 board
+              ----------------------------------------
+
+          PPC |    4           4           16             16
+         INTR |   intr      non-intr      intr         non-intr
+MODE/buffer   |                                 
+--------------+------------------------------------------------------
+RX/reuse      |   5846       5393         7021           6660
+RX/free       |   1440       1353         1612           1566   
+PMUX/reuse    |   n/a        6374         n/a            5082
+PMUX/free     |   n/a        1798         n/a            1849
+
+

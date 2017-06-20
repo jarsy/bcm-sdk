@@ -1,0 +1,46 @@
+echo "testsuite: started: sanity"
+# $Id: bcm88650sanity.soc,v 1.30 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Jericho (BCM88670) Sanity
+#
+# Script to run all nightly available tests as quickly as possible in Yarum regression run on ARAD PLUS.
+# For testing basic sanity of new drivers, simulators, chips, etc.
+#
+local done 'echo "   Done";date'
+# Avoid link messages while testing
+linkscan off 
+counter off
+ctrp suspend
+# Set run command script not to fail on errors reported by commands
+# this allows the script to continue if a test fails
+set rcerror=false
+
+# Set up test mode: don't stop on errors, show progress on each test
+tm -stoponerror +progress
+# Unselect all
+#ts -* 
+
+#Clear test statistics
+tc *
+
+#Display some useful information
+date
+
+
+
+
+#Start Test
+echo "Running tr 141"
+tr 141 r=20
+$done
+
+echo 'Dump memories (tr 6)...';
+tr 6;
+echo '   Done';$date;
+
+date
+tl
+local returnCode $?
+echo "testsuite: finished: sanity: $returnCode"

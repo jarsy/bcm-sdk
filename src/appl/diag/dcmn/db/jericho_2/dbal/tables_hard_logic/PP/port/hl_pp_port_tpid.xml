@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+      <AppDB Name="INGRESS_LLVP_CLASSIFICATION">
+        <OneLineDescription>Ingress LLVP classification table, used for VLAN editing</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="INNER_TPID"    Size="3"/>
+                <Field Name="OUTER_TPID"    Size="3"/>
+                <Field Name="IS_OUTER_PRIO" Size="1"/>
+                <Field Name="LLVP_PROFILE"  Size="3"/>
+            </Key>
+            <Result>
+                <Field Name="INCOMING_VID_EXIST"            Size="1"/>
+                <Field Name="INCOMING_TAG_EXIST"            Size="1"/>
+                <Field Name="INCOMING_S_TAG_EXIST"          Size="1"/>
+                <Field Name="ACCEPTABLE_FRAME_TYPE_ACTION"  Size="2"/>
+                <Field Name="LLVP_INCOMING_TAG_STRUCTURE"   Size="5"/>
+                <Field Name="IVEC_INDEX"                    Size="7"/>
+                <Field Name="LLVP_PCP_DEI_PROFILE"          Size="4"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="INCOMING_VID_EXIST"> 
+                    <Access>
+                        <Memory Name="IPPA_VTT_LLVPm"> 
+                            <HwField Name="INCOMING_VID_EXISTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INCOMING_TAG_EXIST"> 
+                    <Access>
+                        <Memory Name="IPPA_VTT_LLVPm"> 
+                            <HwField Name="INCOMING_TAG_EXISTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INCOMING_S_TAG_EXIST"> 
+                    <Access>
+                        <Memory Name="IPPA_VTT_LLVPm"> 
+                            <HwField Name="INCOMING_S_TAG_EXISTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ACCEPTABLE_FRAME_TYPE_ACTION"> 
+                    <Access>
+                        <Memory Name="IPPA_VTT_LLVPm"> 
+                            <HwField Name="ACCEPTABLE_FRAME_TYPE_ACTIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LLVP_INCOMING_TAG_STRUCTURE"> 
+                    <Access>
+                        <Memory Name="IPPA_VTT_LLVPm"> 
+                            <HwField Name="INCOMING_TAG_STRUCTUREf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IVEC_INDEX"> 
+                    <Access>
+                        <Memory Name="IPPA_VTT_LLVPm"> 
+                            <HwField Name="IVECf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LLVP_PCP_DEI_PROFILE"> 
+                    <Access>
+                        <Memory Name="IPPA_VTT_LLVPm"> 
+                            <HwField Name="PCP_DEI_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_LLVP_CLASSIFICATION">
+        <OneLineDescription>Egress LLVP classification table, used for VLAN editing</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>                
+                <Field Name="INNER_TPID"    Size="3"/>
+                <Field Name="OUTER_TPID"    Size="3"/>
+                <Field Name="IS_OUTER_PRIO" Size="1"/>
+                <Field Name="LLVP_PROFILE"  Size="3"/>                
+            </Key>
+            <Result>
+                <Field Name="C_TAG_OFFSET"                  Size="1"/>
+                <Field Name="PACKET_HAS_C_TAG"              Size="1"/>
+                <Field Name="PACKET_HAS_PCP_DEI"            Size="1"/>
+                <Field Name="LLVP_INCOMING_TAG_STRUCTURE"   Size="5"/>
+            </Result>
+            <TableLabels>PP_PORT</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/> 
+            <FieldMapping>
+                <Field Name="C_TAG_OFFSET"> 
+                    <Access>
+                        <Memory Name="ETPPC_LLVP_TABLEm"> 
+                            <HwField Name="C_TAG_OFFSETf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_HAS_C_TAG"> 
+                    <Access>
+                        <Memory Name="ETPPC_LLVP_TABLEm"> 
+                            <HwField Name="PACKET_HAS_C_TAGf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PACKET_HAS_PCP_DEI"> 
+                    <Access>
+                        <Memory Name="ETPPC_LLVP_TABLEm"> 
+                            <HwField Name="PACKET_HAS_PCP_DEIf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LLVP_INCOMING_TAG_STRUCTURE"> 
+                    <Access>
+                        <Memory Name="ETPPC_LLVP_TABLEm"> 
+                            <HwField Name="INCOMING_TAG_STRUCTUREf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

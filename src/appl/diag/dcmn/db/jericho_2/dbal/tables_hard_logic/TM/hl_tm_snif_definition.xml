@@ -1,0 +1,782 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="SNIF_COMMAND_TABLE">
+        <OneLineDescription>This table reprsents all the TM attributes of a snif command(profile)</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SNIF_COMMAND_ID"/>
+                <Field Name="SNIF_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="DESTINATION"/>
+                <Field Name="LAG_LB_KEY_OW"/>
+                <Field Name="LAG_LB_KEY"/>
+                <Field Name="TC_OW"/>
+                <Field Name="TC"/>
+                <Field Name="DP_OW"/>
+                <Field Name="DP"/>
+                <Field Name="CROP_ENABLE"/>
+                <Field Name="REMOVE_SYSTEM_HEADERS_ENABLE"/>
+                <Field Name="SNIF_STRENGTH"/>
+                <Field Name="IN_PP_PORT_OW"/>
+                <Field Name="IN_PP_PORT"/>
+                <Field Name="ST_VSQ_PTR_OW"/>
+                <Field Name="ST_VSQ_PTR"/>
+                <Field Name="ADMIT_PROFILE_OW"/>
+                <Field Name="ADMIT_PROFILE"/>
+                <Field Name="SNIF_PROBABILITY"/>
+            </Result>
+            <TableLabels>SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DESTINATION">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="DESTINATIONf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAG_LB_KEY_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="LAG_LB_KEY_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="LAG_LB_KEY">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="LAG_LB_KEYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="TC_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TC">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="TCf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DP_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="DP_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DP_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="EGR_DP_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DP">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="DPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DP">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="EGR_DPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CROP_ENABLE">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="CROPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="REMOVE_SYSTEM_HEADERS_ENABLE">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="REMOVE_SYSTEM_HEADERSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_STRENGTH">
+                    <Access>
+                        <Memory Name="CGM_SNIF_ACTION_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="STRENGTHf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_PP_PORT_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="IN_PP_PORT_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="IN_PP_PORT">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="IN_PP_PORTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ST_VSQ_PTR_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="ST_VSQ_PTR_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ST_VSQ_PTR">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="ST_VSQ_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADMIT_PROFILE_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="ADMT_PROFILE_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="ADMIT_PROFILE">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="ADMT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_PROBABILITY">
+                    <Access>
+                        <KeyCondition Field="SNIF_TYPE" Type="EQUAL_TO" Enum="SNOOP"/>
+                        <Memory Name="IPPD_SNP_ACT_PROBABILITYm">
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID"/>
+                            <HwField Name="SAMPLING_PROBABILITYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_PROBABILITY">
+                    <Access>
+                        <KeyCondition Field="SNIF_TYPE" Type="EQUAL_TO" Enum="MIRROR"/>                    
+                        <Memory Name="IPPD_MRR_ACT_PROBABILITYm">
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID"/>
+                            <HwField Name="SAMPLING_PROBABILITYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SNIF_PROBABILITY">
+                    <Access>
+                        <KeyCondition Field="SNIF_TYPE" Type="EQUAL_TO" Enum="STATISTICAL_SAMPLE"/>
+                        <Memory Name="IPPD_STATISTICAL_SAMPLE_ACT_PROBABILITYm">
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID"/>
+                            <HwField Name="SAMPLING_PROBABILITYf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+    <AppDB Name="SNIF_COUNTING_TABLE">
+        <OneLineDescription>This table reprsents all the counting attributes of a snif command(profile)</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SNIF_COMMAND_ID"/>
+                <Field Name="SNIF_TYPE"/>
+            </Key>
+            <Result>
+                <Field Name="EXT_STAT_DATA_VALID_OW"/>
+                <Field Name="EXT_STAT_DATA_VALID"/>
+                <Field Name="EXT_STAT_DATA_OPCODE_OW"/>
+                <Field Name="EXT_STAT_DATA_OPCODE"/>
+                <Field Name="EXT_STAT_DATA_OW"/>
+                <Field Name="EXT_STAT_DATA"/>
+                <Field Name="INT_STAT_OBJ_VALID_OW" NofInstances="10"/>
+                <Field Name="INT_STAT_OBJ_VALID" NofInstances="10"/>
+                <Field Name="INT_STAT_OBJ_ID_OW" NofInstances="10"/>
+                <Field Name="INT_STAT_OBJ_ID" NofInstances="10"/>
+                <Field Name="INT_STAT_OBJ_TYPE_OW" NofInstances="10"/>
+                <Field Name="INT_STAT_OBJ_TYPE" NofInstances="10"/>
+                <Field Name="INT_STAT_OBJ_META_DATA_OW"/>
+                <Field Name="INT_STAT_OBJ_META_DATA"/>
+            </Result>
+            <TableLabels>SNIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="EXT_STAT_DATA_VALID_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="EXT_STAT_DATA_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXT_STAT_DATA_VALID">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="EXT_STAT_DATA_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXT_STAT_DATA_OPCODE_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="EXT_STAT_DATA_OPCODE_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXT_STAT_DATA_OPCODE">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="EXT_STAT_DATA_OPCODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXT_STAT_DATA_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="EXT_STAT_DATA_DATA_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EXT_STAT_DATA">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="EXT_STAT_DATA_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_VALID_OW">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_0_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_1_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_2_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_3_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_4_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_5_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_6_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_7_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_8_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_9_OBJ_VALID_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_VALID">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_0_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_1_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_2_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_3_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_4_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_5_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_6_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_7_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_8_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_9_OBJ_VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_ID_OW">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_0_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_1_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_2_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_3_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_4_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_5_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_6_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_7_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_8_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_9_OBJ_ID_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_ID">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_0_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_1_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_2_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_3_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_4_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_5_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_6_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_7_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_8_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_9_OBJ_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_TYPE_OW">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                           <HwField Name="INT_STAT_0_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                           <HwField Name="INT_STAT_1_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                           <HwField Name="INT_STAT_2_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                           <HwField Name="INT_STAT_3_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                           <HwField Name="INT_STAT_4_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                           <HwField Name="INT_STAT_5_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                           <HwField Name="INT_STAT_6_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                           <HwField Name="INT_STAT_7_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                           <HwField Name="INT_STAT_8_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                           <HwField Name="INT_STAT_9_OBJ_TYPE_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_TYPE">
+                    <Access instanceIndex="0">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_0_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_1_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_2_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="3">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_3_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="4">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_4_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="5">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_5_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="6">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_6_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="7">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_7_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="8">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_8_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="9">
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_9_OBJ_TYPEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_META_DATA_OW">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_OBJ_META_DATA_OWf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="INT_STAT_OBJ_META_DATA">
+                    <Access>
+                        <Memory Name="CGM_SNIF_TM_TABLEm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="SNIF_TYPE" /> 
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="SNIF_COMMAND_ID" /> 
+                            <HwField Name="INT_STAT_OBJ_META_DATAf"/>
+                        </Memory>
+                    </Access>
+                </Field> 
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+</AppDbCatalog>
+

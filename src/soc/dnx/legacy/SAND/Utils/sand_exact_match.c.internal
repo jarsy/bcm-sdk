@@ -1,0 +1,1278 @@
+/* $Id: sand_exact_match.c.internal,v 1.4 Broadcom SDK $
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+*/
+
+
+/*************
+* INCLUDES  *
+*************/
+/* { */
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/SAND/Utils/sand_exact_match.h>
+
+#include <soc/dpp/SAND/Utils/sand_os_interface.h>
+#include <soc/dpp/SAND/Utils/sand_integer_arithmetic.h>
+#include <soc/dpp/SAND/Utils/sand_bitstream.h>
+
+#include <soc/dpp/SAND/Management/sand_general_macros.h>
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+
+
+/* } */
+
+/*************
+* DEFINES   *
+*************/
+/* { */
+
+/* } */
+
+/*************
+*  MACROS   *
+*************/
+/* { */
+
+/* } */
+
+/*************
+* TYPE DEFS *
+*************/
+/* { */
+
+ /* } */
+
+ /*************
+ * GLOBALS   *
+ *************/
+ /* { */
+
+ /* } */
+
+ /*************
+ * FUNCTIONS *
+ *************/
+ /* { */
+
+/************************************************************************/
+/*  Internal functions                                                  */
+/************************************************************************/
+ 
+/*********************************************************************
+* NAME:
+*     soc_sand_exact_match_malloc_stack
+* TYPE:
+*   PROC
+* DATE:
+*   Mar  6 2008
+* FUNCTION:
+*  malloc Auxiliary DS to be used in insertion.
+* INPUT:
+*  SOC_SAND_IN  SOC_SAND_EXACT_MATCH_PTR        exact_match -
+*     The exact_match.
+* REMARKS:
+*     None.
+* RETURNS:
+*     OK or ERROR indication.
+*********************************************************************/
+static uint32
+  soc_sand_exact_match_malloc_stack(
+    SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO     *exact_match
+  )
+{
+  uint32
+    tbl_indx,
+    entry_indx,
+    stack_size;
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_SAND_EXACT_MATCH_MALLOC_STACK);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+
+  stack_size = exact_match->init_info.max_insert_steps;
+
+  for (tbl_indx = 0; tbl_indx < SOC_SAND_EXACT_MATCH_NOF_TABLES; ++tbl_indx)
+  {
+    exact_match->mgmt_info.stack[tbl_indx] = (SOC_SAND_EXACT_MATCH_STACK_ENTRY*)soc_sand_os_malloc_any_size(sizeof(SOC_SAND_EXACT_MATCH_STACK_ENTRY)*stack_size, "match1");
+    for (entry_indx=0; entry_indx < stack_size; ++entry_indx)
+    {
+      exact_match->mgmt_info.stack[tbl_indx][entry_indx].key = 
+        (SOC_SAND_EXACT_MATCH_KEY)soc_sand_os_malloc_any_size(sizeof(uint8)* exact_match->mgmt_info.key_size, "match2");
+      soc_sand_os_memset(exact_match->mgmt_info.stack[tbl_indx][entry_indx].key, 0x0, exact_match->mgmt_info.key_size);
+      exact_match->mgmt_info.stack[tbl_indx][entry_indx].hash_indx = 0;
+    }
+  }
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_malloc_stack()",0,0);
+}
+
+
+/*********************************************************************
+* NAME:
+*     soc_sand_exact_match_free_stack
+* TYPE:
+*   PROC
+* DATE:
+*   Mar  6 2008
+* FUNCTION:
+*  Free Auxiliary DS to be used in insertion.
+* INPUT:
+*  SOC_SAND_IN  SOC_SAND_EXACT_MATCH_PTR        exact_match -
+*     The exact_match.
+* REMARKS:
+*     None.
+* RETURNS:
+*     OK or ERROR indication.
+*********************************************************************/
+static uint32
+  soc_sand_exact_match_free_stack(
+    SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO     *exact_match
+  )
+{
+  uint32
+    tbl_indx,
+    entry_indx,
+    stack_size;
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_SAND_EXACT_MATCH_FREE_STACK);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+
+  stack_size = exact_match->init_info.max_insert_steps;
+
+  for (tbl_indx = 0; tbl_indx < SOC_SAND_EXACT_MATCH_NOF_TABLES; ++tbl_indx)
+  {
+    for (entry_indx=0; entry_indx < stack_size; ++entry_indx)
+    {
+     soc_sand_os_free_any_size(exact_match->mgmt_info.stack[tbl_indx][entry_indx].key); 
+    }
+    soc_sand_os_free_any_size(exact_match->mgmt_info.stack[tbl_indx]);
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_free_stack()",0,0);
+}
+
+/*********************************************************************
+* NAME:
+*     soc_sand_exact_match_find_entry
+* TYPE:
+*   PROC
+* DATE:
+*   Mar  6 2008
+* FUNCTION:
+*  lookup in the exact_match for the given key and return the data inserted with
+*  the given key.
+* INPUT:
+*  SOC_SAND_IN  SAND_EXACT_MATCH_PTR        exact_match -
+*     The exact_match.
+*   SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY   key -
+*     The key to lookup for
+*   SOC_SAND_IN  uint8                  first_empty
+*     whether to return the first empty entry .
+*   SOC_SAND_OUT  uint32                  *entry -
+*     if the key is present in the exact_match then return the entry the key found at,
+*     otherwise it returns the place where the key suppose to be.
+*   SOC_SAND_IN  uint8                    *found -
+*     whether the key was found in the exact_match
+* REMARKS:
+*     None.
+* RETURNS:
+*     OK or ERROR indication.
+*********************************************************************/
+static uint32
+  soc_sand_exact_match_find_entry(
+    SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO     *exact_match,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY         key,
+    SOC_SAND_OUT  uint32                *table_id,
+    SOC_SAND_OUT  uint32                *hash_indx,
+    SOC_SAND_OUT  uint8               *found
+  );
+
+
+/************************************************************************/
+/*  End of internals                                                    */
+/************************************************************************/
+
+
+/*********************************************************************
+* NAME:
+*     soc_sand_exact_match_create
+* TYPE:
+*   PROC
+* DATE:
+*   Mar  6 2008
+* FUNCTION:
+*     Creates a new exact_match instance.
+* INPUT:
+*   SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO     *exact_match -
+*     information to use in order to create the exact_match (size, hash function...)
+* REMARKS:
+*   None.
+* RETURNS:
+*   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_sand_exact_match_create(
+    SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO     *exact_match
+  )
+{
+  SOC_SAND_EXACT_MATCH_INIT_INFO
+    *init_info_ptr;
+  SOC_SAND_EXACT_MATCH_T
+    *mgmt_info_ptr;
+  uint32
+    size_of_use_bitmap,
+    tbl_indx;
+  uint32
+    res;
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_SAND_EXACT_MATCH_CREATE);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+  SOC_SAND_CHECK_NULL_INPUT(exact_match->init_info.get_entry_fun);
+  SOC_SAND_CHECK_NULL_INPUT(exact_match->init_info.set_entry_fun);
+
+  init_info_ptr = &(exact_match->init_info);
+  mgmt_info_ptr = &(exact_match->mgmt_info);
+
+  if (init_info_ptr->key_bits  == 0 || init_info_ptr->hash_bits == 0 ||
+      init_info_ptr->verifier_bits == 0)
+  {
+    SOC_SAND_SET_ERROR_CODE(SOC_SAND_EXACT_MATCH_SIZE_OUT_OF_RANGE_ERR, 10, exit);
+  }
+
+  if (init_info_ptr->hash_bits >= 32)
+  {
+    SOC_SAND_SET_ERROR_CODE(SOC_SAND_EXACT_MATCH_SIZE_OUT_OF_RANGE_ERR, 20, exit);
+  }
+ /*
+  * Calc Sizes
+  */
+  mgmt_info_ptr->table_size = (1 << init_info_ptr->hash_bits);
+  size_of_use_bitmap = mgmt_info_ptr->table_size / SOC_SAND_NOF_BITS_IN_UINT32;
+  mgmt_info_ptr->key_size = SOC_SAND_DIV_ROUND_UP(init_info_ptr->key_bits,SOC_SAND_NOF_BITS_IN_BYTE);
+  mgmt_info_ptr->verifier_size = SOC_SAND_DIV_ROUND_UP(init_info_ptr->verifier_bits,SOC_SAND_NOF_BITS_IN_BYTE);
+ /*
+  * allocate arrays to hold keys
+  */
+  for (tbl_indx = 0; tbl_indx < SOC_SAND_EXACT_MATCH_NOF_TABLES; ++tbl_indx)
+  {
+    mgmt_info_ptr->keys[tbl_indx] = (SOC_SAND_EXACT_MATCH_KEY)soc_sand_os_malloc_any_size(mgmt_info_ptr->table_size * mgmt_info_ptr->key_size, "match3");
+    if (!mgmt_info_ptr->keys[tbl_indx])
+    {
+      SOC_SAND_SET_ERROR_CODE(SOC_SAND_MALLOC_FAIL, 30, exit);
+    }
+    soc_sand_os_memset(
+      mgmt_info_ptr->keys[tbl_indx],
+      0x0,
+      mgmt_info_ptr->table_size * mgmt_info_ptr->key_size * sizeof(uint8)
+    );
+
+    mgmt_info_ptr->use_bitmap[tbl_indx] = (uint32*)soc_sand_os_malloc_any_size(size_of_use_bitmap * sizeof(uint32), "match4");
+    if (!mgmt_info_ptr->use_bitmap[tbl_indx])
+    {
+      SOC_SAND_SET_ERROR_CODE(SOC_SAND_MALLOC_FAIL, 40, exit);
+    }
+    res = soc_sand_bitstream_clear(
+            mgmt_info_ptr->use_bitmap[tbl_indx],
+            size_of_use_bitmap
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 50, exit);
+  }
+ /*
+  * allocate the exact_match entry
+  */
+  mgmt_info_ptr->tmp_entry = (SOC_SAND_EXACT_MATCH_ENTRY*)soc_sand_os_malloc_any_size(sizeof(SOC_SAND_EXACT_MATCH_ENTRY), "match5");
+  mgmt_info_ptr->tmp_entry->key = (SOC_SAND_EXACT_MATCH_KEY)soc_sand_os_malloc_any_size(mgmt_info_ptr->key_size, "match6");
+  mgmt_info_ptr->tmp_entry->verifier = (SOC_SAND_EXACT_MATCH_VERIFIER)soc_sand_os_malloc_any_size(mgmt_info_ptr->verifier_size, "match7");
+  mgmt_info_ptr->tmp_entry->payload = (SOC_SAND_EXACT_MATCH_PAYLOAD)soc_sand_os_malloc_any_size(mgmt_info_ptr->payload_size, "match8");
+ /*
+  * allocate Stack
+  */
+  res = soc_sand_exact_match_malloc_stack(exact_match);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_create()",0,0);
+}
+
+
+/*********************************************************************
+* NAME:
+*     soc_sand_exact_match_destroy
+* TYPE:
+*   PROC
+* DATE:
+*   Mar  6 2008
+* FUNCTION:
+*     free the exact_match instance.
+* INPUT:
+*  SOC_SAND_OUT  SOC_SAND_EXACT_MATCH_PTR exact_match -
+*     The exact_match to destroy.
+* REMARKS:
+*     None.
+* RETURNS:
+*     OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_sand_exact_match_destroy(
+    SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO  *exact_match
+  )
+{
+  SOC_SAND_EXACT_MATCH_INIT_INFO
+    *init_info_ptr;
+  SOC_SAND_EXACT_MATCH_T
+    *mgmt_info_ptr;
+  uint32
+    tbl_indx;
+  uint32
+    res;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_SAND_EXACT_MATCH_DESTROY);
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+
+  init_info_ptr = &(exact_match->init_info);
+  mgmt_info_ptr = &(exact_match->mgmt_info);
+
+
+ /*
+  * Calc Sizes
+  */
+  mgmt_info_ptr->key_size = SOC_SAND_DIV_ROUND_UP(init_info_ptr->key_bits,SOC_SAND_NOF_BITS_IN_BYTE);
+  mgmt_info_ptr->verifier_size = SOC_SAND_DIV_ROUND_UP(init_info_ptr->verifier_bits,SOC_SAND_NOF_BITS_IN_BYTE);
+ /*
+  * allocate arrays to hold keys
+  */
+  for (tbl_indx = 0; tbl_indx < SOC_SAND_EXACT_MATCH_NOF_TABLES; ++tbl_indx)
+  {
+    soc_sand_os_free_any_size(mgmt_info_ptr->keys[tbl_indx]);
+    soc_sand_os_free_any_size(mgmt_info_ptr->use_bitmap[tbl_indx]);
+  }
+ /*
+  * free the exact_match entry
+  */
+  soc_sand_os_free_any_size(mgmt_info_ptr->tmp_entry->key);
+  soc_sand_os_free_any_size(mgmt_info_ptr->tmp_entry->verifier);
+  soc_sand_os_free_any_size(mgmt_info_ptr->tmp_entry->payload);
+  soc_sand_os_free_any_size(mgmt_info_ptr->tmp_entry);
+
+ /*
+  * free stack
+  */
+  res = soc_sand_exact_match_free_stack(exact_match);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_destroy()",0,0);
+}
+
+
+/*********************************************************************
+* NAME:
+*     soc_sand_exact_match_entry_add
+* TYPE:
+*   PROC
+* DATE:
+*   Mar  6 2008
+* FUNCTION:
+*  Insert an entry into the exact_match, if already exist then
+*  the operation returns an error.
+* INPUT:
+*   SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_PTR exact_match -
+*     The exact_match to add a key to.
+*   SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY  key -
+*     The key to add into the exact_match
+*   SOC_SAND_IN  uint8  occupied -
+*     the data to add into the exact_match and to be associated with
+*     the given key
+*   SOC_SAND_OUT  uint8                 *success -
+*     whether the add operation success, this may be false.
+*     if after trying to rehash the key SOC_SAND_EXACT_MATCH_MAX_NOF_REHASH times
+*     and in all tries fill in in_use entry. to solve this problem try
+*     to enlarge the exact_match size or use better hash function.
+* REMARKS:
+*     = if there is already a key with the same key in the exact_match error is returned.
+* RETURNS:
+*     OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_sand_exact_match_entry_add(
+    SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO    *exact_match,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY        key,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_PAYLOAD    payload,
+    SOC_SAND_OUT uint32                *tbl_id,
+    SOC_SAND_OUT uint32                *entry_indx,
+    SOC_SAND_OUT  uint32               *nof_steps,
+    SOC_SAND_OUT  uint8              *success
+  )
+{
+  SOC_SAND_EXACT_MATCH_INIT_INFO
+    *init_info_ptr;
+  SOC_SAND_EXACT_MATCH_T
+    *mgmt_info_ptr;
+  SOC_SAND_EXACT_MATCH_HASH_VAL
+    hash0,
+    hash1,
+    new_hash=0;
+  uint8
+    in_use0,
+    in_use1,
+    found;
+  uint32
+    side=0,
+    table_id,
+    hash_indx;
+  uint32
+    indx;
+  uint32
+    res;
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_SAND_EXACT_MATCH_ENTRY_ADD);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+  SOC_SAND_CHECK_NULL_INPUT(key);
+  SOC_SAND_CHECK_NULL_INPUT(payload);
+  SOC_SAND_CHECK_NULL_INPUT(success);
+
+  init_info_ptr = &(exact_match->init_info);
+  mgmt_info_ptr = &(exact_match->mgmt_info);
+
+  /* If key is already in the table, just update the payload */
+  res = soc_sand_exact_match_find_entry(
+          exact_match,
+          key,
+          &table_id,
+          &hash_indx,/*return also entry*/
+          &found
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  if (found)
+  {
+    if (init_info_ptr->hw_set_fun)
+    {
+      init_info_ptr->key_to_verifier(key,table_id,mgmt_info_ptr->tmp_entry->verifier);
+      res = init_info_ptr->hw_set_fun(init_info_ptr->prime_handle, table_id, hash_indx, payload, mgmt_info_ptr->tmp_entry->verifier);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+    }
+    *nof_steps = 1;
+    *success = TRUE;
+    *tbl_id = table_id;
+    *entry_indx = hash_indx;
+    goto exit;
+  }
+ 
+  soc_sand_os_memcpy(mgmt_info_ptr->stack[0][0].key, key, mgmt_info_ptr->key_size);
+  soc_sand_os_memcpy(mgmt_info_ptr->stack[1][0].key, key, mgmt_info_ptr->key_size);
+  
+  for (indx = 0; indx < init_info_ptr->max_insert_steps; ++indx)
+  {
+
+    hash0 = init_info_ptr->key_to_hash(mgmt_info_ptr->stack[0][indx].key, 0);
+    hash1 = init_info_ptr->key_to_hash(mgmt_info_ptr->stack[1][indx].key, 1);
+
+    mgmt_info_ptr->stack[0][indx].hash_indx = hash0;
+    mgmt_info_ptr->stack[1][indx].hash_indx = hash1;
+
+    res = init_info_ptr->is_valid_entry_get(
+            init_info_ptr->prime_handle,
+            init_info_ptr->sec_handle,
+            0,
+            hash0,
+            &in_use0
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+    if (!in_use0)
+    {
+      side = 0;
+      new_hash = hash0;
+      break;
+    }
+
+    res = init_info_ptr->is_valid_entry_get(
+            init_info_ptr->prime_handle,
+            init_info_ptr->sec_handle,
+            1,
+            hash1,
+            &in_use1
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 40, exit);
+    if (!in_use1)
+    {
+      side = 1;
+      new_hash = hash1;
+      break;
+    }
+    res = init_info_ptr->get_entry_fun(
+              init_info_ptr->prime_handle,
+              init_info_ptr->sec_handle,
+              mgmt_info_ptr->keys[0],
+              hash0,
+              mgmt_info_ptr->key_size,
+              mgmt_info_ptr->stack[1][indx+1].key
+            );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 50, exit);
+
+    res = init_info_ptr->get_entry_fun(
+              init_info_ptr->prime_handle,
+              init_info_ptr->sec_handle,
+              mgmt_info_ptr->keys[1],
+              hash1,
+              mgmt_info_ptr->key_size,
+              mgmt_info_ptr->stack[0][indx+1].key
+            );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+  }
+  if (indx  == init_info_ptr->max_insert_steps)
+  {
+    *success = FALSE;
+    soc_sand_os_printf(" FAIL \n");
+    goto exit;
+  }
+
+ /*
+  * succeeded do the moves, loop is not including the new entry
+  */
+  *success = TRUE;
+  *nof_steps = indx+1;/*since break before updating indx*/
+ /*
+  * set last entry as used
+  */
+  res = init_info_ptr->is_valid_entry_set(
+          init_info_ptr->prime_handle,
+          init_info_ptr->sec_handle,
+          side,
+          new_hash,
+          TRUE
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 70, exit);
+
+  for(side ^= 1, indx; indx > 0; --indx, side ^= 1) 
+  {
+   /*
+    * move from stack[side][indx] to table[side^1][stack[side][i]->hash[side^1]]
+    */
+    /* HW update - read entry*/
+    res = 
+      init_info_ptr->hw_get_fun(
+        init_info_ptr->prime_handle,
+        side, /* tbl_id */
+        mgmt_info_ptr->stack[side][indx-1].hash_indx, 
+        mgmt_info_ptr->tmp_entry->payload, 
+        mgmt_info_ptr->tmp_entry->verifier
+      );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 80, exit);
+
+    init_info_ptr->key_to_verifier(mgmt_info_ptr->stack[side^1][indx].key,side^1,mgmt_info_ptr->tmp_entry->verifier);
+    /* HW update - write entry to the other Table*/
+    res = 
+      init_info_ptr->hw_set_fun(
+        init_info_ptr->prime_handle,
+        side^1, /* tbl_id */
+        mgmt_info_ptr->stack[side^1][indx].hash_indx,  
+        mgmt_info_ptr->tmp_entry->payload, 
+        mgmt_info_ptr->tmp_entry->verifier
+      );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 90, exit);
+
+    /* SW update - move key*/
+    res = init_info_ptr->set_entry_fun(
+              init_info_ptr->prime_handle,
+              init_info_ptr->sec_handle,
+              mgmt_info_ptr->keys[side^1],
+              mgmt_info_ptr->stack[side^1][indx].hash_indx,  
+              mgmt_info_ptr->key_size,
+              mgmt_info_ptr->stack[side^1][indx].key
+            );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 100, exit);
+  }
+ /*
+  * now add the new entry
+  */
+  init_info_ptr->key_to_verifier(key,side^1,mgmt_info_ptr->tmp_entry->verifier);
+
+  res = 
+    init_info_ptr->hw_set_fun(
+      init_info_ptr->prime_handle,
+      side^1, /* tbl_id */
+      mgmt_info_ptr->stack[side^1][0].hash_indx, 
+      payload, 
+      mgmt_info_ptr->tmp_entry->verifier
+    );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 110, exit);
+
+  /* SW update - move key*/
+  res = init_info_ptr->set_entry_fun(
+          init_info_ptr->prime_handle,
+          init_info_ptr->sec_handle,
+          mgmt_info_ptr->keys[side^1],
+          mgmt_info_ptr->stack[side^1][0].hash_indx,
+          mgmt_info_ptr->key_size,
+          key 
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 120, exit);
+
+  *tbl_id = side^1;
+  *entry_indx = mgmt_info_ptr->stack[side^1][0].hash_indx;
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_entry_add()",0,0);
+}
+
+/*********************************************************************
+* NAME:
+*     soc_sand_exact_match_entry_remove
+* TYPE:
+*   PROC
+* DATE:
+*   Mar  6 2008
+* FUNCTION:
+*  Remove an entry from a exact_match, if the key is not exist then
+*  the operation has no effect.
+* INPUT:
+*  SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_PTR exact_match -
+*     The exact_match to add to.
+*  SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY  key -
+*     The key to remove from the exact_match
+* REMARKS:
+*     None.
+* RETURNS:
+*     OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_sand_exact_match_entry_remove(
+    SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO      *exact_match,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY          key
+  )
+{
+  SOC_SAND_EXACT_MATCH_INIT_INFO
+    *init_info_ptr;
+  uint8
+    found;
+  uint32
+    table_id,
+    hash_indx;
+  uint32
+    res;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_SAND_EXACT_MATCH_ENTRY_REMOVE);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+  SOC_SAND_CHECK_NULL_INPUT(key);
+
+  init_info_ptr = &(exact_match->init_info);
+
+  /* find if key exist */
+  res = soc_sand_exact_match_find_entry(
+          exact_match,
+          key,
+          &table_id,
+          &hash_indx,
+          &found
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  if (!found)
+  {
+    goto exit;
+  }
+
+  res = init_info_ptr->is_valid_entry_set(
+            init_info_ptr->prime_handle,
+            init_info_ptr->sec_handle,
+            table_id,
+            hash_indx,
+            FALSE
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_entry_remove()",0,0);
+}
+
+/*********************************************************************
+* NAME:
+*     soc_sand_exact_match_entry_lookup
+* TYPE:
+*   PROC
+* DATE:
+*   Mar  6 2008
+* FUNCTION:
+*  lookup in the exact_match for the given key and return the data inserted with
+*  the given key.
+* INPUT:
+*  SOC_SAND_IN  SAND_EXACT_MATCH_PTR        exact_match -
+*     The exact_match.
+*   SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY   key -
+*     The key to lookup
+*   SOC_SAND_OUT  SAND_EXACT_MATCH_DATA  *data -
+*     the data associated with the given key, valid only found is true.
+*   SOC_SAND_IN  uint8                    *found -
+*     whether the key was found in the exact_match
+* REMARKS:
+*     None.
+* RETURNS:
+*     OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_sand_exact_match_find_entry(
+    SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO     *exact_match,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY         key,
+    SOC_SAND_OUT  uint32                *table_id,
+    SOC_SAND_OUT  uint32                *hash_indx,
+    SOC_SAND_OUT  uint8               *found
+  )
+{
+  uint32
+    indx;
+  uint8
+    in_use;
+  SOC_SAND_EXACT_MATCH_HASH_VAL
+    hash_val;
+  SOC_SAND_EXACT_MATCH_INIT_INFO
+    *init_info_ptr;
+  SOC_SAND_EXACT_MATCH_T
+    *mgmt_info_ptr;
+  uint32
+    res;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_SAND_EXACT_MATCH_ENTRY_LOOKUP);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+  SOC_SAND_CHECK_NULL_INPUT(key);
+  SOC_SAND_CHECK_NULL_INPUT(table_id);
+  SOC_SAND_CHECK_NULL_INPUT(hash_indx);
+  SOC_SAND_CHECK_NULL_INPUT(found);
+
+  init_info_ptr = &(exact_match->init_info);
+  mgmt_info_ptr = &(exact_match->mgmt_info);
+  *found = FALSE;
+
+  for (indx = 0; indx < SOC_SAND_EXACT_MATCH_NOF_TABLES; ++indx)
+  {
+    hash_val = init_info_ptr->key_to_hash(key, indx);
+
+    res = init_info_ptr->is_valid_entry_get(
+            init_info_ptr->prime_handle,
+            init_info_ptr->sec_handle,
+            indx,
+            hash_val,
+            &in_use
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+    if (in_use)
+    {
+      res = init_info_ptr->get_entry_fun(
+              init_info_ptr->prime_handle,
+              init_info_ptr->sec_handle,
+              mgmt_info_ptr->keys[indx],
+              hash_val,
+              mgmt_info_ptr->key_size,
+              mgmt_info_ptr->tmp_entry->key
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+      if (soc_sand_os_memcmp(mgmt_info_ptr->tmp_entry->key, key, mgmt_info_ptr->key_size) == 0)
+      {
+        *found = TRUE;
+        *hash_indx = hash_val;
+        *table_id = indx;
+        goto exit;
+      }
+    }
+  }
+  *found = FALSE;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_find_entry()",0,0);
+}
+/*********************************************************************
+* NAME:
+*     soc_sand_exact_match_entry_lookup
+* TYPE:
+*   PROC
+* DATE:
+*   Mar  6 2008
+* FUNCTION:
+*  lookup in the exact_match for the given key and return the data inserted with
+*  the given key.
+* INPUT:
+*  SOC_SAND_IN  SOC_SAND_EXACT_MATCH_PTR        exact_match -
+*     The exact_match.
+*   SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY   key -
+*     The key to lookup
+*   SOC_SAND_OUT  SOC_SAND_EXACT_MATCH_DATA  *data -
+*     the data associated with the given key, valid only found is true.
+*   SOC_SAND_IN  uint8                    *found -
+*     whether the key was found in the exact_match
+* REMARKS:
+*     None.
+* RETURNS:
+*     OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_sand_exact_match_entry_lookup(
+    SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO     *exact_match,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY         key,
+    SOC_SAND_OUT  uint32                *tbl_id,
+    SOC_SAND_OUT  uint32                *entry_indx,
+    SOC_SAND_OUT  SOC_SAND_EXACT_MATCH_PAYLOAD    payload,
+    SOC_SAND_OUT  uint8               *found
+  )
+{
+  SOC_SAND_EXACT_MATCH_INIT_INFO
+    *init_info_ptr;
+  SOC_SAND_EXACT_MATCH_T
+    *mgmt_info_ptr;
+  uint32
+    res;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_SAND_EXACT_MATCH_ENTRY_LOOKUP);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+  SOC_SAND_CHECK_NULL_INPUT(key);
+  SOC_SAND_CHECK_NULL_INPUT(tbl_id);
+  SOC_SAND_CHECK_NULL_INPUT(entry_indx);
+  SOC_SAND_CHECK_NULL_INPUT(payload);
+  SOC_SAND_CHECK_NULL_INPUT(found);
+
+  init_info_ptr = &(exact_match->init_info);
+  mgmt_info_ptr = &(exact_match->mgmt_info);
+  
+  res = soc_sand_exact_match_find_entry(
+          exact_match,
+          key,
+          tbl_id,
+          entry_indx,
+          found
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+  if (*found)
+  {
+    res = 
+      init_info_ptr->hw_get_fun(
+        init_info_ptr->prime_handle,
+        *tbl_id, 
+        *entry_indx, 
+        payload, 
+        mgmt_info_ptr->tmp_entry->verifier
+      );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+  }
+  
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_entry_lookup()",0,0);
+}
+
+
+/*********************************************************************
+* NAME:
+*     soc_sand_exact_match_clear
+* TYPE:
+*   PROC
+* DATE:
+*   Mar  6 2008
+* FUNCTION:
+*     Clear the exact_match content without free the memory
+* INPUT:
+*   SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO     *exact_match -
+*     the exact_match instance
+* REMARKS:
+*   None.
+* RETURNS:
+*   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_sand_exact_match_clear(
+    SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO     *exact_match
+  )
+{
+
+  SOC_SAND_EXACT_MATCH_INIT_INFO
+    *init_info_ptr;
+  SOC_SAND_EXACT_MATCH_T
+    *mgmt_info_ptr;
+  uint32
+    size_of_use_bitmap,
+    tbl_indx,
+    table_size;
+  uint32
+    res;
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_SAND_EXACT_MATCH_CLEAR);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+
+  init_info_ptr = &(exact_match->init_info);
+  mgmt_info_ptr = &(exact_match->mgmt_info);
+
+ /*
+  * Calc Sizes
+  */
+  table_size = (1 << init_info_ptr->hash_bits);
+  size_of_use_bitmap = table_size / SOC_SAND_NOF_BITS_IN_UINT32;
+  mgmt_info_ptr->key_size = SOC_SAND_DIV_ROUND_UP(init_info_ptr->key_bits,SOC_SAND_NOF_BITS_IN_BYTE);
+  mgmt_info_ptr->verifier_size = SOC_SAND_DIV_ROUND_UP(init_info_ptr->verifier_bits,SOC_SAND_NOF_BITS_IN_BYTE);
+ /*
+  * allocate arrays to hold keys
+  */
+  for (tbl_indx = 0; tbl_indx < SOC_SAND_EXACT_MATCH_NOF_TABLES; ++tbl_indx)
+  {
+    if (!mgmt_info_ptr->keys[tbl_indx])
+    {
+      SOC_SAND_SET_ERROR_CODE(SOC_SAND_NULL_POINTER_ERR, 10, exit);
+    }
+    soc_sand_os_memset(
+      mgmt_info_ptr->keys[tbl_indx],
+      0x0,
+      table_size * mgmt_info_ptr->key_size * sizeof(uint8)
+    );
+
+    if (!mgmt_info_ptr->use_bitmap[tbl_indx])
+    {
+      SOC_SAND_SET_ERROR_CODE(SOC_SAND_NULL_POINTER_ERR, 20, exit);
+    }
+    res = soc_sand_bitstream_clear(
+            mgmt_info_ptr->use_bitmap[tbl_indx],
+            size_of_use_bitmap
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+  }
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_clear()",0,0);
+}
+
+uint32
+  soc_sand_exact_match_get_block(
+    SOC_SAND_INOUT  SOC_SAND_EXACT_MATCH_INFO         *exact_match,
+    SOC_SAND_INOUT  SOC_SAND_TABLE_BLOCK_RANGE    *range,
+    SOC_SAND_OUT  SOC_SAND_EXACT_MATCH_KEY            keys,
+    SOC_SAND_OUT  uint32                    *nof_entries
+  )
+{
+  SOC_SAND_EXACT_MATCH_INIT_INFO
+    *init_info_ptr;
+  SOC_SAND_EXACT_MATCH_T
+    *mgmt_info_ptr;
+  uint32
+    tbl_indx;
+  uint32
+    entry_offset,
+    scanned = 0,
+    valid_entries=0;
+  uint8
+    in_use;
+  uint32
+    res;
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_SAND_EXACT_MATCH_GET_BLOCK);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+
+  init_info_ptr = &(exact_match->init_info);
+  mgmt_info_ptr = &(exact_match->mgmt_info);
+
+  tbl_indx = SOC_SAND_GET_BIT(range->iter,31);
+  entry_offset = SOC_SAND_GET_BITS_RANGE(range->iter,30,0);
+  
+  for (;tbl_indx<SOC_SAND_EXACT_MATCH_NOF_TABLES; ++tbl_indx)
+  {
+    for (;entry_offset < mgmt_info_ptr->table_size  ; ++entry_offset, ++scanned)
+    {      
+      res = init_info_ptr->is_valid_entry_get(
+              init_info_ptr->prime_handle,
+              init_info_ptr->sec_handle,
+              tbl_indx,
+              entry_offset,
+              &in_use
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+      if (in_use)
+      {
+        res = init_info_ptr->get_entry_fun(
+                  init_info_ptr->prime_handle,
+                  init_info_ptr->sec_handle,
+                  mgmt_info_ptr->keys[tbl_indx],
+                  entry_offset,
+                  mgmt_info_ptr->key_size,
+                  keys + (valid_entries * mgmt_info_ptr->key_size)
+                );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+        ++valid_entries;
+        if (valid_entries >= range->entries_to_act || scanned >= range->entries_to_scan)
+        {
+          range->iter = tbl_indx << 31;
+          range->iter += (entry_offset+1);
+          *nof_entries = valid_entries;
+          goto exit;
+        }
+      }      
+    }
+    entry_offset = 0;
+  }
+  *nof_entries = valid_entries;
+  range->iter = SOC_SAND_EXACT_MATCH_NULL;
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_get_block()",0,0);
+}
+
+uint32
+  soc_sand_exact_match_get_size_for_save(
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_INFO        *exact_match,
+    SOC_SAND_OUT  uint32                    *size
+  )
+{
+  const SOC_SAND_EXACT_MATCH_INIT_INFO
+    *init_info_ptr;
+  const SOC_SAND_EXACT_MATCH_T
+    *mgmt_info_ptr;
+  uint32
+    size_of_use_bitmap,
+    tbl_indx,
+    table_size;
+  uint32
+    total_size=0;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+  SOC_SAND_CHECK_NULL_INPUT(size);
+
+  init_info_ptr = &(exact_match->init_info);
+  mgmt_info_ptr = &(exact_match->mgmt_info);
+
+  /* copy init info */
+  total_size += sizeof(SOC_SAND_EXACT_MATCH_INIT_INFO);
+  /* copy DS data */
+
+ /*
+  * Calc Sizes
+  */
+  table_size = (1 << init_info_ptr->hash_bits);
+  size_of_use_bitmap = table_size / SOC_SAND_NOF_BITS_IN_UINT32;
+ /*
+  * copy keys and bitmap
+  */
+  for (tbl_indx = 0; tbl_indx < SOC_SAND_EXACT_MATCH_NOF_TABLES; ++tbl_indx)
+  {
+    total_size += table_size * mgmt_info_ptr->key_size;
+    total_size += size_of_use_bitmap;
+  }
+
+  *size = total_size;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_get_size_for_save()",0,0);
+}
+
+
+uint32
+  soc_sand_exact_match_save(
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_INFO        *exact_match,
+    SOC_SAND_OUT uint8                      *buffer,
+    SOC_SAND_IN  uint32                     buffer_size_bytes,
+    SOC_SAND_OUT uint32                     *actual_size_bytes
+  )
+{
+  const SOC_SAND_EXACT_MATCH_INIT_INFO
+    *init_info_ptr;
+  const SOC_SAND_EXACT_MATCH_T
+    *mgmt_info_ptr;
+  uint32
+    size_of_use_bitmap,
+    tbl_indx,
+    table_size;
+  uint8
+    *cur_ptr = (uint8*)buffer;
+  uint32
+    cur_size,
+    total_size=0;
+  uint32
+    res;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+  SOC_SAND_CHECK_NULL_INPUT(buffer);
+  SOC_SAND_CHECK_NULL_INPUT(actual_size_bytes);
+
+  init_info_ptr = &(exact_match->init_info);
+  mgmt_info_ptr = &(exact_match->mgmt_info);
+
+  /* copy init info */
+  SOC_SAND_COPY_TO_BUFF_AND_INC(cur_ptr,init_info_ptr,SOC_SAND_EXACT_MATCH_INIT_INFO,1);
+  /* copy DS data */
+
+ /*
+  * Calc Sizes
+  */
+  table_size = (1 << init_info_ptr->hash_bits);
+  size_of_use_bitmap = table_size / SOC_SAND_NOF_BITS_IN_UINT32;
+ /*
+  * copy keys and bitmap
+  */
+  for (tbl_indx = 0; tbl_indx < SOC_SAND_EXACT_MATCH_NOF_TABLES; ++tbl_indx)
+  {
+    if (!mgmt_info_ptr->keys[tbl_indx])
+    {
+      SOC_SAND_SET_ERROR_CODE(SOC_SAND_NULL_POINTER_ERR, 10, exit);
+    }
+    SOC_SAND_COPY_TO_BUFF_AND_INC(cur_ptr,mgmt_info_ptr->keys[tbl_indx],uint8,table_size * mgmt_info_ptr->key_size);
+
+    if (!mgmt_info_ptr->use_bitmap[tbl_indx])
+    {
+      SOC_SAND_SET_ERROR_CODE(SOC_SAND_NULL_POINTER_ERR, 20, exit);
+    }
+    SOC_SAND_COPY_TO_BUFF_AND_INC(cur_ptr,mgmt_info_ptr->use_bitmap[tbl_indx],uint8,size_of_use_bitmap);
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_save()",0,0);
+}
+
+
+
+
+uint32
+  soc_sand_exact_match_restore(
+    SOC_SAND_IN  uint8                              *buffer,
+    SOC_SAND_OUT SOC_SAND_EXACT_MATCH_INFO                *exact_match,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY_TO_HASH         key_to_hash,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_KEY_TO_VERIFY       key_to_verify,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_SW_DB_ENTRY_SET     set_entry_fun,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_SW_DB_ENTRY_GET     get_entry_fun,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_HW_ENTRY_SET        hw_set_fun,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_HW_ENTRY_GET        hw_get_fun,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_IS_ENTRY_VALID_SET  is_valid_entry_set,
+    SOC_SAND_IN  SOC_SAND_EXACT_MATCH_IS_ENTRY_VALID_GET  is_valid_entry_get
+  )
+{
+  SOC_SAND_EXACT_MATCH_INIT_INFO
+    *init_info_ptr;
+  SOC_SAND_EXACT_MATCH_T
+    *mgmt_info_ptr;
+  uint32
+    size_of_use_bitmap,
+    tbl_indx,
+    table_size;
+  uint8
+    *cur_ptr = (uint8*)buffer;
+  uint32
+    cur_size;
+  uint32
+    res;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+  SOC_SAND_CHECK_NULL_INPUT(exact_match);
+  SOC_SAND_CHECK_NULL_INPUT(buffer);
+
+  /* clear */
+  SOC_SAND_EXACT_MATCH_INFO_clear(exact_match);
+
+  /* copy init info */
+  soc_sand_os_memcpy(&(exact_match->init_info), cur_ptr, sizeof(SOC_SAND_EXACT_MATCH_INIT_INFO));
+  cur_ptr += sizeof(SOC_SAND_EXACT_MATCH_INIT_INFO);
+  exact_match->init_info.set_entry_fun = set_entry_fun;
+  exact_match->init_info.get_entry_fun = get_entry_fun;
+  exact_match->init_info.is_valid_entry_set = is_valid_entry_set;
+  exact_match->init_info.is_valid_entry_get = is_valid_entry_get;
+  exact_match->init_info.hw_set_fun = hw_set_fun;
+  exact_match->init_info.hw_get_fun = hw_get_fun;
+  exact_match->init_info.key_to_hash = key_to_hash;
+  exact_match->init_info.key_to_verifier = key_to_verify;
+  /* create */
+  res = soc_sand_exact_match_create(exact_match);
+  SOC_SAND_CHECK_FUNC_RESULT(res,20, exit);
+
+  init_info_ptr = &(exact_match->init_info);
+  mgmt_info_ptr = &(exact_match->mgmt_info);
+
+  /* fill DS info */
+ /*
+  * Calc Sizes
+  */
+  table_size = (1 << init_info_ptr->hash_bits);
+  size_of_use_bitmap = table_size / SOC_SAND_NOF_BITS_IN_UINT32;
+ /*
+  * copy keys and bitmap
+  */
+  for (tbl_indx = 0; tbl_indx < SOC_SAND_EXACT_MATCH_NOF_TABLES; ++tbl_indx)
+  {
+    cur_size = table_size * mgmt_info_ptr->key_size;
+    soc_sand_os_memcpy(mgmt_info_ptr->keys[tbl_indx], cur_ptr, cur_size);
+    cur_ptr += cur_size;
+
+    cur_size = size_of_use_bitmap;
+    soc_sand_os_memcpy(mgmt_info_ptr->use_bitmap[tbl_indx], cur_ptr, cur_size);
+    cur_ptr += cur_size;
+  }
+  buffer = cur_ptr;
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_sand_exact_match_restore()",0,0);
+}
+
+
+
+void
+  SOC_SAND_EXACT_MATCH_INFO_clear(
+    SOC_SAND_OUT SOC_SAND_EXACT_MATCH_INFO *info
+  )
+{
+  uint32
+    indx;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  soc_sand_os_memset(info, 0x0, sizeof(SOC_SAND_EXACT_MATCH_INFO));
+  info->init_info.prime_handle = 0;
+  info->init_info.sec_handle = 0;
+  info->init_info.max_insert_steps = 0;
+  info->init_info.key_bits = 0;
+  info->init_info.hash_bits = 0;
+  info->init_info.verifier_bits = 0;
+  info->init_info.get_entry_fun = 0;
+  info->init_info.set_entry_fun = 0;
+  info->init_info.hw_get_fun = 0;
+  info->init_info.hw_set_fun = 0;
+  info->init_info.is_valid_entry_get = 0;
+  info->init_info.is_valid_entry_set = 0;
+  info->init_info.key_to_hash = 0;
+  info->init_info.key_to_verifier = 0;
+  for (indx = 0; indx < SOC_SAND_EXACT_MATCH_NOF_TABLES; ++indx)
+  {
+    info->mgmt_info.keys[indx] = NULL;
+    info->mgmt_info.use_bitmap[indx] = NULL;
+    info->mgmt_info.stack[indx] = NULL;
+  }
+  info->mgmt_info.tmp_entry = NULL;
+  info->mgmt_info.key_size = 0;
+  info->mgmt_info.payload_size = 0;
+  info->mgmt_info.verifier_size = 0;
+
+  SOC_SAND_MAGIC_NUM_SET;
+exit:
+  SOC_SAND_VOID_EXIT_AND_SEND_ERROR(0, 0, 0);
+}
+
+#if SOC_SAND_DEBUG
+
+void
+  sand_SOC_SAND_EXACT_MATCH_INFO_print(
+    SOC_SAND_IN SOC_SAND_EXACT_MATCH_INFO *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+
+exit:
+  SOC_SAND_VOID_EXIT_AND_SEND_ERROR(0, 0, 0);
+}
+
+
+
+#endif /* SAND_DEBUG */
+
+
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>

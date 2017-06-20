@@ -1,0 +1,185 @@
+\" brcm_hurricane2/target.ref - Broadcom iProc Hurricane2 target specific documentation
+\"
+\" Copyright (c) 2013, 2015 Wind River Systems, Inc.
+\"
+\" The right to copy, distribute, modify or otherwise make use
+\" of this software may be licensed only pursuant to the terms
+\" of an applicable Wind River license agreement.
+\"
+\" modification history
+\" --------------------
+\" 01a,24apr15,dnb  created from katana2 version.
+\"
+\TITLE brcm_hurricane2 - Broadcom iProc Hurricane2
+
+NAME 
+`Broadcom Hurricane2 iProc Board'
+
+EXTERNAL DEPENDENCIES
+None
+
+INTRODUCTION
+This section includes getting-started information, including subsections
+detailing ROM installation, boot ROM flash instructions, and jumper 
+settings for VxWorks operation.
+
+\sh Getting the board running VxWorks
+This section will guide you how to run VxWorks on the Versatile Express A9x4 board. 
+Note that Wind River ICE/Probe is not supported for this board.
+
+1. Configuring Boot Option Switches
+   
+
+2. Configuring Serial Connection
+
+   On the PC, start a terminal emulator program such as
+   TeraTerm or HyperTerm to talk to the connected PC
+   port with the following settings (connect to UART0 on 
+   target board, see board layout at the end of this
+   document):
+
+    Baud Rate   : 115200
+    Data        : 8 bit
+    Parity      : None
+    Stop        : 1 bit
+    Flow Control: None
+
+3. Flashing the VxWorks bootrom image
+
+   Not currently supported.
+
+   3.1 Creating a VxWorks bootrom image
+
+        Not currently supported.
+
+FEATURES
+
+This section describes the supported features of the board.
+It documents all configurations of the board and the interaction between
+features and configuration items.
+
+\sh Supported Features
+
+\sh List of supported hardware features (Hurricane2 board)
+
+\ts
+Hardware Interface       | Controller      | Driver/Component      | Status
+------------------------------------------------------------------------------
+UART:0                   | CCA    UART1    | vxbNs16550Sio.c       | SUPPORTED
+10/100/1000 MB-ETHERNET  | iProc  GMAC     | iProcVxbEnd.c         | SUPPORTED
+TIMER                    | ARM MPCore      | vxbArmMpCoreTimer.c   | SUPPORTED
+TIMERS			 | IPROC CCB	   | iProcCcbTimer.c       | SUPPORTED
+PCIe                     | iProc PCIe      | iProcPCIe.c           | SUPPORTED
+NOR FLash		 |                 | f2xFlashMem.c         | SUPPORTED
+\te
+
+\sh List of features (ARM Cortex-A9 CPU)
+\ts
+Module        | Status
+--------------------------
+L2 cache      | UNSUPPORTED
+NEON MPU      | UNSUPPORTED
+Thumb-2       | UNSUPPORTED
+TrustZone     | UNSUPPORTED
+Jazelle       | UNSUPPORTED
+\te
+
+\sh Feature Interactions
+Refer to the board vendor's documentation.
+
+HARDWARE DETAILS
+This section discusses memory maps for each bus.
+
+\sh Verified Hardware
+This BSP has been verified on the following board and silicon:
+
+\cs
+    BCM956150K Reference Platform
+\ce
+
+\sh Memory Maps
+
+0x00000000 - 0x07ffffff		DRAM aliased to 0x60000000-0x67ffffff
+0x08000000 - 0x0fffffff         PCIe 0 address match region
+0x18000000 - 0x180fffff         Core register region
+0x19000000 - 0x1902ffff         ARMCore register region
+0x19030000 - 0x1903ffff         PCIe 0 MSI writes address space region
+0x1b000000 - 0x1b00ffff         Internal scratch RAM
+0x1c000000 - 0x1dffffff         NAND Flash region
+0x1e000000 - 0x1fffffff         Serial Flash Region
+0x20000000 - 0x21000000         NOR Flash Region
+0x2a000000 - 0x2adfffff         ARM R5 ATCM BTCM instruction and data cache
+0x40000000 - 0x47ffffff         PCIe 1 Address match region
+0x48000000 - 0x4fffffff         PCIe 2 Address match region
+0x60000000 - 0xdfffffff         DDR2/3 SDRAM Large Region
+0xfffd0000 - 0xfffeffff         Internal Bootrom 
+0xffff0000 - 0xffff043f         Internal SKU-ROM region
+0xffff1000 - 0xffff1fff         Enumeration ROM Register Region
+
+\sh Serial Configuration
+There are four serial ports on the board, provided by four PrimeCell UARTs.
+The default configuration is:
+
+\ts
+    Baud Rate   : 115200 
+    Data        : 8 bit
+    Parity      : None
+    Stop        : 1 bit
+    Flow Control: None
+\te
+
+\sh Boot Methods
+
+The bootrom "or VxWorks images are designed to be loaded from U-Boot.
+Binary images (.bin) must be created and loaded into U-Boot. The default
+load address in U-Boot is 0x7fe00000, for a board containing 512M DDR.
+
+for example, at the U-Boot command prompt enter:
+
+"tftp 0x7fe00000 vxWorks_romCompress.bin"
+
+or 
+
+"tftp 0x7fe00000 bootrom.bin"
+
+
+\sh Make Targets
+The make targets are listed as the names of object-format files. Append '.hex' to each to derive a 
+hex-format file name. Other images not listed here may not be tested.
+
+\ts
+'vxWorks' (with 'vxWorks.sym')
+'vxWorks.st'
+'vxWorks.st_rom.bin'
+\te
+
+\sh BSP Bootloaders and Bootroms
+
+\ts
+Bootloader/Bootrom    | Status
+------------------------------
+Uboot (pre-flashed)   | SUPPORTED
+bootrom               | SUPPORTED
+vxWorks               | SUPPORTED
+vxWorks_rom           | SUPPORTED
+vxWorks_romCompress   | SUPPORTED
+\te
+
+
+\sh Special Routines
+None
+
+
+BIBLIOGRAPHY
+
+
+WEB RESOURCES
+
+
+SEE ALSO
+
+\tb VxWorks Kernel Programmer's Guide
+
+\tb VxWorks Architecture Supplement 
+
+

@@ -1,0 +1,1150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="CRPS_ENGINE_CFG">
+        <OneLineDescription>This table reprsents the CRPS engine configuration</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID" Size="5"/> 
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ENGINE_COUNTER_FORMAT"/>            
+                <Field Name="CRPS_ENGINE_WEIGHT_RATIO"/>
+                <Field Name="CRPS_ENGINE_ENABLE_CLEAR_ON_READ"/>
+                <Field Name="CRPS_ENGINE_PIPE_ENABLE"/>
+                <Field Name="CRPS_ENGINE_SOURCE_SELECT"/>              
+                <Field Name="CRPS_ENGINE_GROUP_SIZE"/>              
+                <Field Name="CRPS_ENGINE_TYPE_ADMN_MAP"/>               
+                <Field Name="CRPS_ENGINE_PTR_BASE_NORMALIZE"/>              
+                <Field Name="CRPS_ENGINE_ADDRESS_BASE_NORMALIZE"/>              
+            </Result>
+            <TableLabels>CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ENGINE_COUNTER_FORMAT">     
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>                      
+                            <HwField Name="ENGINE_N_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="CRPS_ENGINE_WEIGHT_RATIO">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="ENGINE_N_WEIGHT_SHIFT_RATIOf"/>                          
+                        </Register>
+                    </Access>
+                </Field>        
+                <Field Name="CRPS_ENGINE_ENABLE_CLEAR_ON_READ">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="ENGINE_N_ENABLE_CLEAR_ON_READf"/>                            
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_PIPE_ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="ENGINE_N_PIPE_ENABLEf"/>                         
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SOURCE_SELECT">
+                    <Access>
+                        <Register Name="CRPS_CRPS_MODULESRC_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="MODULESRC_N_MMUX_SOURCE_SELECTf"/>                           
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="CRPS_ENGINE_GROUP_SIZE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_MODULESRC_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="MODULESRC_N_GROUP_SIZEf"/>                           
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="CRPS_ENGINE_TYPE_ADMN_MAP">
+                    <Access>
+                        <Register Name="CRPS_CRPS_MODULESRC_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="MODULESRC_N_TYPE_ADMN_MAPf"/>                            
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="CRPS_ENGINE_PTR_BASE_NORMALIZE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_MODULESRC_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="MODULESRC_N_PTR_BASE_NORMALIZEf"/>                           
+                        </Register>
+                    </Access>
+                </Field>                
+                <Field Name="CRPS_ENGINE_ADDRESS_BASE_NORMALIZE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_MODULESRC_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="MODULESRC_N_ADDRESS_BASE_NORMALIZEf"/>                           
+                        </Register>
+                    </Access>
+                </Field>                                         
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="CRPS_ENGINE_SCAN_CFG">
+        <OneLineDescription>This table reprsents the CRPS engine scan (eviction) configuration</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID" Size="5"/> 
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ENGINE_DMA_SELECT"/>          
+				<Field Name="CRPS_ENGINE_N_SCAN_WAIT_TIME_BETWEEN_ALG_SCANS"/>
+                <Field Name="CRPS_ENGINE_SCAN_MODE"/>
+                <Field Name="CRPS_ENGINE_SCAN_THRESHOLD"/>
+                <Field Name="CRPS_ENGINE_SCAN_PKT_THRESHOLD"/>
+                <Field Name="CRPS_ENGINE_SCAN_OBJECT_TYPE_FOR_DMA"/>                
+                <Field Name="CRPS_ENGINE_SCAN_DMA_RECORD_LOGICAL_SEL"/>             
+            </Result>
+            <TableLabels>CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ENGINE_DMA_SELECT">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINES_DMA_SELECTr">
+                            <HwField Name="ENGINES_DMA_SELECTf"/>
+                            <DataOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>                           
+                        </Register>
+                    </Access>
+                </Field>  			
+                <Field Name="CRPS_ENGINE_N_SCAN_WAIT_TIME_BETWEEN_ALG_SCANS">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="ENGINE_N_SCAN_WAIT_TIME_BETWEEN_ALG_SCANSf"/>                            
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_MODE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="ENGINE_N_SCAN_MODEf"/>                           
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_THRESHOLD">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="ENGINE_N_SCAN_THRESHOLD_CFGf"/>                          
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_PKT_THRESHOLD">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="ENGINE_N_SCAN_PKT_THRESHOLD_CFGf"/>                          
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_OBJECT_TYPE_FOR_DMA">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="ENGINE_N_SCAN_OBJECT_TYPE_FOR_DMAf"/>                            
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_DMA_RECORD_LOGICAL_SEL">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_CFGr">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <HwField Name="ENGINE_N_SCAN_DMA_RECORD_LOGICAL_SELf"/>                         
+                        </Register>
+                    </Access>
+                </Field>             
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+	
+    <AppDB Name="CRPS_ENGINE_ENABLE">
+        <OneLineDescription>This table initiate and enable the engine activity</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ENGINE_INIT_REQUEST"/>
+                <Field Name="CRPS_ENGINE_SCAN_ENABLE"/>     
+                <Field Name="CRPS_ENGINE_SOURCE_SELECT_ENABLE"/>                     
+            </Result>
+            <TableLabels>CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ENGINE_INIT_REQUEST">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_INIT_REQUESTr">
+                            <HwField Name="ENGINE_INIT_REQUESTf"/>
+                            <DataOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ENGINE_SCAN_ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_SCAN_ENABLEr">
+                            <HwField Name="ENGINE_SCAN_ENABLEf"/>
+                            <DataOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                        </Register>
+                    </Access>
+                </Field>                        
+                <Field Name="CRPS_ENGINE_SOURCE_SELECT_ENABLE">
+                    <Access>
+                        <Register Name="CRPS_CRPS_ENGINE_MMUX_ENr">
+                            <HwField Name="ENGINE_MMUX_ENf"/>
+                            <DataOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="CRPS_ITM_INTERFACE_CFG">
+        <OneLineDescription>This table configure the crps interface adapter for CGM source</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_IF_OBJECT_ID" />
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ITM_PKTSIZE_NOT_QSIZE_SEL"/>
+            </Result>
+            <TableLabels>CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ITM_PKTSIZE_NOT_QSIZE_SEL">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="CGM_TM_PKTSIZE_NOT_QSIZE_SEL_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ITM_PKTSIZE_NOT_QSIZE_SEL">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="CGM_TM_PKTSIZE_NOT_QSIZE_SEL_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>                        
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="CRPS_ITTP_INTERFACE_CFG">
+        <OneLineDescription>This table configure the crps interface adapter for ITPP source</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ITPP_LTNCY_CTR_EXPANSION_SELECT"/>
+            </Result>
+            <TableLabels>CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ITPP_LTNCY_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="ITPP_LTNCY_CTR_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>                    
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="CRPS_ERPP_INTERFACE_CFG">
+        <OneLineDescription>This table configure the crps interface adapter for ERPP source</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_IF_OBJECT_ID" Size="1"/>
+                <Field Name="CRPS_IF_TYPE_ID"/>             
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT"/>
+            </Result>
+            <TableLabels>CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_0_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_0_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_0_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_0_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_1_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_1_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_1_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="EGQ_ERPP_CTR_1_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>                    
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="CRPS_ETPP_INTERFACE_CFG">
+        <OneLineDescription>This table configure the crps interface adapter for ETPP source</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_IF_OBJECT_ID" Size="3"/>
+                <Field Name="CRPS_IF_TYPE_ID"/>             
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT"/>
+                <Field Name="CRPS_ETPP_LTNCY_CTR_SELECT"/>              
+            </Result>
+            <TableLabels>CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_0_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_0_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_0_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_0_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_1_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_1_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_1_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_1_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>        
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_2_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_2_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_2_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_2_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_3_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_3_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_3_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_3_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_4_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_4_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_4_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_4_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>        
+               <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_5_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_5_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_5_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_CTR_5_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_ETPP_LTNCY_CTR_SELECT">
+                    <Access>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_ETPP_CTR_CFGr">
+                            <HwField Name="ETPP_LTNCY_CTR_SELECTf"/>
+                        </Register>
+                    </Access>
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    
+    <AppDB Name="CRPS_CRPS_IRPP_INTERFACE_CFG">
+        <OneLineDescription>This table configure the crps interface adapter for IRPP source</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_IF_OBJECT_ID"/>
+                <Field Name="CRPS_IF_TYPE_ID"/>             
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT"/>
+                <Field Name="CRPS_IRPP_PACKET_SIZE_SELECT"/>                
+            </Result>
+            <TableLabels>CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_0_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_0_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_0_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="0"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_0_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_1_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_1_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_1_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="1"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_1_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_2_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_2_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_2_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="2"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_2_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_3_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_3_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_3_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="3"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_0_CFGr">
+                            <HwField Name="CGM_IRPP_3_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>        
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_4_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_4_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_4_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="4"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_4_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_5_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_5_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_5_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="5"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_5_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="6"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_6_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="6"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_6_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="6"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_6_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="6"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_6_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="7"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_7_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="7"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_7_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="7"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_7_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="7"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_1_CFGr">
+                            <HwField Name="CGM_IRPP_7_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="8"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_8_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="8"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_8_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="8"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_8_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="8"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_8_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>        
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="9"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="0"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_9_EXPANSION_SELECT_Af"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="9"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="1"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_9_EXPANSION_SELECT_Bf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="9"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="2"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_9_EXPANSION_SELECT_Cf"/>
+                        </Register>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT">
+                    <Access>
+                        <KeyCondition Field="CRPS_IF_OBJECT_ID" Type="EQUAL_TO" Value="9"/>                 
+                        <KeyCondition Field="CRPS_IF_TYPE_ID" Type="EQUAL_TO" Value="3"/>                                           
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CGM_IRPP_2_CFGr">
+                            <HwField Name="CGM_IRPP_9_EXPANSION_SELECT_Df"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="CRPS_IRPP_PACKET_SIZE_SELECT">
+                    <Access>
+                        <Register Name="CRPS_CRPS_IF_ADAPTER_CFGr">
+                            <HwField Name="CGM_IRPP_PACKET_SIZE_SELECTf"/>
+                            <DataOffset EncodeType="PARTIAL_KEY" Field="CRPS_IF_OBJECT_ID"/>
+                        </Register>
+                    </Access>
+                </Field>                                                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="CRPS_ENGINE_TYPE_OFFSET">
+        <OneLineDescription>This table configure the Object-Type-Offset of the engine. offset per type</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID"/>
+                <Field Name="CRPS_IF_TYPE_ID"/>             
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_ENGINE_TYPE_MAP_OFFSET"/>         
+            </Result>
+            <TableLabels>CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_ENGINE_TYPE_MAP_OFFSET">
+                    <Access>
+                        <Memory Name="CRPS_CRPS_TYPE_MAP_MEMm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="CRPS_IF_TYPE_ID"/>                     
+                            <HwField Name="TYPE_MAP_BITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>        
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+    <AppDB Name="CRPS_EXPANSION_DATA_MAPPING">
+        <OneLineDescription>This table configure the expansion mapping per engine</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CRPS_ENGINE_ID"/>
+                <Field Name="CRPS_EXPANSION_INDEX"/>                
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CRPS_EXPANSION_DATA_ADMISSION"/>           
+                <Field Name="CRPS_EXPANSION_DATA_OFFSET"/>                          
+            </Result>
+            <TableLabels>CRPS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CRPS_EXPANSION_DATA_ADMISSION">
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="LOWER_THAN" Value="8"/>                  
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_A_MEMm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="CRPS_EXPANSION_INDEX"/>                        
+                            <HwField Name="ITEM_5_5f"/>
+                        </Memory>
+                    </Access>
+                </Field>        
+                <Field Name="CRPS_EXPANSION_DATA_ADMISSION">
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="BIGGER_THAN" Value="7"/>                                     
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="LOWER_THAN" Value="16"/>                                     
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_B_MEMm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="CRPS_EXPANSION_INDEX"/>                        
+                            <HwField Name="ITEM_5_5f"/>
+                        </Memory>
+                    </Access>
+                </Field>    
+                <Field Name="CRPS_EXPANSION_DATA_ADMISSION">
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="BIGGER_THAN" Value="15"/>                                                                        
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_C_MEMm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="CRPS_EXPANSION_INDEX"/>                        
+                            <HwField Name="ITEM_5_5f"/>
+                        </Memory>
+                    </Access>                   
+                </Field>    
+                <Field Name="CRPS_EXPANSION_DATA_OFFSET">
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="LOWER_THAN" Value="8"/>                  
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_A_MEMm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="CRPS_EXPANSION_INDEX"/>                        
+                            <HwField Name="ITEM_0_4f"/>
+                        </Memory>
+                    </Access>
+                </Field>        
+                <Field Name="CRPS_EXPANSION_DATA_OFFSET">
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="BIGGER_THAN" Value="7"/>                                     
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="LOWER_THAN" Value="16"/>                                     
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_B_MEMm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="CRPS_EXPANSION_INDEX"/>                        
+                            <HwField Name="ITEM_0_4f"/>
+                        </Memory>
+                    </Access>
+                </Field>                    
+                <Field Name="CRPS_EXPANSION_DATA_OFFSET">
+                    <Access>
+                        <KeyCondition Field="CRPS_ENGINE_ID" Type="BIGGER_THAN" Value="15"/>                                                                        
+                        <Memory Name="CRPS_CRPS_EXPANSION_MAP_C_MEMm">
+                            <ArrayOffset EncodeType="PARTIAL_KEY" Field="CRPS_ENGINE_ID"/>
+                            <EntryOffset EncodeType="PARTIAL_KEY" Field="CRPS_EXPANSION_INDEX"/>                        
+                            <HwField Name="ITEM_0_4f"/>
+                        </Memory>
+                    </Access>                   
+                </Field>                
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>        
+
+</AppDbCatalog>
+

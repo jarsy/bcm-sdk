@@ -1,0 +1,119 @@
+# $Id: Make.boards,v 1.3 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Board support
+#
+
+ifneq (,$(findstring BOARD,$(FEATURE_LIST)))
+
+# board feature is defined
+
+# make sure I2C is excluded if only ROBO is defined
+ifdef ROBO_CHIPS
+
+ifdef ESW_CHIPS
+NEEDS_I2C=1
+endif
+
+ifdef SBX_CHIPS
+NEEDS_I2C=1
+endif
+
+ifndef NEEDS_I2C
+FEATURE_EXCLUDE_LIST += I2C
+endif
+
+endif
+
+
+ifndef BOARD_LIST
+
+# if BOARD_LIST is not defined, create one based on the devices
+# available
+
+BOARD_LIST  = 
+
+#
+# device architecture dependent generic board drivers
+#
+ifdef ESW_CHIPS
+SBX_ESW_GENERIC_BOARD=1
+endif
+
+ifdef SBX_CHIPS
+SBX_ESW_GENERIC_BOARD=1
+endif
+
+ifdef ROBO_CHIPS
+ROBO_GENERIC_BOARD=1
+endif
+
+ifdef SBX_ESW_GENERIC_BOARD
+BOARD_LIST += GENERIC
+endif
+
+ifdef ROBO_GENERIC_BOARD
+BOARD_LIST += ROBO
+endif
+
+#
+# BCM956504R24, BCM956504R48 and other similar designs
+#
+ifdef BCM_56504_A0
+BCM956504R24=1
+endif
+
+ifdef BCM_56504_B0
+BCM956504R24=1
+endif
+
+ifdef BCM_56514_A0
+BCM956504R24=1
+endif
+
+ifdef BCM_56102_A0
+BCM956504R24=1
+endif
+
+ifdef BCM_56112_A0
+BCM956504R24=1
+endif
+
+ifdef BCM_56304_B0
+BCM956504R24=1
+endif
+
+#
+# single and dual device boards
+#
+ifdef BCM956504R24
+BOARD_LIST += BCM956504R24
+BOARD_LIST += BCM956504R48
+endif
+
+#
+# BCM988230 and other similar designs
+#
+ifdef BCM_88230_A0
+BCM988230=1
+endif
+
+ifdef BCM_88230_B0
+BCM988230=1
+endif
+
+ifdef BCM_88230_C0
+BCM988230=1
+endif
+
+ifdef BCM988230
+BOARD_LIST += BCM988230
+endif
+
+# expand board list to defines
+CFGFLAGS += $(foreach board,$(BOARD_LIST), -DINCLUDE_BOARD_$(board))
+
+endif # ifndef BOARD_LIST
+
+endif # if BOARD FEATURE

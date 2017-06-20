@@ -1,0 +1,202 @@
+<?xml version="1.0"?>
+<SignalInfo device="aradplus">
+	<Signal>
+		<Attribute>System_Headers_Record</Attribute>
+		<Size>341</Size>
+		<From>Parser</From>
+		<To>PRP</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd2,16'd0} bits: [255 : 0] | {15'd2,16'd1} bits: [84 : 0]</Address>
+		<Expansion>SHR</Expansion>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>PP_PCT_Data</Attribute>
+		<Size>106</Size>
+		<From>PRP</From>
+		<To>Term</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd4,16'd0} bits: [168 : 63]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EES_Action_3_Valid</Attribute>
+		<Size>1</Size>
+		<From>PRP</From>
+		<To>Term</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd4,16'd1} bits: [38 : 38]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EES_Action_3</Attribute>
+		<Size>97</Size>
+		<From>PRP</From>
+		<To>Term</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd4,16'd1} bits: [135 : 39]</Address>
+		<Expansion>EES_Action</Expansion>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EES_Action_2_Valid</Attribute>
+		<Size>1</Size>
+		<From>PRP</From>
+		<To>Term</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd4,16'd1} bits: [136 : 136]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EES_Action_2</Attribute>
+		<Size>97</Size>
+		<From>PRP</From>
+		<To>Term</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd4,16'd1} bits: [233 : 137]</Address>
+		<Expansion>EES_Action</Expansion>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EES_Action_1_Valid</Attribute>
+		<Size>1</Size>
+		<From>PRP</From>
+		<To>Term</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd4,16'd1} bits: [234 : 234]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EES_Action_1</Attribute>
+		<Size>97</Size>
+		<From>PRP</From>
+		<To>Term</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd4,16'd1} bits: [255 : 235] | {15'd4,16'd2} bits: [75 : 0]</Address>
+		<Expansion>EES_Action</Expansion>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EES_Action_0_Valid</Attribute>
+		<Size>1</Size>
+		<From>PRP</From>
+		<To>Term</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd4,16'd2} bits: [76 : 76]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EES_Action_0</Attribute>
+		<Size>24</Size>
+		<From>PRP</From>
+		<To>Term</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd4,16'd2} bits: [100 : 77]</Address>
+		<Expansion>EES_Action_Short</Expansion>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_DSCP_EXP</Attribute>
+		<Size>8</Size>
+		<From>Term</From>
+		<To>Fwd</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd5,16'd0} bits: [178 : 171]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_TM_Port</Attribute>
+		<Size>8</Size>
+		<From>Fwd</From>
+		<To>Encap</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd7,16'd0} bits: [42 : 35]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_PP_Port</Attribute>
+		<Size>8</Size>
+		<From>Fwd</From>
+		<To>Encap</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd7,16'd0} bits: [50 : 43]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_DSCP_EXP</Attribute>
+		<Size>8</Size>
+		<From>Fwd</From>
+		<To>Encap</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd7,16'd0} bits: [74 : 67]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VSI</Attribute>
+		<Size>16</Size>
+		<From>Encap</From>
+		<To>LL</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd8,16'd0} bits: [15 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_LIF</Attribute>
+		<Size>16</Size>
+		<From>Encap</From>
+		<To>LL</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd8,16'd0} bits: [65 : 50]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_DSCP_EXP</Attribute>
+		<Size>8</Size>
+		<From>Encap</From>
+		<To>LL</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd8,16'd0} bits: [73 : 66]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>PRGE_Instruction_1_Index</Attribute>
+		<Size>6</Size>
+		<From>PRGE</From>
+		<BlockID>18</BlockID>
+		<Address>{15'd11,16'd0} bits: [29 : 24]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EVEC_Table_Index</Attribute>
+		<Size>8</Size>
+		<From>LL</From>
+		<BlockID>18</BlockID>
+		<Address>{15'd11,16'd0} bits: [88 : 81]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>ESEM_Key</Attribute>
+		<Size>37</Size>
+		<From>LL</From>
+		<To>ESEM</To>
+		<BlockID>18</BlockID>
+		<Address>{15'd11,16'd0} bits: [137 : 101]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>DSCP_Remark_Index</Attribute>
+		<Size>13</Size>
+		<From>Encap</From>
+		<BlockID>18</BlockID>
+		<Address>{15'd11,16'd0} bits: [247 : 235]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Exp_Remark_Index</Attribute>
+		<Size>7</Size>
+		<From>Encap</From>
+		<BlockID>18</BlockID>
+		<Address>{15'd11,16'd0} bits: [254 : 248]</Address>
+		<Perm>1</Perm>
+	</Signal>
+</SignalInfo>

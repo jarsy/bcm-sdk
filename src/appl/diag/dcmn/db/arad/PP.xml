@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--PP.xml created inside Eclipse at 07 June 2015 -->
+<top version="1.2" device="Arad" expansion="SignalStructures.xml">
+    <block-list>
+        <block name="IRPP" debug-signals="DebugSignals-IRPP.xml">
+            <stage name="NIF"/>
+            <stage name="Port Termination"/>
+            <stage name="Parser" programmable="macro"/>
+            <stage name="LL"/>
+            <stage name="VT" programmable="klear">
+               <db name="ISEM_A" access-num="1"/>
+               <db name="ISEM_B"/>
+               <db name="TCAM"/>
+            </stage>
+            <stage name="TT" programmable="klear">
+               <db name="ISEM_A" access-num="1"/>
+               <db name="ISEM_B"/>
+               <db name="TCAM"/>
+            </stage>
+            <stage name="FLP" programmable="klear" stage-qualifier="External">
+               <db name="LEM" access-num="2" group-mode="ExactMatch"/>
+               <db name="KAPS" access-num="2"/>
+               <db name="TCAM" access-num="2" group-mode="Auto"/>
+               <db name="KBP" access-num="1"/>
+            </stage>
+            <stage name="PMF" programmable="klear" stage-qualifier="Ingress">
+               <db name="KAPS" access-num="2"/>
+               <db name="TCAM" access-num="2" group-mode="Auto"/>
+            </stage>
+            <stage name="FER"/>
+            <stage name="LBP"/>
+            <stage name="ITM"/>
+        </block>
+        <block name="ERPP" debug-signals="DebugSignals-ERPP.xml">
+            <stage name="Fab"/>
+            <stage name="Parser"/>
+            <stage name="DSPM"/>
+            <stage name="PRP"/>
+            <stage name="Filter"/>
+            <stage name="PMF" programmable="klear" stage-qualifier="Egress">
+                 <db name="TCAM" access-num="2" group-mode="Auto"/>
+            </stage>
+            <stage name="TM Action"/>
+            <stage name="ETM"/>
+        </block>
+        <block name="ETPP" debug-signals="DebugSignals-ETPP.xml">
+            <stage name="ETM"/>
+            <stage name="Parser"/>
+            <stage name="PRP"/>
+            <stage name="Term"/>
+            <stage name="Fwd"/>
+            <stage name="Encap"/>
+            <stage name="LL"/>
+            <stage name="PRGE" programmable="editor"/>
+            <stage name="NIF"/>
+        </block>
+        <block name="Memories">
+            <stage name="ISEM_A"/>
+            <stage name="ISEM_B"/>
+            <stage name="TCAM"/>
+            <stage name="LEM"/>
+            <stage name="OEM_A"/>
+            <stage name="OEM_B"/>
+            <stage name="ESEM"/>
+            <stage name="KAPS"/>
+            <stage name="KBP"/>
+            <stage name="FEC Table"/>
+            <stage name="VSI Table"/>
+            <stage name="VLAN Table"/>
+            <stage name="EEDB"/>
+        </block>
+    </block-list>
+</top>

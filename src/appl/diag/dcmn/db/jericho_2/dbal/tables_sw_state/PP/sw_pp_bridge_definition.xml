@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../sw_state_schema.xsd">
+
+    <AppDB Name="SW_STATE_TABLE_SWITCH_TPID_TEMP">
+        <OneLineDescription>sw state table - switch tpid temporary table</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TPID_INDEX"/>
+            </Key>
+            <Result>
+                <Field Name="TPID_VALUE"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>    
+    
+</AppDbCatalog>
+

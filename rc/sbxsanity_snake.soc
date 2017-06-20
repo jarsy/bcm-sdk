@@ -1,0 +1,111 @@
+#
+# $Id$
+#
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+
+echo "testsuite: started: snake "
+
+#
+# Updates to run through all TR tests on a system with loopbacks.
+#
+
+# QE2000
+if !"expr $pcidev == 0x300" " \
+        tr 107; \
+"
+
+# C2 board
+if !"expr $pcidev == 0x0580" && !"expr $unit == 1"  "\
+	echo 'External Loopback xe0 <---> xe1 '; \
+	tr 117 ; \
+	echo 'External Loopback ge0 <---> ge1 '; \
+	tr 115 sp=0 ep=1; \
+	echo 'External Loopback ge2 <---> ge3 '; \
+	tr 115 sp=2 ep=3; \
+	echo 'External Loopback ge4 <---> ge5 '; \
+	tr 115 sp=4 ep=5; \
+	echo 'External Loopback ge6 <---> ge7 '; \
+	tr 115 sp=6 ep=7; \
+	echo 'External Loopback ge8 <---> ge9 '; \
+	tr 115 sp=8 ep=9; \
+	echo 'External Loopback ge10 <---> ge11 '; \
+	tr 115 sp=10 ep=11;  \
+	echo 'External Loopback ge12 <---> ge13 '; \
+	tr 115 sp=12 ep=13;  \
+	echo 'External Loopback ge14 <---> ge15 '; \
+	tr 115 sp=14 ep=15;  \
+	echo 'External Loopback ge16 <---> ge17 '; \
+	tr 115 sp=16 ep=17;  \
+	echo 'External Loopback ge18 <---> ge19 '; \
+	tr 115 sp=18 ep=19;  \
+	pe clear; \
+	echo 'External Loopback ge20 <---> ge21 '; \
+	tr 115 sp=20 ep=21;  \
+	pe clear; \
+	echo 'External Loopback ge22 <---> ge23 '; \
+	tr 115 sp=22 ep=23;  \
+	tr 119 reinit=0 ; tr 118 reinit=0 ; tr 114; tr 107 reinit=0; \
+	tr 116 MemExists=0x1 reinit=0; \
+	tr 116 MemExists=0x2 reinit=0; \
+	tr 116 MemExists=0x4 reinit=0; \
+	tr 116 MemExists=0x8 reinit=0; \
+	tr 116 MemExists=0x10 reinit=0; \
+	tr 116 MemExists=0x20 reinit=0; \
+"
+
+# polaris, reg r/w test, SFI/SCI prbs to QE
+if !"expr $pcidev == 0x0480" "\
+	tr 111; \
+	tr 110; \
+"
+
+#
+# C1 on Polaris board
+#
+
+if !"expr $pcidev == 0x0380" && !"expr $unit == 2" "\
+	echo 'External Loopback ge0 <---> ge1 '; \
+	tr 115 sp=0 ep=1; \
+	echo 'External Loopback ge2 <---> ge3 '; \
+	tr 115 sp=2 ep=3; \
+	echo 'External Loopback ge4 <---> ge5 '; \
+	tr 115 sp=4 ep=5; \
+	echo 'External Loopback ge6 <---> ge7 '; \
+	tr 115 sp=6 ep=7; \
+	echo 'External Loopback ge8 <---> ge9 '; \
+	tr 115 sp=8 ep=9; \
+	echo 'External Loopback ge10 <---> ge11 '; \
+	tr 115 sp=10 ep=11;  \
+	echo 'External Loopback ge12 <---> ge13 '; \
+	tr 115 sp=12 ep=13;  \
+	echo 'External Loopback ge14 <---> ge15 '; \
+	tr 115 sp=14 ep=15;  \
+	echo 'External Loopback ge16 <---> ge17 '; \
+	tr 115 sp=16 ep=17;  \
+	echo 'External Loopback ge18 <---> ge19 '; \
+	tr 115 sp=18 ep=19;  \
+	echo 'External Loopback ge20 <---> ge21 '; \
+	tr 115 sp=20 ep=21;  \
+	echo 'External Loopback ge22 <---> ge23 '; \
+	tr 115 sp=22 ep=23;  \
+	tr 118; tr 119; tr 114; tr 116; tr 107; \
+"
+
+if !"expr $pcidev == 0x0380" && !"expr $unit == 1"  " \
+	echo 'External Loopback xe0 <---> xe0 '; \
+	tr 108 ; \
+	echo 'External Loopback xe1 <---> xe1 '; \
+	tr 109 ; \
+	tr 118; tr 114; tr 116; \
+"
+
+tl
+local returnCode $?
+
+
+
+# We want to show the return code from the tl command which
+# lists the results. The automated test infrastructure keys off of this
+# value
+echo "testsuite: finished: sanity: $returnCode"

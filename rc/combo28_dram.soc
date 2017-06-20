@@ -1,0 +1,560 @@
+#
+# $Id: combo28_dram.soc,v 1.0 Broadcom SDK $
+#
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+
+#################### General Notes ########################
+# Our controller support both DDR4 and GDDR5, we need to "modify" ext_ram_columns in the following way:
+#   For DDR4, need to use column number as in DRAM Data Sheet, meaning 1024 in drams supported.
+#   For GDDR5, need to multiply number in Data Sheet by 8 (representing the 3 address bits, which are constant 000 in DDR4.), meaning 512 in drams supported.
+
+
+if $?dram_type_DDR4_SAMSUNG_K4A4G165WD_4GBIT "\
+  config add ext_ram_type=DDR4; \
+  config add ext_ram_t_rfc=260000;\
+  config add ext_ram_t_rc=45320;\
+  config add ext_ram_t_rcd_wr=13320;\
+  config add ext_ram_t_rcd_rd=13320;\
+  config add ext_ram_t_rrd_l=8c;\
+  config add ext_ram_t_rrd_s=7c;\
+  config add ext_ram_t_ras=32000;\
+  config add ext_ram_t_rp=13320;\
+  config add ext_ram_t_wr=15000;\
+  config add ext_ram_t_faw=30000;\
+  config add ext_ram_t_rtp_s=10c;\
+  config add ext_ram_t_rtp_l=10c;\
+  config add ext_ram_t_wtr_s=4c;\\
+  config add ext_ram_t_wtr_l=10c;\\
+  config add ext_ram_t_ccd_l=6c;\\
+  config add ext_ram_t_ccd_s=4c;\
+  config add ext_ram_t_zqcs=128c;\
+  config add ext_ram_t_crc_alert=13000;\
+  config add ext_ram_t_rst=500000000;\
+  config add ext_ram_t_ref=3900000;\
+  config add ext_ram_c_wr_latency=12c;\
+  config add ext_ram_c_cas_latency=17c;\
+  config add ext_ram_t_al=0;\
+  config add ext_ram_columns=1024; \
+  config add ext_ram_rows=32768; \
+  config add ext_ram_banks=8;"
+
+if $?dram_type_DDR4_MICRON_EDY4016AABG_DRFR_4GBIT "\
+  config add ext_ram_type=DDR4; \
+  config add ext_ram_t_rfc=260000;\
+  config add ext_ram_t_rc=45320;\
+  config add ext_ram_t_rcd_wr=13320;\
+  config add ext_ram_t_rcd_rd=13320;\
+  config add ext_ram_t_rrd_l=8c;\
+  config add ext_ram_t_rrd_s=7c;\
+  config add ext_ram_t_ras=32000;\
+  config add ext_ram_t_rp=13320;\
+  config add ext_ram_t_wr=15000;\
+  config add ext_ram_t_faw=30000;\
+  config add ext_ram_t_rtp_s=10c;\
+  config add ext_ram_t_rtp_l=10c;\
+  config add ext_ram_t_wtr_s=4c;\\
+  config add ext_ram_t_wtr_l=10c;\\
+  config add ext_ram_t_ccd_l=6c;\\
+  config add ext_ram_t_ccd_s=4c;\
+  config add ext_ram_t_zqcs=128c;\
+  config add ext_ram_t_crc_alert=13000;\
+  config add ext_ram_t_rst=500000000;\
+  config add ext_ram_t_ref=3900000;\
+  config add ext_ram_c_wr_latency=12c;\
+  config add ext_ram_c_cas_latency=16c;\
+  config add ext_ram_t_al=0;\
+  config add ext_ram_columns=1024; \
+  config add ext_ram_rows=32768; \
+  config add ext_ram_banks=8;"
+
+########################################################################
+# Note: Not for new design not recommended to be used and not supported
+########################################################################
+if $?dram_type_DDR4_MICRON_MT40A256M16HA_083EA_4GBIT "\
+  config add ext_ram_type=DDR4; \
+  config add ext_ram_t_rfc=260000;\
+  config add ext_ram_t_rc=47000;\
+  config add ext_ram_t_rcd_wr=15000;\
+  config add ext_ram_t_rcd_rd=15000;\
+  config add ext_ram_t_rrd_l=11c;\
+  config add ext_ram_t_rrd_s=9c;\
+  config add ext_ram_t_ras=32000;\
+  config add ext_ram_t_rp=15000;\
+  config add ext_ram_t_wr=14900;\
+  config add ext_ram_t_faw=30000;\
+  config add ext_ram_t_rtp_s=12c;\
+  config add ext_ram_t_rtp_l=12c;\
+  config add ext_ram_t_wtr_s=4c;\\
+  config add ext_ram_t_wtr_l=12c;\\
+  config add ext_ram_t_ccd_l=8c;\\
+  config add ext_ram_t_ccd_s=4c;\
+  config add ext_ram_t_zqcs=170c;\
+  config add ext_ram_t_crc_alert=13000;\
+  config add ext_ram_t_rst=500000000;\
+  config add ext_ram_t_ref=3900000;\
+  config add ext_ram_c_wr_latency=18c;\
+  config add ext_ram_c_cas_latency=24c;\
+  config add ext_ram_t_al=0;\
+  config add ext_ram_columns=1024; \
+  config add ext_ram_rows=32768; \
+  config add ext_ram_banks=8;"
+
+########################################################################
+# Note: Not for new design not recommended to be used and not supported
+########################################################################
+if $?dram_type_DDR4_MICRON_MT40A512M16_8GBIT "\
+    config add ext_ram_type=DDR4; \
+    config add ext_ram_t_rfc=350000;\
+    config add ext_ram_t_rc=45320;\
+    config add ext_ram_t_rcd_wr=13320;\
+    config add ext_ram_t_rcd_rd=13320;\
+    config add ext_ram_t_rrd_l=8c;\
+    config add ext_ram_t_rrd_s=7c;\
+    config add ext_ram_t_ras=32000;\
+    config add ext_ram_t_wr=15000;\
+    config add ext_ram_t_faw=30000;\
+    config add ext_ram_t_rtp_s=10c;\
+    config add ext_ram_t_rtp_l=10c;\
+    config add ext_ram_t_wtr_s=4c;\\
+    config add ext_ram_t_wtr_l=10c;\
+    config add ext_ram_t_ccd_l=8c;\
+    config add ext_ram_t_ccd_s=4c;\
+    config add ext_ram_t_zqcs=128c;\
+    config add ext_ram_t_crc_alert=13000;\
+    config add ext_ram_t_rst=500000000;\
+    config add ext_ram_t_ref=3900000;\
+    config add ext_ram_c_wr_latency=12c;\
+    config add ext_ram_c_cas_latency=16c;\
+    config add ext_ram_t_al=0;\
+    config add ext_ram_columns=1024; \
+    config add ext_ram_rows=65536; \
+    config add ext_ram_t_rp=13320;\
+    config add ext_ram_banks=8;"
+
+if $?dram_type_DDR4_HYNIX_H5AN4G6NMFR_VJC_4GBIT "\
+  config add ext_ram_type=DDR4; \
+  config add ext_ram_t_rfc=260000;\
+  config add ext_ram_t_rc=45320;\
+  config add ext_ram_t_rcd_wr=13320;\
+  config add ext_ram_t_rcd_rd=13320;\
+  config add ext_ram_t_rrd_l=8c;\
+  config add ext_ram_t_rrd_s=4c;\
+  config add ext_ram_t_ras=32000;\
+  config add ext_ram_t_rp=13320;\
+  config add ext_ram_t_wr=15000;\
+  config add ext_ram_t_faw=30000;\
+  config add ext_ram_t_rtp_s=7500;\
+  config add ext_ram_t_rtp_l=7500;\
+  config add ext_ram_t_wtr_s=2500;\
+  config add ext_ram_t_wtr_l=7500;\
+  config add ext_ram_t_ccd_l=8c;\
+  config add ext_ram_t_ccd_s=4c;\
+  config add ext_ram_t_zqcs=128c;\
+  config add ext_ram_t_crc_alert=13000;\
+  config add ext_ram_t_crc_wr_latency=12c;\
+  config add ext_ram_t_rst=500000000;\
+  config add ext_ram_t_ref=3900000;\
+  config add ext_ram_c_wr_latency=16c;\
+  config add ext_ram_c_cas_latency=20c;\
+  config add ext_ram_t_al=0;\
+  config add ext_ram_columns=1024; \
+  config add ext_ram_rows=32768; \
+  config add ext_ram_banks=8;"
+
+if $?dram_type_DDR4_MICRON_Y4016AABG_JD_F_4GBIT "\
+  config add ext_ram_type=DDR4; \
+  config add ext_ram_t_rfc=260000;\
+  config add ext_ram_t_rc=47000;\
+  config add ext_ram_t_rcd_wr=15000;\
+  config add ext_ram_t_rcd_rd=15000;\
+  config add ext_ram_t_rrd_l=11c;\
+  config add ext_ram_t_rrd_s=9c;\
+  config add ext_ram_t_ras=32000;\
+  config add ext_ram_t_rp=15000;\
+  config add ext_ram_t_wr=14900;\
+  config add ext_ram_t_faw=30000;\
+  config add ext_ram_t_rtp_s=12c;\
+  config add ext_ram_t_rtp_l=12c;\
+  config add ext_ram_t_wtr_s=4c;\\
+  config add ext_ram_t_wtr_l=12c;\\
+  config add ext_ram_t_ccd_l=8c;\\
+  config add ext_ram_t_ccd_s=4c;\
+  config add ext_ram_t_zqcs=170c;\
+  config add ext_ram_t_crc_alert=13000;\
+  config add ext_ram_t_rst=500000000;\
+  config add ext_ram_t_ref=3900000;\
+  config add ext_ram_c_wr_latency=16c;\
+  config add ext_ram_c_cas_latency=24c;\
+  config add ext_ram_t_al=0;\
+  config add ext_ram_columns=1024; \
+  config add ext_ram_rows=32768; \
+  config add ext_ram_banks=8;"
+
+if $?dram_type_GDDR5_SAMSUNG_K4G20325FD_2GBIT "\
+  config add ext_ram_type=GDDR5; \
+  config add ext_ram_t_rfc=78000;\
+  config add ext_ram_t_rc=48000;\
+  config add ext_ram_t_rcd_wr=15000;\
+  config add ext_ram_t_rcd_rd=16000;\
+  config add ext_ram_t_rrd_l=6000;\
+  config add ext_ram_t_rrd_s=6000;\
+  config add ext_ram_t_ras=34000;\
+  config add ext_ram_t_rp=14000;\
+  config add ext_ram_t_wr=16000;\
+  config add ext_ram_t_faw=24000;\
+  config add ext_ram_t_32aw=192000;\
+  config add ext_ram_t_rtp_s=2c;\
+  config add ext_ram_t_rtp_l=4c;\
+  config add ext_ram_t_wtr_s=8c;\
+  config add ext_ram_t_wtr_l=10c;\
+  config add ext_ram_t_ccd_l=3c;\
+  config add ext_ram_t_ccd_s=2c;\
+  config add ext_ram_t_ref=1900000;\
+  config add ext_ram_c_wr_latency=3c;\
+  config add ext_ram_c_cas_latency=20c;\
+  config add ext_ram_t_crc_rd_latency=3c;\
+  config add ext_ram_t_crc_wr_latency=14c;\
+  config add ext_ram_t_rst=200000000;\
+  config add ext_ram_t_al=1c;\
+  config add ext_ram_columns=512; \
+  config add ext_ram_rows=8192; \
+  config add ext_ram_banks=16;"
+
+########################################################################
+# Note: Not for new design not recommended to be used and not supported
+########################################################################
+if $?dram_type_GDDR5_SAMSUNG_K4G41325FC_4GBIT "\
+  config add ext_ram_type=GDDR5; \
+  config add ext_ram_t_rfc=110000;\
+  config add ext_ram_t_rc=48000;\
+  config add ext_ram_t_rcd_wr=15000;\
+  config add ext_ram_t_rcd_rd=16000;\
+  config add ext_ram_t_rrd_l=6000;\
+  config add ext_ram_t_rrd_s=6000;\
+  config add ext_ram_t_ras=34000;\
+  config add ext_ram_t_rp=14000;\
+  config add ext_ram_t_wr=16000;\
+  config add ext_ram_t_faw=24000;\
+  config add ext_ram_t_32aw=192000;\
+  config add ext_ram_t_rtp_s=2c;\
+  config add ext_ram_t_rtp_l=4c;\
+  config add ext_ram_t_wtr_s=8c;\
+  config add ext_ram_t_wtr_l=10c;\
+  config add ext_ram_t_ccd_l=3c;\
+  config add ext_ram_t_ccd_s=2c;\
+  config add ext_ram_t_ref=1900000;\
+  config add ext_ram_c_wr_latency=3c;\
+  config add ext_ram_c_cas_latency=20c;\
+  config add ext_ram_t_crc_rd_latency=3c;\
+  config add ext_ram_t_crc_wr_latency=14c;\
+  config add ext_ram_t_rst=200000000;\
+  config add ext_ram_t_al=1c;\
+  config add ext_ram_columns=512; \
+  config add ext_ram_rows=16384; \
+  config add ext_ram_banks=16;"
+
+#if $?dram_type_GDDR5_HYNIX_H5GQ2H24AFR_R0C_2GBIT "\
+#  config add ext_ram_type=GDDR5; \
+#  config add ext_ram_t_rfc=120000;\
+#  config add ext_ram_t_rc=48000;\
+#  config add ext_ram_t_rcd_wr=14000;\
+#  config add ext_ram_t_rcd_rd=18000;\
+#  config add ext_ram_t_rrd_l=9c;\
+#  config add ext_ram_t_rrd_s=9c;\
+#  config add ext_ram_t_ras=32000;\
+#  config add ext_ram_t_rp=16000;\
+#  config add ext_ram_t_wr=16000;\
+#  config add ext_ram_t_faw=30000;\
+#  config add ext_ram_t_32aw=245000;\
+#  config add ext_ram_t_rtp_s=2c;\
+#  config add ext_ram_t_rtp_l=2c;\
+#  config add ext_ram_t_wtr_s=8c;\
+#  config add ext_ram_t_wtr_l=8c;\
+#  config add ext_ram_t_ccd_l=3c;\
+#  config add ext_ram_t_ccd_s=2c;\
+#  config add ext_ram_t_ref=3900000;\
+#  config add ext_ram_c_wr_latency=3c;\
+#  config add ext_ram_c_cas_latency=16c;\
+#  config add ext_ram_t_crc_rd_latency=2c;\
+#  config add ext_ram_t_crc_wr_latency=11c;\
+#  config add ext_ram_t_rst=200000000;\
+#  config add ext_ram_t_al=1c;\
+#  config add ext_ram_columns=512; \
+#  config add ext_ram_rows=8192; \
+#  config add ext_ram_banks=16;"
+#
+
+###################################################
+#     ELPIDA GDDR5
+###################################################
+if $?dram_type_GDDR5_MICRON_EDW4032CABG_4GBIT "\
+  config add ext_ram_type=GDDR5; \
+  config add ext_ram_t_rfc=90000;\
+  config add ext_ram_t_rc=44000;\
+  config add ext_ram_t_rcd_wr=13000;\
+  config add ext_ram_t_rcd_rd=17000;\
+  config add ext_ram_t_rrd_l=5000;\
+  config add ext_ram_t_rrd_s=5000;\
+  config add ext_ram_t_ras=27000;\
+  config add ext_ram_t_rp=17000;\
+  config add ext_ram_t_wr=18000;\
+  config add ext_ram_t_faw=20000;\
+  config add ext_ram_t_32aw=160000;\
+  config add ext_ram_t_rtp_s=2c;\
+  config add ext_ram_t_rtp_l=2c;\
+  config add ext_ram_t_wtr_s=7c;\
+  config add ext_ram_t_wtr_l=7c;\
+  config add ext_ram_t_ccd_l=3c;\
+  config add ext_ram_t_ccd_s=2c;\
+  config add ext_ram_t_ref=1900000;\
+  config add ext_ram_c_wr_latency=4c;\
+  config add ext_ram_c_cas_latency=18c;\
+  config add ext_ram_t_crc_rd_latency=3c;\
+  config add ext_ram_t_crc_wr_latency=11c;\
+  config add ext_ram_t_rst=200000000;\
+  config add ext_ram_t_al=2c;\
+  config add ext_ram_columns=512; \
+  config add ext_ram_rows=16384; \
+  config add ext_ram_banks=16;"
+
+if $?dram_type_GDDR5_HYNIX_H5GC4H24MFR_T2C_4GBIT "\
+  config add ext_ram_type=GDDR5; \
+  config add ext_ram_t_rfc=120000;\
+  config add ext_ram_t_rc=48000;\
+  config add ext_ram_t_rcd_wr=14000;\
+  config add ext_ram_t_rcd_rd=18000;\
+  config add ext_ram_t_rrd_l=9c;\
+  config add ext_ram_t_rrd_s=9c;\
+  config add ext_ram_t_ras=32000;\
+  config add ext_ram_t_rp=16000;\
+  config add ext_ram_t_wr=16000;\
+  config add ext_ram_t_faw=30000;\
+  config add ext_ram_t_32aw=245000;\
+  config add ext_ram_t_rtp_s=2c;\
+  config add ext_ram_t_rtp_l=2c;\
+  config add ext_ram_t_wtr_s=8c;\
+  config add ext_ram_t_wtr_l=8c;\
+  config add ext_ram_t_ccd_l=3c;\
+  config add ext_ram_t_ccd_s=2c;\
+  config add ext_ram_t_ref=1900000;\
+  config add ext_ram_c_wr_latency=4c;\
+  config add ext_ram_c_cas_latency=18c;\
+  config add ext_ram_t_crc_rd_latency=2c;\
+  config add ext_ram_t_crc_wr_latency=13c;\
+  config add ext_ram_t_rst=200000000;\
+  config add ext_ram_t_al=1c;\
+  config add ext_ram_columns=512; \
+  config add ext_ram_rows=16384; \
+  config add ext_ram_banks=16;"
+
+###############################################################################################
+# Note: For extended devices for example Micron dram_type_DDR4_MICRON_MT40A256M16HA_083E
+#       please use none extended parameters for example dram_type_DDR4_MICRON_MT40A256M16HA_083
+###############################################################################################
+if $?dram_type_DDR4_MICRON_MT40A256M16HA_083_4GBIT "\
+  config add ext_ram_type=DDR4;\
+  config add ext_ram_freq=1200;\
+  config add ext_ram_t_rfc=260000;\
+  config add ext_ram_t_rc=46160;\
+  config add ext_ram_t_rcd_wr=14160;\
+  config add ext_ram_t_rcd_rd=14160;\
+  config add ext_ram_t_rrd_l=8c;\
+  config add ext_ram_t_rrd_s=7c;\
+  config add ext_ram_t_ras=32000;\
+  config add ext_ram_t_rp=14160;\
+  config add ext_ram_t_wr=15000;\
+  config add ext_ram_t_faw=30000;\
+  config add ext_ram_t_rtp_s=10c;\
+  config add ext_ram_t_rtp_l=10c;\
+  config add ext_ram_t_wtr_s=4c;\
+  config add ext_ram_t_wtr_l=10c;\
+  config add ext_ram_t_ccd_l=6c;\
+  config add ext_ram_t_ccd_s=4c;\
+  config add ext_ram_t_zqcs=128c;\
+  config add ext_ram_t_crc_alert=13000;\
+  config add ext_ram_t_rst=500000000;\
+  config add ext_ram_t_ref=3900000;\
+  config add ext_ram_c_wr_latency=12c;\
+  config add ext_ram_t_al=0;\
+  config add ext_ram_columns=1024;\
+  config add ext_ram_rows=32768;\
+  config add ext_ram_banks=8;\
+  config delete ext_ram_cmd_par_latency*;\
+  config add ext_ram_cmd_par_latency=5;\
+  config add ext_ram_c_cas_latency=17c;"
+expr $ext_ram_write_dbi+0 == 1
+if $? && $?dram_type_DDR4_MICRON_MT40A256M16HA_083_4GBIT "\
+  config add ext_ram_c_cas_latency=20c;"
+
+if $?dram_type_DDR4_MICRON_MT40A512M16HA_083_8GBIT "\
+  config add ext_ram_type=DDR4;\
+  config add ext_ram_freq=1200;\
+  config add ext_ram_t_rfc=350000;\
+  config add ext_ram_t_rc=46160;\
+  config add ext_ram_t_rcd_wr=14160;\
+  config add ext_ram_t_rcd_rd=14160;\
+  config add ext_ram_t_rrd_l=8c;\
+  config add ext_ram_t_rrd_s=7c;\
+  config add ext_ram_t_ras=32000;\
+  config add ext_ram_t_rp=14160;\
+  config add ext_ram_t_wr=15000;\
+  config add ext_ram_t_faw=30000;\
+  config add ext_ram_t_rtp_s=10c;\
+  config add ext_ram_t_rtp_l=10c;\
+  config add ext_ram_t_wtr_s=4c;\
+  config add ext_ram_t_wtr_l=10c;\
+  config add ext_ram_t_ccd_l=6c;\
+  config add ext_ram_t_ccd_s=4c;\
+  config add ext_ram_t_zqcs=128c;\
+  config add ext_ram_t_crc_alert=13000;\
+  config add ext_ram_t_rst=500000000;\
+  config add ext_ram_t_ref=3900000;\
+  config add ext_ram_c_wr_latency=12c;\
+  config add ext_ram_t_al=0;\
+  config add ext_ram_columns=1024;\
+  config add ext_ram_rows=65536;\
+  config add ext_ram_banks=8;\
+  config delete ext_ram_cmd_par_latency*;\
+  config add ext_ram_cmd_par_latency=5;\
+  config add ext_ram_c_cas_latency=17c;"
+expr $ext_ram_write_dbi+0 == 1
+if $? && $?dram_type_DDR4_MICRON_MT40A512M16HA_083_8GBIT "\
+  config add ext_ram_c_cas_latency=20c;"
+
+if $?dram_type_DDR4_MICRON_MT40A256M16GE_062_4GBIT "\
+  config add ext_ram_type=DDR4;\
+  config add ext_ram_freq=1600;\
+  config add ext_ram_t_rfc=260000;\
+  config add ext_ram_t_rc=47000;\
+  config add ext_ram_t_rcd_wr=15000;\
+  config add ext_ram_t_rcd_rd=15000;\
+  config add ext_ram_t_rrd_l=11c;\
+  config add ext_ram_t_rrd_s=9c;\
+  config add ext_ram_t_ras=32000;\
+  config add ext_ram_t_rp=15000;\
+  config add ext_ram_t_wr=14900;\
+  config add ext_ram_t_faw=30000;\
+  config add ext_ram_t_rtp_s=12c;\
+  config add ext_ram_t_rtp_l=12c;\
+  config add ext_ram_t_wtr_s=4c;\
+  config add ext_ram_t_wtr_l=12c;\
+  config add ext_ram_t_ccd_l=8c;\
+  config add ext_ram_t_ccd_s=4c;\
+  config add ext_ram_t_zqcs=170c;\
+  config add ext_ram_t_crc_alert=13000;\
+  config add ext_ram_t_rst=500000000;\
+  config add ext_ram_t_ref=3900000;\
+  config add ext_ram_c_wr_latency=16c;\
+  config add ext_ram_t_al=0;\
+  config add ext_ram_columns=1024;\
+  config add ext_ram_rows=32768;\
+  config add ext_ram_banks=8;\
+  config delete ext_ram_cmd_par_latency*;\
+  config add ext_ram_cmd_par_latency=8;\
+  config add ext_ram_c_cas_latency=24c;"
+expr $ext_ram_write_dbi+0 == 1
+if $? && $?dram_type_DDR4_MICRON_MT40A256M16GE_062_4GBIT "\
+  config add ext_ram_c_cas_latency=28c;"
+
+if $?dram_type_DDR4_SAMSUNG_K4A4G165WE_4GBIT "\
+  config add ext_ram_type=DDR4;\
+  config add ext_ram_freq=1200;\
+  config add ext_ram_t_rfc=260000;\
+  config add ext_ram_t_rc=46160;\
+  config add ext_ram_t_rcd_wr=14160;\
+  config add ext_ram_t_rcd_rd=14160;\
+  config add ext_ram_t_rrd_l=8c;\
+  config add ext_ram_t_rrd_s=7c;\
+  config add ext_ram_t_ras=32000;\
+  config add ext_ram_t_rp=14160;\
+  config add ext_ram_t_wr=15000;\
+  config add ext_ram_t_faw=30000;\
+  config add ext_ram_t_rtp_s=10c;\
+  config add ext_ram_t_rtp_l=10c;\
+  config add ext_ram_t_wtr_s=4c;\
+  config add ext_ram_t_wtr_l=10c;\
+  config add ext_ram_t_ccd_l=6c;\
+  config add ext_ram_t_ccd_s=4c;\
+  config add ext_ram_t_zqcs=128c;\
+  config add ext_ram_t_crc_alert=13000;\
+  config add ext_ram_t_rst=500000000;\
+  config add ext_ram_t_ref=3900000;\
+  config add ext_ram_c_wr_latency=12c ;\
+  config add ext_ram_t_al=0;\
+  config add ext_ram_columns=1024;\
+  config add ext_ram_rows=32768;\
+  config add ext_ram_banks=8;\
+  config delete ext_ram_cmd_par_latency*;\
+  config add ext_ram_cmd_par_latency=5;\
+  config add ext_ram_c_cas_latency=17c;"
+expr $ext_ram_write_dbi+0 == 1
+if $? && $?dram_type_DDR4_SAMSUNG_K4A4G165WE_4GBIT "\
+  config add ext_ram_c_cas_latency=20c;"
+
+if $?dram_type_GDDR5_MICRON_MT51K256M32HF_50_8GBIT "\
+  config add ext_ram_type=GDDR5;\
+  config add ext_ram_t_rfc=110000;\
+  config add ext_ram_t_rc=44000;\
+  config add ext_ram_t_rcd_wr=12000;\
+  config add ext_ram_t_rcd_rd=17000;\
+  config add ext_ram_t_rrd_l=5000;\
+  config add ext_ram_t_rrd_s=5000;\
+  config add ext_ram_t_ras=27000;\
+  config add ext_ram_t_rp=17000;\
+  config add ext_ram_t_wr=18000;\
+  config add ext_ram_t_faw=20000;\
+  config add ext_ram_t_32aw=160000;\
+  config add ext_ram_t_rtp_s=2c;\
+  config add ext_ram_t_rtp_l=2c;\
+  config add ext_ram_t_wtr_s=6c;\
+  config add ext_ram_t_wtr_l=6c;\
+  config add ext_ram_t_ccd_l=2c;\
+  config add ext_ram_t_ccd_s=2c;\
+  config add ext_ram_t_ref=1900000;\
+  config add ext_ram_c_wr_latency=4c;\
+  config add ext_ram_t_crc_rd_latency=3c;\
+  config add ext_ram_t_crc_wr_latency=11c;\
+  config add ext_ram_t_rst=200000000;\
+  config add ext_ram_t_al=2c;\
+  config add ext_ram_columns=1024;\
+  config add ext_ram_rows=16384;\
+  config add ext_ram_banks=16;\
+  config add ext_ram_c_cas_latency=16c;"
+expr $ext_ram_write_dbi+0 == 1
+if $? && $?dram_type_GDDR5_MICRON_MT51K256M32HF_50_8GBIT "\
+  config add ext_ram_c_cas_latency=16c;"
+
+if $?dram_type_GDDR5_SAMSUNG_K4G41325FE_HC28_4GBIT "\
+  config add ext_ram_type=GDDR5;\
+  config add ext_ram_t_rfc=110000;\
+  config add ext_ram_t_rc=48000;\
+  config add ext_ram_t_rcd_wr=15000;\
+  config add ext_ram_t_rcd_rd=16000;\
+  config add ext_ram_t_rrd_l=6000;\
+  config add ext_ram_t_rrd_s=6000;\
+  config add ext_ram_t_ras=34000;\
+  config add ext_ram_t_rp=14000;\
+  config add ext_ram_t_wr=16000;\
+  config add ext_ram_t_faw=24000;\
+  config add ext_ram_t_32aw=192000;\
+  config add ext_ram_t_rtp_s=2c;\
+  config add ext_ram_t_rtp_l=4c;\
+  config add ext_ram_t_wtr_s=3c;\
+  config add ext_ram_t_wtr_l=8c;\
+  config add ext_ram_t_ccd_l=3c;\
+  config add ext_ram_t_ccd_s=2c;\
+  config add ext_ram_t_ref=1900000;\
+  config add ext_ram_c_wr_latency=3c;\
+  config add ext_ram_t_crc_rd_latency=3c;\
+  config add ext_ram_t_crc_wr_latency=14c;\
+  config add ext_ram_t_rst=200000000;\
+  config add ext_ram_t_al=1c;\
+  config add ext_ram_columns=512;\
+  config add ext_ram_rows=16384;\
+  config add ext_ram_banks=16;\
+  config add ext_ram_c_cas_latency=18c;"
+expr $ext_ram_write_dbi+0 == 1
+if $? && $?dram_type_GDDR5_SAMSUNG_K4G41325FE_HC28_4GBIT "\
+  config add ext_ram_c_cas_latency=19c;"

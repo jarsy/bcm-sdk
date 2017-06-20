@@ -1,0 +1,171 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+-------------------------------------------------------------------------
+                   User Guide for Multiple instance
+                   Broadcom Corp. June 18, 2015
+                   Last Updated: Oct 14, 2015
+-------------------------------------------------------------------------
+
+(1) Background
+
+The Broadcom SDK uses the Configuration Manager (CM) to provide
+hardware abstraction functions for register I/O, interrupts, DMA etc.
+
+The Broadcom Device Enumerator (BDE) is provided as a sample
+implementation of the CM functions for multiple platforms (Linux,
+VxWorks, BCMSIM, etc.)
+
+By default the BDE wil probe and enumerate all Broadcom switch
+devices, but in some cases it may be preferable to run separate switch
+applications on different switch devices on the same CPU system.
+
+The information in this document outlines how the Linux User Mode BDE
+can be instantiated, such that each instance only controls a subset of
+the total number of switch devices present in the system.
+
+
+(2) Objectives
+
+An application crash for one BDE instance should not affect any other
+BDE instance.
+
+Different BDE instances within the same system must be able to work
+with applications based on different SDK versions.
+
+
+(3) Multiple BDE Instance Example
+
+In the following we assume that the Linux Kernel BDE module has
+allocated 32 MB of DMA memory and probes two hardware devices.
+
+Switch application A attaches to the first device and requests
+16 MB of DMA memory.
+
+Switch application B attaches to the second device and also requests
+16 MB of DMA memory.
+
+Both applications now manages a single device (seen as unit 0 in both
+applications.) independently of each other. The BDE instances and
+resources will look like this:
+
+
+            +-------------------+      +-------------------+
+            | User BDE inst A   |      | User BDE inst B   |
+            |                   |      |                   |
+            | dev_mask = 0x1    |      | dev_mask = 0x2    |
+            | dma_size = 16M    |      | dma_size = 16M    |
+            |                   |      |                   |
+            | unit 0 -> hw_id 0 |      | unit 0 -> hw_id 1 |
+User space  +-------------------+      +-------------------+
+      ================================================================
+Kernel space           +-----------------------+
+                       |   User BDE module     |
+                       |                       |
+                       |   dev_mask = 0x3      |
+                       |   dma_size = 32M      |
+                       +-----------------------+
+                       +-----------------------+
+                       |   Kernel BDE module   |
+                       |                       |
+                       |   Probed 2 devices    |
+                       |   DMA pool size: 32M  |
+                       +-----------------------+
+
+We can try the same thing with the bcm.user sample application, which
+now accepts a new instance parameter to specify the BDE device mask
+and DMA size:
+
+  bcm.user -i <device_mask>[:dmasize in mb]
+
+After loading the Linux BDE kernel modules, we can query the the
+device and DMA information through the proc file:
+
+  # cat /proc/linux-kernel-bde
+  Broadcom Device Enumerator (linux-kernel-bde)
+  DMA Memory (kernel): 33554432 bytes, 0 used, 33554432 free
+  Devices:
+      0 (swi) : PCI device 0x14e4:0xb850:2:0x60100000:0x00000000:50
+      1 (swi) : PCI device 0x14e4:0xb850:2:0x60200000:0x00000000:48
+
+Next we load bcm.user for the first device (instance A):
+
+  # ./bcm.user -i 0x1:16
+
+Then we load bcm.user for the second device (instance B):
+
+  # ./bcm.user -i 0x2:16
+
+After both applications have been attached to the BDE, the resources
+allocation can be inspected through the proc file:
+
+  # cat /proc/linux-user-bde
+  Broadcom Device Enumerator (linux-user-bde)
+          0: Interrupt mode CMICm
+          1: Interrupt mode CMICm
+  Instance resources
+          Device mask 0x1: 16 MB DMA memory at offset 0 MB
+          Device mask 0x2: 16 MB DMA memory at offset 16 MB
+
+
+(4) New APIs
+
+A new API has been created to attach to only a subset of available
+hardware devices:
+
+  int
+  linux_bde_instance_attach(unsigned int dev_mask,
+                            unsigned int dma_size);
+
+dev_mask is a bit mask of devices which should be controlled by this
+BDE instance, and dma_size specifies the size of the DMA memory pool
+allocated to this BDE instance.
+
+The allocated resources will be freed only when the linux-user-bde
+kernel module is unloaded. In practical terms this means that if you
+pass the wrong parameters to bcm.user, then you will have to start
+over from scratch.
+
+If the attached application terminates (or crashes), then it can still
+re-attach as long as the requested resources remain unchanged from the
+previous run.
+
+For applications using KNET, a new function must be supplied to
+perform the translation between the BDE instance unit number and the
+BDE hardware device number:
+
+  typedef struct soc_knet_vectors_s {
+      ....
+      int (*hw_unit_get)(int unit, int inverse);
+  } soc_knet_vectors_t;
+
+The user mode part of the Linux User BDE already contains a suitable
+function for this purpose (bde_hw_unit_get), so the aopplication
+simply has to include this function in the KNET configuration vectors:
+
+  static soc_knet_vectors_t knet_vect_bcm_knet = {
+      {
+          bcm_knet_kcom_open,
+          bcm_knet_kcom_close,
+          bcm_knet_kcom_msg_send,
+          bcm_knet_kcom_msg_recv
+      },
+      bde_irq_mask_set,
+      bde_hw_unit_get
+  };
+
+For example code, please refer to the bcm.user source file
+$SDK/systems/linux/user/common/socdiag.c.
+
+
+(5) Compile option
+
+Support for multiple instances is disabled by default, so the
+following build option must be added to enable it:
+
+CFGFLAGS += -DBCM_INSTANCE_SUPPORT 
+
+Refer the $SDK/make/Make.local.template for details.

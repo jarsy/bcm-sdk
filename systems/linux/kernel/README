@@ -1,0 +1,112 @@
+/*  
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+
+			SDK Linux Kernel Support	
+
+
+The Broadcom SDK can be compiled as a loadable kernel module, 
+providing driver services to application kernel modules. 
+
+The Linux kernel support is comprised of several modules, the source 
+to which can mostly be found under the 'modules' subdirectory. 
+
+Linux kernel support is broken into the following functional modules:
+
+linux-kernel-bde.o
+------------------
+
+source: sdk/systems/bde/linux/kernel
+
+This module implements a Broadcom Device Enumerator interface for the 
+Linux kernel (see sdk/include/ibde.h). When the driver is running in 
+kernel mode, it uses the BDE exported by this module for initialization 
+and chip access. This module must be loaded first, and has no other 
+module dependencies.
+
+The BDE needs a memory block outside the Linux system memory space for 
+allocation of DMA memory. The easiest and most flexible way to to this 
+is to use the kernel parameter 'mem', e.g. on a 64MB system, 'mem=56M'
+will reserve 8MB of memory for DMA. 
+
+The linux-kernel-bde module optionally takes two parameters:
+
+dmasize - DMA memory block size (default probe for available memory.)
+debug - more verbose output when loading and initializing.
+
+Example:
+
+insmod linux-kernel-bde.o dmasize=8M debug=2
+
+
+linux-uk-proxy.o
+----------------
+
+source: sdk/systems/linux/kernel/modules/uk-proxy
+
+This module provides an API for creating proxy services between Linux 
+user mode and kernel mode.
+
+The linux-uk-proxy module does not take any parameters.
+
+Example:
+
+insmod linux-uk-proxy.o
+
+
+linux-bcm-diag-full.o
+---------------------
+
+source: sdk/systems/linux/kernel/modules/bcm-diag-full
+
+This module is the core BCM driver and diagnostics shell module. It 
+depends upon the linux-kernel-bde module to provide its BDE and the 
+linux-uk-proxy module to provide a proxy service to allow a user mode
+application to connect to the diagnostics shell (CLI).
+
+The linux-bcm-diag-full module optionally takes one parameter:
+
+debug - more verbose output when loading and initializing.
+
+Example:
+
+insmod linux-bcm-diag-full.o debug=2
+
+------------------------------------------------------------------------
+
+The kernel/user directory contains user mode applications to run on
+top of the BCM driver.
+
+The following application is compiled by default:
+
+bcm.user.proxy
+--------------
+
+This program is a proxy client used for accessing the BCM diagnostics 
+shell in the linux-bcm-diag-full module. By default the bcm.user.proxy 
+program will provide a user mode shell on the local system, but it is
+possible to let it act as a simple terminal server, which can be
+accessed remotely using a telnet client.
+
+------------------------------------------------------------------------
+
+The other subdirectories here contain makefile configurations for 
+the different platforms and kernels currently supported. 
+
+For example, building the kernel modules for the BRCM 8245 CPCI board 
+(BMW) is as easy as:
+
+	cd bmw; gmake; 
+
+This command will build the modules described above as well as the 
+bcm.user.proxy program. The modules must be inserted in the same 
+order as described above.
+
+All of this, of course, requires the Linux kernel headers for the 
+platform and a compatible toolchain. 
+
+Kernel source and toolchains for the platforms supported here are 
+available from Broadcom as a separate distribution. 

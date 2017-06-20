@@ -1,0 +1,1252 @@
+# rules.bsp - makefile target rules for BSP
+#
+# Copyright 1984-2007, Wind River Systems, Inc.
+#
+# modification history
+# --------------------
+# 03o,30jun09,pee  removing LDFLAGS from makeMacros.
+# 03n,06feb09,pee  WIND00124940
+# 03m,06feb09,pee  WIND00110180
+# 03l,28oct08,pee  WIND00133999
+# 03k,29sep08,mze  removal of IPCOM_OBJ_DIR
+# 03j,18sep08,f_b  Fix for WIND00135103 to include information about the build
+#                  paths in VxWorks executable
+# 03i,18jun08,pee  VSB support.
+# 03h,01may08,pee  generation of bsp description for BSP that do not include
+#                  Bsp in CDF.
+# 03g,28mar08,pee  removing redundant | dependencies on intermediate file
+# 03f,26feb08,pee  adding check rule for auto selection based on CSP value.
+# 03e,18oct07,pee  missing dependencies for WIND00105890
+# 03d,11oct07,pee  adding option file dependency for implicit rules.
+# 03c,28sep07,pee  WIND00105890
+# 03b,27sep07,pee  adding special support for SMP build
+# 03a,27sep07,pee  backing off ...
+# 02z,22sep07,tor  Added vxbUsrCmdLine.c and vxbMethodDecl.h support
+# 02z,11sep07,pee  change location of intermediate tool command file to point
+#                  to output directory.
+# 02y,24aug07,pes  Add ROM_EXTRA macro for adding objects needed for all
+#		   ROMable builds.
+# 02x,19jul07,pee  added smp support to release target
+# 04w,19jun07,tpw  Use WRVX_COMPBASE vs. WIND_COMPONENTS correctly.
+# 04v,30may07,dcc  removed SDA support from CFLAGS_AS.
+# 04u,01jun07,tkf  ipcom_ipdomain now generated in _IPCOM_OBJ_DIR.
+# 04t,05may07,dcc  Added SDA support: CC_SDA_FLAGS.
+# 04s,12apr07,pee  Added option support to headerMacros rule
+# 04o,02mar07,jmt  optimize bootrom size
+# 04r,04dec06,d_c  Add dependency on sysLib.c to create cmdLine.c
+# 04q,31oct06,tor  VxBus support
+# 04p,03mar07,tkf  Add dependency on IPCOM include path file for .o and 
+#                  headerMacro targets.
+# 04o,03jan07,zhr  WIND0087260 resolved the issue of a install-path with "-L"
+# 04n,04dec06,rec  add library inclusion to bootrom_uncmp
+# 04m,22nov06,pch  preserve compressed bootrom's symbol table
+# 04l,09nov06,tkf  Add IPCOM rules.
+# 04k,04oct06,jmt  Fix additional bootrom image builds
+# 04j,05sep06,jmt  Cleanup bootrom builds
+# 04i,14jul06,jmt  Add bootApp build
+# 04h,07apr06,kkz  Undoing temp workaround
+# 04g,11mar06,pee  temporary workaround for XSCALE diab compiler problem.
+# 04f,06sep05,h_k  added usrEntry.o for bootrom build. (SPR #111954)
+# 04e,25apr05,tpw  Override DOC_DIR to set new BSP-specific docs plugin.
+# 04d,22apr05,edc  Added COMP_LIBS to link line and dependency of VxWorks
+#                  rules. Also added rules that support packaging of a BSP.
+# 04c,03feb05,mdo  Update for B6 Validation Testing
+# 04b,28sep04,dlk  Added OPT_DEFINE to EXTRA_CFLAGS in makeMacros.
+# 04a,24aug04,rec  SPR 100961 bootrom_res build fix
+# 03z,18aug04,rec  SPR 100125 - fix vxWorks.st_rom rules
+# 03y,28jul04,c_c  Fixed build.
+# 03x,07jul04,c_c  Removed usage of romfs_image.h.
+# 03x,02jul04,fle  Made it include rules.memory
+#                  + added vma adjust command when needed
+# 03w,25jun04,fle  SPR#98612 : speed up makeMacros
+# 03v,09feb04,fle  Adapted to new host utilities locations
+# 03u,30jan04,fle  Made clean rule use wildcards
+# 03t,08dec03,tpw  Condense ten .hex rules down into one.
+#		   Remove renamed *.c files before copying to create them.
+# 03s,24oct03,fle  SPR#90904 : added POST_HEX_BUILD_RULE to all .hex rules
+# 03r,02jul03,md   adding ROMFS rules and variables
+# 03q,30apr02,cym  adding HEX_FLAGS to makeMacros
+# 03p,27mar02,dat  Remove intermediate files to keep view small, SPR 72823,
+#		   new targets clean_release, clean_cmdLine, clean_prj
+# 03o,19mar02,dat  Adding CFLAGS_PIC for bootInit.o (72825)
+# 03n,14feb02,jab  use LD_PARTIAL_LAST_FLAGS in last link for .out targets
+# 03m,31jan02,fmk  remove redirection operator to generate symTbl.c
+# 03l,13dec01,jab  added make variable BOOTCONFIG_FLAGS
+# 03k,10dec01,dat  Fixing subst commands
+# 03k,07dec01,tpw  Remove HEX_HIGH_FLAGS and HEX_LOW_FLAGS, and fix proj %.hex
+# 03j,05dec01,dat  added prj_gnu_def, prj_gnu_all, prj_diab_all, prj_diab_def,
+#                  prj_default_one
+# 03i,04dec01,dat  fix prj_gnu and prj_diab to ignore MAKEFLAGS values
+# 03h,04dec01,j_s  add exporting of LD_LINK_PATH back
+# 03g,26nov01,j_s  changed LIBS to contain reference to VX_OS_LIBS instead of 
+#		   its snapshot value, added rule 'makeMacrosReferred'
+# 03f,15nov01,jtp  generate vxImage.o to provide target-server symbols for
+#		   the vxWorks.st_rom configuration
+# 03e,14nov01,pch  Add "test" target
+# 03d,13nov01,dat  new release rule, fix to bootrom
+# 03c,05nov01,rbl  add project compiler and assembler flags
+# 03b,08nov01,tpw  Add general %.bin rule.
+# 03a,05nov01,dat  New targets prj_gnu and prj_diab
+# 02z,06nov01,tpw  Add %.old rule to facilitate conversions to old OMFs
+# 02y,24oct01,rbl  add extra macros to makeMacros for diab support
+# 02x,30oct01,tam  removed CC_LIB from cyclic linking
+# 02w,29oct01,jab  updated rules for ld scripts
+# 02v,09oct01,j_s  remove LD_LINK_LIST, just use LD_LINK_LIBS
+#		   add support for build dependency on archives: vpath and
+#		   expansion of '-l<ar>'
+# 02u,18oct01,dat  Moving tool defines to tool specific files
+# 02t,01oct01,dat  Added CPU TOOL args to bsp2prj, consistent use of $BSP_NAME
+# 02s,25sep01,dat  Gnu-Diab infrastructure, added include rules.$HOST
+# 02r,06aug01,mem  Update for rearragement of runtime libraries.
+# 02q,31oct00,scm  add post build rules...
+# 02p,06apr00,dra  Added HEX_LOW_FLAGS and HEX_HIGH_FLAGS to support FRV
+#                  (Venus) toolchain.
+# 02o,31mar00,rsh  final merge es.tor2_0.mcore to tor2_0_0.es.coretools
+# 02n,01mar00,rsh  removing remove of LIB_EXTRA since I'm nolonger using a bsp
+#                  archive of sio driver and the remove shouldn't be here
+#                  anyway
+# 02m,08feb00,jld  add clean rule for LIB_EXTRA.
+# 02l,27oct99,tpw  Add RES_LDFLAGS, like ROM_LDFLAGS but for resident images.
+# 02k,26oct99,tpw  Fix two bugs in the objcopy changes.
+# 02j,01mar99,yp   Added rules for building files with cc extentions SPR 20293
+# 02i,23feb99,sn   removed references to $(POST_MUNCH)
+# 02h,18jan99,sn   removed hack mentioned below (collect2 now fixed)
+# 02g,07dec98,sn   hacked bsp2prj rule so that default projects created
+#                  on unix work on windows too.
+# 02f,17nov98,sn   added LD_PARTIAL_FLAGS back to makeMacros, undid 02d
+# 02e,11nov98,sn   partially link using LD_PARTIAL
+#                  clean now removes .rpo files too
+# 02d,11nov98,sn   munch -> orderCtors
+# 02c,05Nov98,ms   -traditional -> -fdollars-in-identifiers
+# 02b,23Oct98,ms   make implicit rules overridable from make.CPUTOOL.
+# 02c,21apr99,bc   Alter BINXSYM command line for objcopy interface.
+# 02b,08apr99,bc   Merge in objcopy invocations from Aeolus
+# 02a,28aug98,jmp  added bsp2proj as part of the release rule.
+# 01z,29jun98,jmp  removed from makeMacros rule all macros defined in
+#		   BSPs Makefiles.
+# 01y,25jun98,ms   added more macros to makeMacros rule
+# 01x,02apr98,pcn  Removed Objcopy changes from Tempest view
+# 01w,15dec97,pcn  Added Objcopy in BSP build.
+# 01v,04mar97,tpr  changed bootrom_res_res_high.hex by bootrom_res_high.hex
+#		   (SPR 8095)
+# 01u,13dec96,map  Remove symTbl.c in target rule `clean' [SPR# 2637]
+# 01t,09dec96,tpr  Added rule to remove ctdt.c for the 'clean' target. 
+# 01s,04oct96,yp   Added rules for building files with cxx extentions
+# 01r,23oct96,yp   redid treatment of .s files so we don't create tmp
+# 01q,26sep96,dat  removed edit 01k, was harming sparc & 960 BSPs. (SPR 7238)
+# 01p,19sep96,tpr  merge PPC to tor1_0_1 release.
+# 01o,29aug96,ms   removed "-f -b 15" after $(COMPRESS).
+# 01n,22aug96,map  added romInit.o dependency to romInit_res* rules to fix
+#                  SPR# 7063
+# 01m,25jul96,tam  replaced mips specific rom resident targets by ppc ones. 
+# 01l,23jul96,kkk  fixed build rules for romInit_res*.o for.
+# 01k,22jul96,tam  added $(BOOT_EXTRA) where it was missing.
+# 01j,04apr96,srh  added munching.
+# 01i,08mar96,yp   added -P in implicite .s.o rule.
+# 01h,06mar96,dat  new rules for version.o
+# 01g,13nov95,jeh  restored .cpp.o implicit rule
+# 01f,08nov95,jeh  removed .cpp.o implicit rule
+# 01e,01nov95,p_m  added LIB to rom_res build command
+# 01d,01nov95,yp   added implicit rules for C++
+# 01c,30oct95,dat  added targets vxWorks.res_rom_nosym and 
+#		   vxWorks.res_rom_nosym_mips
+# 01b,27jun95,kkk  added VXSIZE.
+# 01a,12jun95,yp   created from makeTarget2 v03d.
+#
+# DESCRIPTION
+# This file contains rules used in building targets.
+#
+# This file is only used for command line builds from the BSP directory.
+# It is not used for any project or component builds.  Changes made here
+# affect only command line builds. See rules.project for project build rules.
+#
+#
+# VARIABLES
+# The following variables must be defined (or not, as appropriate):
+#
+#     ROM_SIZE          number of bytes of ROM space as in config.h
+#     LOCAL_MEM_SIZE	target RAM size as in config.h
+#     BINHEX		binary->hex file conversion program
+#     HEX_FLAGS         BINHEX program options
+#     LD_LOW_FLAGS	ld(1) options for code in low memory
+#     LD_HIGH_FLAGS	ld options for code in high memory
+#     LD_PARTIAL_FLAGS  ld flags for linking partially complete objects
+#     LDDEPS		host-specific dependencies prerequisite to linking
+#     LDOUT_CONV	hpToBsd, coffToBsd, gswab, /bin/cat, etc.
+#     COMPILE_SYMTBL	hide flags needed to get compiler to swallow symTbl.c
+#     ROM_ENTRY		rom entry point (typically &romInit)
+#     SYS_ENTRY		system entry point (typically &sysInit)
+#     USR_ENTRY		compressed system entry point (typically &usrInit)
+#
+# The following variables are optionally defined:
+#
+#     LDFLAGS		standard ld flags for vxWorks & ROMs.
+#     ROM_LDFLAGS	ld flags specific to ROM image
+#     RES_LDFLAGS	ld flags specific to resident ROM image
+#     MACH_EXTRA	extra modules for all boot/vxWorks images
+#     BOOT_EXTRA	extra modules for compressed images only
+#     RELEASE		images made as part of WRS release step
+#     OBJCOPY_OLD_OMF	objcopy options to convert to an old OMF
+#
+# CONSTANTS
+#     CPU               cpu type
+#
+# TREE
+# Include tree for a PPC604 bsp on an x86-linux2 host:
+#
+# +-> defs.bsp
+# |   +-> defs.link
+# |   |   +-> defs.option
+# |   +-> make.PPC604diab
+# |   |   +-> defs.ppc
+# |   |       +-> defs.diab
+# |   |           +-> defs.common
+# |   +-> defs.x86-linux2
+# |       +-> defs.unix  
+# +-> rules.bsp
+#     +-> rules.memory
+#     |   +-> defs.memory
+#     +-> rules.x86-linux2
+
+include $(WRVX_COMPBASE)/$(COMP_IPNET2)/osconfig/vxworks/make/defs.ipcom
+
+include $(TGT_DIR)/h/make/rules.memory
+
+################################################################################
+#
+# Dependency search path of .a files
+#
+
+vpath %.a $(patsubst -L%,%,$(LD_LINK_PATH))
+
+################################################################################
+#
+# meta build targets
+#
+
+## make will default to "exe"
+
+ifeq (SMP, $(findstring SMP, $(VXBUILD)))
+
+exe vxWorks	: smpVxWorks |  smpPostWarning 
+
+SMPPRJNAME = $(BSP_NAME)_$(TOOL)_smp_bspbuild
+SMPPRJ_FULLPATH = $(TGT_DIR)/proj/$(SMPPRJNAME)
+
+.PHONY : smpVxWorks smpPostWarning
+
+smpVxWorks : 
+	@echo creating project 
+	cd $(TGT_DIR)/proj ; vxprj create -force -smp $(BSP_NAME) $(TOOL) $(SMPPRJNAME)
+	@ echo building project
+	cd $(SMPPRJ_FULLPATH) ; vxprj build
+	@echo  done
+
+smpPostWarning :
+	@echo
+	@echo "*********************************************************************"
+	@echo   \* WARNING: make from the BSP directory is not supported for SMP,
+	@echo   \* please move to using the 'vxprj' command line build.
+	@echo "  * To ease migration, the project $(SMPPRJNAME)"
+	@echo "    has been created in directory:"
+	@echo "    "
+	@echo $(TGT_DIR)/proj
+	@echo "  * Your vxWorks image is now located in:"
+	@echo "    "
+	@echo $(SMPPRJ_FULLPATH)/default
+	@echo "  * changes made in $(SMPPRJNAME) will be"
+	@echo "    deleted the next time make is invoked in the BSP directory."
+	@echo "  * Do not mix using BSP builds and vxprj command builds."
+	@echo "*********************************************************************"
+
+_BOOTROM_TARGETS = bootrom bootrom_uncmp bootrom_res bootrom_res_high bootapp bootapp.sym bootapp.hex
+
+_STANDALONE_TARGETS = vxWorks.st vxWorks.st_rom
+
+_OTHER_TARGETS = vxWorks_rom vxWorks.res_rom vxWorks.res_rom_res_low vxWorks.res_rom_nosym vxWorks.res_rom_nosym_res_low vxWorks.sym vxWorks.hex vxWorks.old vxWorks.bin
+
+.PHONY : $(_BOOTROM_TARGETS) $(_STANDALONE_TARGETS) $(_OTHER_TARGETS) clean
+
+$(_BOOTROM_TARGETS):
+	@echo ERROR: SMP bootrom image builds are not supported.
+	@echo "       Please build VxWorks UP bootrom image to boot"
+	@echo "       VxWorks SMP images."
+
+$(_STANDALONE_TARGETS):
+	@echo ERROR: Building standalone target $@ is not supported for 
+	@echo "       VxWorks SMP from BSP builds."
+	@echo "       Please use the 'vxprj' project facility."
+
+$(_OTHER_TARGETS) :
+	@echo ERROR: Building target $@ is not supported for 
+	@echo "       VxWorks SMP from BSP builds."
+	@echo "       Please use the 'vxprj' project facility."
+
+clean :
+	@echo ERROR: Cleaning SMP project is not supported from BSP builds.
+	@echo "       Please look at $(SMPPRJ_FULLPATH)"
+	@echo "       for the SMP project created from this directory." 
+
+%.old %.bin %.hex : % ;
+
+else
+
+exe	: vxWorks
+
+release : $(RELEASE)
+
+BSP2PRJ_SCRIPT	= $(WIND_BASE)/host/resource/hutils/tcl/bsp2prj.tcl
+
+VXBUSRCMDLINE = $(WIND_BASE)/target/config/all/vxbUsrCmdLine.c
+
+# Use the default tool, build a project with just the one default build spec
+# For backward compatibility purposes.
+
+bsp2prj prj_default_one: 
+	$(TCL) $(BSP2PRJ_SCRIPT) $(CPU) $(TOOL)
+
+# Do all 4 build specs using the default TOOL
+
+prj_default:
+	$(TCL) $(BSP2PRJ_SCRIPT) $(CPU) $(TOOL) all
+
+# prj_gnu_all - ignore the default TOOL, use gnu to build all 4 build specs
+#
+# Have to clear MAKEFLAGS so subsequent makes won't pick up any conflicting
+# values.
+
+prj_gnu prj_gnu_all:
+	MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) $(CPU) $(subst diab,gnu,$(TOOL)) all
+	MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) -smp $(CPU) $(subst diab,gnu,$(TOOL)) all
+
+# prj_gnu_def - ignore the default TOOL, use gnu to build one build spec
+#
+# Have to clear MAKEFLAGS so subsequent makes won't pick up any conflicting
+# values.
+
+prj_gnu_def:
+	MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) $(CPU) $(subst diab,gnu,$(TOOL))
+	MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) -smp $(CPU) $(subst diab,gnu,$(TOOL))
+
+# prj_diab_all - ignore the default TOOL, use diab to build all 4 build specs. 
+#
+# Have to clear MAKEFLAGS so subsequent makes won't pick up any conflicting
+# values.
+
+prj_diab prj_diab_all:
+	MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) $(CPU) $(subst gnu,diab,$(TOOL)) all
+	MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) -smp $(CPU) $(subst gnu,diab,$(TOOL)) all
+
+# prj_diab_def - ignore the default TOOL, use diab to build one build spec. 
+#
+# Have to clear MAKEFLAGS so subsequent makes won't pick up any conflicting
+# values.
+
+prj_diab_def:
+	MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) $(CPU) $(subst gnu,diab,$(TOOL))
+	MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) -smp $(CPU) $(subst gnu,diab,$(TOOL))
+
+# clean up temp files in projects
+clean_prj:
+	- MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) $(CPU) $(subst gnu,diab,$(TOOL)) \
+		clean
+	- MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) -smp $(CPU) $(subst gnu,diab,$(TOOL)) \
+		clean
+	- MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) $(CPU) $(subst diab,gnu,$(TOOL)) \
+		clean
+	- MAKEFLAGS= $(TCL) $(BSP2PRJ_SCRIPT) -smp $(CPU) $(subst diab,gnu,$(TOOL)) \
+		clean
+
+# clean up temp files in BSP directory
+clean_cmdLine:
+	- $(RM) $(wildcard *.o) $(wildcard *.rpo) $(wildcard ctdt.c) \
+		$(wildcard symTbl.c) $(wildcard hwifCmdBuild.c) \
+		$(wildcard $(basename $(ROMFS_IMAGE)).* $(ROMFS_CONTENT)) \
+		$(TOOL_OPTIONS_FILES_ALL)
+
+# clean up everything in BSP for a fresh rebuild
+clean   : clean_cmdLine
+	- $(RM) $(wildcard vxWorks*) $(wildcard bootrom*) \
+		$(wildcard bootapp*) $(wildcard depend.$(BSP_NAME))
+
+# clean up all temp files from a release view
+clean_release: clean_cmdLine clean_prj
+
+ifeq ($(IMPLICIT_RULE_S_O),)
+%.o : %.s $(TOOL_OPTIONS_FILES_ALL)
+	@ $(RM) $@
+	$(CC) $(CFLAGS_AS) $(OPTION_OBJECT_ONLY) -o $@ $< 
+endif
+
+ifeq ($(IMPLICIT_RULE_C_O),)
+%.o : %.c $(TOOL_OPTIONS_FILES_ALL)
+	@ $(RM) $@
+	$(CC) $(CFLAGS) $(OPTION_OBJECT_ONLY) $<
+endif
+
+ifeq ($(IMPLICIT_RULE_CXX_O),)
+# rule for munchless C++ compiles
+%.o : %.cpp $(TOOL_OPTIONS_FILES_ALL)
+	@ $(RM) $@
+	$(CXX) $(C++FLAGS) $(OPTION_OBJECT_ONLY) $<
+
+%.o : %.cxx $(TOOL_OPTIONS_FILES_ALL)
+	@ $(RM) $@
+	$(CXX) $(C++FLAGS) $(OPTION_OBJECT_ONLY) $<
+
+%.o : %.cc $(TOOL_OPTIONS_FILES_ALL)
+	@ $(RM) $@
+	$(CXX) $(C++FLAGS) $(OPTION_OBJECT_ONLY) $<
+
+# C++ compile and munch
+%.out : %.cpp $(TOOL_OPTIONS_FILES_ALL)
+	@ $(RM) $@
+	$(CXX) $(C++FLAGS) $(OPTION_OBJECT_ONLY) $<
+	@ $(RM) $@ ctdt.c
+	$(NM) $*.o | $(MUNCH) > ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(LD_PARTIAL) $(LD_PARTIAL_LAST_FLAGS) -o $@ $*.o ctdt.o
+	@ $(RM) ctdt.c ctdt.o
+
+%.out : %.cxx $(TOOL_OPTIONS_FILES_ALL)
+	@ $(RM) $@
+	$(CXX) $(C++FLAGS) $(OPTION_OBJECT_ONLY) $<
+	@ $(RM) $@ ctdt.c
+	$(NM) $*.o | $(MUNCH) > ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(LD_PARTIAL) $(LD_PARTIAL_LAST_FLAGS) -o $@ $*.o ctdt.o
+	@ $(RM) ctdt.c ctdt.o
+
+%.out : %.cc $(TOOL_OPTIONS_FILES_ALL)
+	@ $(RM) $@
+	$(CXX) $(C++FLAGS) $(OPTION_OBJECT_ONLY) $<
+	@ $(RM) $@ ctdt.c
+	$(NM) $*.o | $(MUNCH) > ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(LD_PARTIAL) $(LD_PARTIAL_LAST_FLAGS) -o $@ $*.o ctdt.o
+	@ $(RM) ctdt.c ctdt.o
+endif
+
+# only build ROMFS image if the prototype directory is found
+ROMFS_TARGET = $(ROMFS_IMAGE)
+
+
+###############################################################################
+#
+# SDA flags
+#
+CFLAGS += $(CC_SDA_FLAGS) 
+
+################################################################################
+#
+# machine dependent targets
+
+romInit_res.o: depend.$(BSP_NAME) romInit.s romInit.o
+	- @ $(RM) $@
+	$(CC) $(CFLAGS_AS) -DROM_RESIDENT  -DRAM_DST_ADRS=0x$(RAM_LOW_ADRS) \
+	      $(OPTION_OBJECT_ONLY) -o $@ romInit.s
+
+romInit_res_low.o: depend.$(BSP_NAME) romInit.s romInit.o
+	- @ $(RM) $@
+	$(CC) $(CFLAGS_AS) -DROM_RESIDENT -DRAM_DST_ADRS=0x$(RAM_LOW_ADRS) \
+	      $(OPTION_OBJECT_ONLY) -o $@ romInit.s
+
+romInit_res_high.o: depend.$(BSP_NAME) romInit.s romInit.o $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	$(CC) $(CFLAGS_AS) -DROM_RESIDENT -DRAM_DST_ADRS=0x$(RAM_HIGH_ADRS) \
+	      $(OPTION_OBJECT_ONLY) -o $@ romInit.s
+
+usrConfig.o : depend.$(BSP_NAME) $(USRCONFIG) $(VXBUSRCMDLINE) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) $(USRCONFIG) -o $@
+
+usrConfig_st.o : depend.$(BSP_NAME) $(USRCONFIG) usrConfig.o $(TOOL_OPTIONS_FILES_ALL)
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -DSTANDALONE $(USRCONFIG) -o $@
+
+usrConfig_ba.o : depend.$(BSP_NAME) $(USRCONFIG) usrConfig.o $(TOOL_OPTIONS_FILES_ALL)
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -DBOOTAPP  $(USRCONFIG) -o $@
+
+usrEntry.o : depend.$(BSP_NAME) $(USRENTRY) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) $(BOOTCONFIG_FLAGS) $(USRENTRY)
+
+# Use CFLAGS_PIC for all non-rom-resident bootInit objects
+bootInit.o : depend.$(BSP_NAME) $(BOOTINIT) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS_PIC) $(BOOTINIT)
+
+bootInit_res.o : depend.$(BSP_NAME) $(BOOTINIT) bootInit.o $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	- @ $(RM) bootInit_res.c
+	$(CP) $(BOOTINIT) bootInit_res.c
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -DROM_RESIDENT bootInit_res.c
+	- @ $(RM) bootInit_res.c
+
+bootInit_res_low.o : depend.$(BSP_NAME) $(BOOTINIT) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	- @ $(RM) bootInit_res_low.c
+	$(CP) $(BOOTINIT) bootInit_res_low.c
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -DROM_RESIDENT \
+	      -DRAM_DST_ADRS=0x$(RAM_LOW_ADRS) bootInit_res_low.c
+	- @ $(RM) bootInit_res_low.c
+
+bootInit_res_high.o : depend.$(BSP_NAME) $(BOOTINIT) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	- @ $(RM) bootInit_res_high.c
+	$(CP) $(BOOTINIT) bootInit_res_high.c
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -DROM_RESIDENT \
+	      -DRAM_DST_ADRS=0x$(RAM_HIGH_ADRS) bootInit_res_high.c
+	- @ $(RM) bootInit_res_high.c
+
+bootInit_uncmp.o : depend.$(BSP_NAME) $(BOOTINIT) bootInit.o $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	- @ $(RM) bootInit_uncmp.c
+	$(CP) $(BOOTINIT) bootInit_uncmp.c
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS_PIC) -DUNCOMPRESS bootInit_uncmp.c
+	- @ $(RM) bootInit_uncmp.c
+
+bootInit_st.o : depend.$(BSP_NAME) $(BOOTINIT) bootInit.o $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	- @ $(RM) bootInit_st.c
+	$(CP) $(BOOTINIT) bootInit_st.c
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS_PIC) \
+	      -DRAM_DST_ADRS=0x$(RAM_LOW_ADRS) bootInit_st.c
+	- @ $(RM) bootInit_st.c
+
+bootInit_uncmp_res.o : depend.$(BSP_NAME) $(BOOTINIT) bootInit.o $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	- @ $(RM) bootInit_uncmp_res.c
+	$(CP) $(BOOTINIT) bootInit_uncmp_res.c
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -DROM_RESIDENT -DUNCOMPRESS \
+	      bootInit_uncmp_res.c
+	- @ $(RM) bootInit_uncmp_res.c
+
+dataSegPad.o: depend.$(BSP_NAME) $(DATASEGPAD) $(CONFIG_ALL_H) config.h $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) $(DATASEGPAD) -o $@
+
+##############################################################################
+#
+# Rule for generating ROMFS filesystem.
+# 
+
+include $(TGT_DIR)/h/make/rules.fs
+
+##############################################################################
+#
+# Rule for generating VxBus commandline build support.
+#
+
+include $(TGT_DIR)/h/make/rules.vxbus
+
+# FIXME should be moved to a common place
+DKM_DIR_LIST = $(VSB_DIR)/$(VX_CPU_FAMILY)$(ARCH_OPTION_SUFFIX)/$(CPU)$(CPU_OPTION_SUFFIX)/$(TOOL_COMMON_DIR)$(MINOR_OPTION_SUFFIX)/dkm
+DKM_DIR_LIST += $(WIND_BASE)/target/lib$(MAJOR_OPTION_SUFFIX)/$(VX_CPU_FAMILY)$(ARCH_OPTION_SUFFIX)/$(CPU)$(CPU_OPTION_SUFFIX)/$(TOOL_COMMON_DIR)$(MINOR_OPTION_SUFFIX)/dkm
+DKM_DIR_LIST += $(VSB_DIR)/$(VX_CPU_FAMILY)$(ARCH_OPTION_SUFFIX)/$(CPU_CLASS)$(CPU_OPTION_SUFFIX)/$(TOOL_COMMON_DIR)$(MINOR_OPTION_SUFFIX)/dkm
+DKM_DIR_LIST += $(WIND_BASE)/target/lib$(MAJOR_OPTION_SUFFIX)/$(VX_CPU_FAMILY)$(ARCH_OPTION_SUFFIX)/$(CPU_CLASS)$(CPU_OPTION_SUFFIX)/$(TOOL_COMMON_DIR)$(MINOR_OPTION_SUFFIX)/dkm
+
+ANALYSIS_DKM_DIR_LIST = $(wildcard $(addsuffix /analysis,$(DKM_DIR_LIST)))
+
+ifneq ($(ANALYSIS_DKM_DIR_LIST),)
+ANALYSIS_DKM_DIR = $(firstword $(ANALYSIS_DKM_DIR_LIST))
+endif
+
+genBuildVars3=$(if $($(1)),$(shell echo "set $(1) $($(1))" >>build_vars_list))
+genBuildVars2=$(foreach var,$(1),$(call genBuildVars3,$(var)))
+genBuildVars=$(call genBuildVars2,WIND_BASE VSB_DIR BSP_DIR ANALYSIS_DKM_DIR PRJ_FULL_PATH)
+cleanBuildVars=$(shell rm -f build_vars_list)
+
+################################## vxWorks #####################################
+#
+# vxWorks     - normal vxWorks system
+# vxWorks.sym - symbol table of vxWorks
+
+vxWorks vxWorks.sym : depend.$(BSP_NAME) usrConfig.o $(ROMFS_IMAGE) dataSegPad.o \
+		$(MACH_DEP) $(LDDEPS) $(patsubst -l%,lib%.a,$(COMP_LIBS)) \
+                $(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) vxWorks vxWorks.sym
+	- @ $(RM) version.o
+	- @ $(RM) vxWorks.tmp ctdt.c ctdt.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) \
+	    -o vxWorks.tmp $(MACH_DEP) usrConfig.o $(ROMFS_IMAGE) version.o \
+	    $(LD_PARTIAL_START_GROUP) $(LD_LINK_PATH) $(COMP_LIBS) $(LIBS) \
+	    $(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(call cleanBuildVars)
+	$(call genBuildVars)
+	$(NM) vxWorks.tmp | $(MUNCH) -vars build_vars_list > ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(LD) $(LDFLAGS) $(LD_ENTRY_OPT) $(SYS_ENTRY) $(LD_LOW_FLAGS) \
+	      -o vxWorks dataSegPad.o vxWorks.tmp ctdt.o $(LD_DATA_SEG_ALIGN) \
+	      $(LD_SCRIPT_RAM)
+	- @ $(RM) vxWorks.tmp
+	$(LDOUT_HOST) vxWorks
+	$(LDOUT_CONV) vxWorks
+	$(BINXSYM) vxWorks vxWorks.sym
+	$(LDOUT_SYMS) vxWorks.sym
+	$(VXSIZEPROG) -v $(RAM_HIGH_ADRS) $(RAM_LOW_ADRS) vxWorks
+ifneq ($(ADJUST_VMA), $(DEFAULT_ADJUST_VMA))
+	$(KERNEL_VMA_ADJUST) $@
+endif
+
+# vxWorks_rom - rommable version of VxWorks (without standalone symbol table)
+#   This is typically used when making an application in ROM that doesn't
+#   include the shell and the symbol table.  Since these applications are
+#   usually smaller, this version doesn't use ROM compression.
+
+vxWorks_rom : depend.$(BSP_NAME) bootInit_uncmp.o romInit.o $(ROM_EXTRA) \
+		dataSegPad.o usrConfig.o $(ROMFS_IMAGE) $(MACH_DEP) $(LDDEPS) \
+		$(patsubst -l%,lib%.a,$(COMP_LIBS)) \
+                $(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ 
+	- @ $(RM) $(IMI) 
+	- @ $(RM) $(IBR)
+	- @ $(RM) version.o
+	- @ $(RM) ctmp.o ctdt.c ctdt.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) -o ctmp.o usrConfig.o $(ROMFS_IMAGE) \
+		      $(MACH_DEP) version.o \
+		      $(LD_PARTIAL_START_GROUP) $(LD_LINK_PATH) $(COMP_LIBS) $(LIBS) \
+		      $(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(call cleanBuildVars)
+	$(call genBuildVars)
+	$(NM) ctmp.o | $(MUNCH) -vars build_vars_list > ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(LD) $(LDFLAGS) $(LD_ENTRY_OPT) $(ROM_ENTRY) $(LD_LOW_FLAGS) \
+	      -o $@ romInit.o $(ROM_EXTRA) bootInit_uncmp.o dataSegPad.o ctmp.o ctdt.o \
+	      $(LD_DATA_SEG_ALIGN) $(LD_SCRIPT_RAM)
+	- @ $(RM) ctmp.o
+	$(LDOUT_HOST) $@
+	$(ROMSIZEPROG) -b $(ROM_SIZE) $@
+	$(LDOUT_CONV) $@
+
+# vxWorks.st - standalone VxWorks with symbol table linked in
+#   This builds a VxWorks image that contains the symbol table linked in,
+#   instead of loading it over the network.
+
+vxWorks.st : $(patsubst -l%,lib%.a,$(LIBS)) depend.$(BSP_NAME) usrConfig_st.o $(ROMFS_IMAGE) dataSegPad.o \
+		$(MACH_DEP) $(LDDEPS) $(patsubst -l%,lib%.a,$(COMP_LIBS)) \
+                $(CC_LIB) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ 
+	- @ $(RM) symTbl.c 
+	- @ $(RM) symTbl.o 
+	- @ $(RM) tmp.o 
+	- @ $(RM) tmp.2
+	- @ $(RM) version.o
+	- @ $(RM) ctdt.c ctdt.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) -o tmp.o dataSegPad.o $(MACH_DEP) usrConfig_st.o \
+		      $(ROMFS_IMAGE) version.o \
+		      $(LD_PARTIAL_START_GROUP) $(LD_LINK_PATH) \
+		      $(COMP_LIBS) $(LIBS) $(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(call cleanBuildVars)
+	$(call genBuildVars)
+	$(NM) tmp.o | $(MUNCH) -vars build_vars_list >ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(CP) tmp.o tmp.2
+	$(LDOUT_SYMS) tmp.o
+	$(MKSYMTBL) tmp.o symTbl.c
+	$(COMPILE_SYMTBL) symTbl.c
+	$(LD) $(LDFLAGS) $(LD_ENTRY_OPT) $(SYS_ENTRY) $(LD_LOW_FLAGS) -o $@ \
+	      tmp.2 symTbl.o ctdt.o $(LD_DATA_SEG_ALIGN) $(LD_SCRIPT_RAM)
+	$(LDOUT_SYMS) $@
+	$(LDOUT_CONV) $@
+	$(VXSIZEPROG) -v $(RAM_HIGH_ADRS) $(RAM_LOW_ADRS) vxWorks.st
+	- @ $(RM) tmp.?	 
+ifneq ($(ADJUST_VMA), $(DEFAULT_ADJUST_VMA))
+	$(KERNEL_VMA_ADJUST) vxWorks.st
+endif
+
+# vxWorks.st_rom - rommable standalone version using ROM compression
+#   This builds a standalone VxWorks image that can be put in ROM.
+#   It includes a linked in symbol table so that a complete VxWorks with
+#   shell and symbol table can be put in ROM.  Since these systems tend to
+#   be larger, ROM compression is used.
+#   This rule also creates vxImage.o for use as a "core" file (to provide
+#   a symbol table) for the target server.
+#   Note: this uses larger EEPROMs, the user is advised to check the
+#   macros for ROM sizes and offsets for compatibility.
+
+vxWorks.st.Z.s : depend.$(BSP_NAME) usrConfig_st.o $(ROMFS_IMAGE) dataSegPad.o \
+			$(MACH_DEP) $(LDDEPS) $(patsubst -l%,lib%.a,$(COMP_LIBS)) \
+                        $(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ 
+	- @ $(RM) tmp.o 
+	- @ $(RM) tmp.1 
+	- @ $(RM) tmp.2 
+	- @ $(RM) tmp.3 
+	- @ $(RM) tmp.Z 
+	- @ $(RM) symTbl.c 
+	- @ $(RM) symTbl.o
+	- @ $(RM) version.o
+	- @ $(RM) ctdt.c ctdt.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) -o tmp.1 dataSegPad.o $(MACH_DEP) usrConfig_st.o \
+		      $(ROMFS_IMAGE) version.o $(LD_PARTIAL_START_GROUP) \
+		      $(LD_LINK_PATH) $(COMP_LIBS) $(LIBS) $(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(call cleanBuildVars)
+	$(call genBuildVars)
+	$(NM) tmp.1 | $(MUNCH) -vars build_vars_list >ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(CP) tmp.1 tmp.o
+	$(LDOUT_SYMS) tmp.o
+	$(MKSYMTBL) tmp.o symTbl.c
+	$(COMPILE_SYMTBL) symTbl.c
+	$(LD) -o tmp.2 $(LDFLAGS) $(ROM_LDFLAGS) $(LD_ENTRY_OPT) $(SYS_ENTRY) \
+	      $(LD_LOW_FLAGS) tmp.1 symTbl.o ctdt.o $(LD_DATA_SEG_ALIGN) \
+	      $(LD_SCRIPT_RAM)
+	$(CP) tmp.2 vxImage.o
+	$(LDOUT_HOST) tmp.2
+	$(LDOUT_CONV) tmp.2
+	$(EXTRACT_BIN) tmp.2 tmp.3
+	$(COMPRESS) < tmp.3 >tmp.Z
+	$(BINTOASM) tmp.Z > $@
+	- @ $(RM) tmp.?
+
+vxWorks.st_rom : depend.$(BSP_NAME) bootInit_st.o romInit.o \
+			vxWorks.st.Z.o $(LDDEPS) $(patsubst -l%,lib%.a,$(COMP_LIBS)) \
+			$(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) $(BOOT_EXTRA) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $(IMI) 
+	- @ $(RM) $(IBR)
+	- @ $(RM) version.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD) $(LDFLAGS) $(LD_ENTRY_OPT) $(ROM_ENTRY) $(LD_HIGH_FLAGS) \
+		-o $@ romInit.o bootInit_st.o version.o $(BOOT_EXTRA) \
+		$(LD_START_GROUP) $(LD_LINK_PATH) $(COMP_LIBS) $(LIBS) $(LD_END_GROUP) \
+		$(CC_LIB) vxWorks.st.Z.o $(LD_DATA_SEG_NOALIGN) $(LD_SCRIPT_RAM)
+	$(ROMSIZEPROG) -b $(ROM_SIZE) $@ 
+	$(LDOUT_CONV) $@
+	$(POST_BUILD_RULE)
+
+# vxWorks.res_rom - rommable standalone version without compression
+#   This builds a standalone VxWorks image that can be put in ROM.
+#   It includes a linked in symbol table so that a complete VxWorks with
+#   shell and symbol table can be put in ROM. Only the data segment
+#   of this ROM image is copied into RAM.
+
+vxWorks.res_rom: depend.$(BSP_NAME) bootInit_res.o romInit_res.o \
+			usrConfig_st.o $(ROMFS_IMAGE) $(MACH_DEP) $(LDDEPS) \
+			$(patsubst -l%,lib%.a,$(COMP_LIBS)) \
+                        $(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ tmp.o 
+	- @ $(RM) tmp.1 
+	- @ $(RM) symTbl.c 
+	- @ $(RM) symTbl.o 
+	- @ $(RM) $(IMI) 
+	- @ $(RM) $(IBR)
+	- @ $(RM) version.o
+	- @ $(RM) ctdt.c ctdt.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) -o tmp.o $(MACH_DEP) usrConfig_st.o \
+		      $(ROMFS_IMAGE) version.o \
+		      $(LD_PARTIAL_START_GROUP) $(LD_LINK_PATH) $(COMP_LIBS) $(LIBS) \
+		      $(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(call cleanBuildVars)
+	$(call genBuildVars)
+	$(NM) tmp.o | $(MUNCH) -vars build_vars_list > ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(CP) tmp.o tmp.1
+	$(LDOUT_SYMS) tmp.1
+	$(MKSYMTBL) tmp.1 symTbl.c
+	$(COMPILE_SYMTBL) symTbl.c
+	$(LD) -o $@ $(LDFLAGS) $(RES_LDFLAGS) $(ROM_LDFLAGS) $(LD_ENTRY_OPT) \
+	      $(ROM_ENTRY) $(RES_LOW_FLAGS) romInit_res.o bootInit_res.o \
+	      symTbl.o tmp.o $(LD_START_GROUP) $(LD_LINK_PATH) $(COMP_LIBS) $(LIBS) \
+	      $(LD_END_GROUP) $(CC_LIB) ctdt.o $(LD_SCRIPT_ROM)
+	$(LDOUT_HOST) $@
+	$(ROMSIZEPROG) -b $(ROM_SIZE) $@
+	$(LDOUT_CONV) $@
+	- @ $(RM) tmp.? 
+
+vxWorks.res_rom_res_low: depend.$(BSP_NAME) bootInit_res_low.o \
+		romInit_res_low.o usrConfig_st.o $(ROMFS_IMAGE) $(MACH_DEP) \
+		$(LDDEPS) $(patsubst -l%,lib%.a,$(COMP_LIBS)) \
+                $(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) $(ROM_EXTRA) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ 
+	- @ $(RM) tmp.o 
+	- @ $(RM) tmp.1 
+	- @ $(RM) symTbl.c 
+	- @ $(RM) symTbl.o 
+	- @ $(RM) $(IMI) 
+	- @ $(RM) $(IBR)
+	- @ $(RM) version.o
+	- @ $(RM) ctdt.c ctdt.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) -o tmp.o $(MACH_DEP) usrConfig_st.o \
+		      $(ROMFS_IMAGE) version.o \
+		      $(LD_PARTIAL_START_GROUP) $(LD_LINK_PATH) $(COMP_LIBS) $(LIBS) \
+		      $(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(call cleanBuildVars)
+	$(call genBuildVars)
+	$(NM) tmp.o | $(MUNCH) -vars build_vars_list >ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(CP) tmp.o tmp.1
+	$(LDOUT_SYMS) tmp.1
+	$(MKSYMTBL) tmp.1 symTbl.c
+	$(COMPILE_SYMTBL) symTbl.c
+	$(LD) -o $@ $(LDFLAGS) $(RES_LDFLAGS) $(ROM_LDFLAGS) $(LD_ENTRY_OPT) \
+	      $(ROM_ENTRY) $(RES_LOW_FLAGS) romInit_res_low.o $(ROM_EXTRA) \
+	      bootInit_res_low.o symTbl.o tmp.o ctdt.o $(LD_SCRIPT_ROM)
+	$(LDOUT_HOST) $@
+	$(ROMSIZEPROG) -b $(ROM_SIZE) $@
+	$(LDOUT_CONV) $@
+	- @ $(RM) tmp.? 
+
+# vxWorks.res_rom_nosym - rommable standalone version without symbol table
+#   This builds a standalone VxWorks image that can be put in ROM.
+#   There is no symbol table. Only the data segment
+#   of this ROM image is copied into RAM.
+
+vxWorks.res_rom_nosym: depend.$(BSP_NAME) bootInit_res.o romInit_res.o \
+			usrConfig.o $(ROMFS_IMAGE) $(MACH_DEP) $(LDDEPS) \
+			$(patsubst -l%,lib%.a,$(COMP_LIBS)) \
+                        $(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) $(ROM_EXTRA) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ tmp.o 
+	- @ $(RM) tmp.1 
+	- @ $(RM) symTbl.c 
+	- @ $(RM) symTbl.o 
+	- @ $(RM) $(IMI) 
+	- @ $(RM) $(IBR)
+	- @ $(RM) version.o
+	- @ $(RM) ctmp.o ctdt.c ctdt.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) -o ctmp.o $(LDFLAGS) usrConfig.o $(ROMFS_IMAGE) \
+                      $(MACH_DEP) version.o \
+		      $(LD_PARTIAL_START_GROUP) $(LD_LINK_PATH) $(COMP_LIBS) $(LIBS) \
+		      $(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(call cleanBuildVars)
+	$(call genBuildVars)
+	$(NM) ctmp.o | $(MUNCH) -vars build_vars_list >ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(LD) -o $@ $(LDFLAGS) $(RES_LDFLAGS) $(ROM_LDFLAGS) $(LD_ENTRY_OPT) \
+	      $(ROM_ENTRY) $(RES_LOW_FLAGS) romInit_res.o $(ROM_EXTRA) bootInit_res.o \
+	      ctmp.o ctdt.o $(LD_SCRIPT_ROM)
+	- @ $(RM) ctmp.o
+	$(LDOUT_HOST) $@
+	$(ROMSIZEPROG) -b $(ROM_SIZE) $@
+	$(LDOUT_CONV) $@
+
+vxWorks.res_rom_nosym_res_low: depend.$(BSP_NAME) bootInit_res_low.o \
+		romInit_res_low.o usrConfig.o $(ROMFS_IMAGE) $(MACH_DEP) \
+		$(LDDEPS) $(patsubst -l%,lib%.a,$(COMP_LIBS)) \
+                $(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) $(ROM_EXTRA) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ 
+	- @ $(RM) tmp.o 
+	- @ $(RM) tmp.1 
+	- @ $(RM) symTbl.c 
+	- @ $(RM) symTbl.o 
+	- @ $(RM) $(IMI) 
+	- @ $(RM) $(IBR)
+	- @ $(RM) version.o
+	- @ $(RM) ctmp.o ctdt.c ctdt.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) -o ctmp.o usrConfig.o $(ROMFS_IMAGE) \
+		      $(MACH_DEP) version.o \
+		      $(LD_PARTIAL_START_GROUP) $(LD_LINK_PATH) $(COMP_LIBS) $(LIBS) \
+		      $(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(call cleanBuildVars)
+	$(call genBuildVars)
+	$(NM) ctmp.o | $(MUNCH) -vars build_vars_list >ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(LD) -o $@ $(LDFLAGS) $(RES_LDFLAGS) $(ROM_LDFLAGS) $(LD_ENTRY_OPT) \
+	      $(ROM_ENTRY) $(RES_LOW_FLAGS) romInit_res_low.o $(ROM_EXTRA) \
+	      bootInit_res_low.o ctmp.o ctdt.o $(LD_SCRIPT_ROM)
+	- @ $(RM) ctmp.o
+	$(ROMSIZEPROG) -b $(ROM_SIZE) $@
+	$(LDOUT_CONV) $@
+	- @ $(RM) tmp.? 
+
+################################# bootapp ######################################
+#
+# bootapp		- compressed bootapp object module
+# bootapp.sym		- compressed bootapp's symbol table
+# bootapp.hex		- compressed bootapp hex format
+#
+# Bootapps do not normally contain static C++ objects. Therefore, the
+# rules below do not contain steps to munch VxWorks. If you add static
+# objects to your bootrom configuration, you will need to munch your
+# bootrom image. See the rules for the vxWorks image, above, for an example.
+#
+
+bootapp.Z.s : depend.$(BSP_NAME) usrConfig_ba.o dataSegPad.o \
+                        $(MACH_DEP) $(LDDEPS) \
+			$(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ 
+	- @ $(RM) tmp.o 
+	- @ $(RM) tmp.1 
+	- @ $(RM) tmp.2 
+	- @ $(RM) tmp.3 
+	- @ $(RM) tmp.out
+	- @ $(RM) tmp.Z
+	- @ $(RM) version.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	    $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) -o tmp.1 dataSegPad.o $(MACH_DEP) usrConfig_ba.o \
+		      version.o $(LD_PARTIAL_START_GROUP) \
+		      $(LD_LINK_PATH) $(COMP_LIBS) $(LIBS) $(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(NM) tmp.1 | $(MUNCH) >ctdt.c
+	$(CP) tmp.1 tmp.o
+	$(LDOUT_SYMS) tmp.o
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(LD) -o tmp.2 $(LDFLAGS) $(ROM_LDFLAGS) $(LD_ENTRY_OPT) $(SYS_ENTRY) \
+	      $(LD_HIGH_FLAGS) tmp.1 ctdt.o $(LD_DATA_SEG_NOALIGN) \
+	      $(LD_SCRIPT_RAM)
+	$(CP) tmp.2 vxImage.o
+	$(LDOUT_HOST) tmp.2
+	$(LDOUT_CONV) tmp.2
+	$(EXTRACT_BIN) tmp.2 tmp.3
+	$(COMPRESS) < tmp.3 >tmp.Z
+	$(BINTOASM) tmp.Z > $@
+	$(LDOUT_CONV) tmp.o
+	$(BINXSYM) tmp.o bootapp.sym
+	$(LDOUT_SYMS) bootapp.sym
+	- @ $(RM) tmp.?
+
+bootapp : depend.$(BSP_NAME) bootInit.o romInit.o bootapp.Z.o \
+		$(LDDEPS) $(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) \
+		$(BOOT_EXTRA) $(VXBUSRCMDLINE) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ 
+	- @ $(RM) $(IMI) 
+	- @ $(RM) $(IBR)
+	- @ $(RM) version.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+		$(CONFIG_ALL)/version.c
+	$(LD) $(LDFLAGS) $(LD_ENTRY_OPT) $(ROM_ENTRY) $(LD_LOW_FLAGS) \
+		-o $@ romInit.o bootInit.o version.o $(BOOT_EXTRA) \
+		bootapp.Z.o $(CC_LIB) \
+		$(LD_START_GROUP) $(LD_LINK_PATH) $(LIBS) $(LD_END_GROUP) \
+		$(CC_LIB) $(LD_DATA_SEG_NOALIGN) $(LD_SCRIPT_RAM)
+	$(ROMSIZEPROG) -b $(ROM_SIZE) $@
+	$(LDOUT_CONV) $@
+	$(POST_BUILD_RULE)
+
+################################# bootrom ######################################
+#
+# bootrom		- compressed bootrom object module
+# bootrom.hex		- compressed bootrom hex format
+# bootrom_uncmp		- noncompressed bootrom object module
+# bootrom_uncmp.hex	- noncompressed bootrom hex format
+#
+# Bootroms do not normally contain static C++ objects. Therefore, the
+# rules below do not contain steps to munch VxWorks. If you add static
+# objects to your bootrom configuration, you will need to munch your
+# bootrom image. See the rules for the vxWorks image, above, for an example.
+#
+
+bootrom : depend.$(BSP_NAME) bootInit.o romInit.o bootapp.Z.o \
+		$(LDDEPS) $(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) \
+		$(BOOT_EXTRA) $(VXBUSRCMDLINE) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ 
+	- @ $(RM) $(IMI) 
+	- @ $(RM) $(IBR)
+	- @ $(RM) version.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+		$(CONFIG_ALL)/version.c
+	$(LD) $(LDFLAGS) $(LD_ENTRY_OPT) $(ROM_ENTRY) $(LD_LOW_FLAGS) \
+		-o $@ romInit.o bootInit.o version.o $(BOOT_EXTRA) \
+		bootapp.Z.o $(CC_LIB) \
+		$(LD_START_GROUP) $(LD_LINK_PATH) $(LIBS) $(LD_END_GROUP) \
+		$(CC_LIB) $(LD_DATA_SEG_NOALIGN) $(LD_SCRIPT_RAM)
+	$(ROMSIZEPROG) -b $(ROM_SIZE) $@
+	$(LDOUT_CONV) $@
+	$(POST_BUILD_RULE)
+
+bootrom_uncmp : depend.$(BSP_NAME) bootInit_uncmp.o romInit.o \
+			usrConfig_ba.o $(MACH_DEP) $(LDDEPS) \
+			$(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) $(ROM_EXTRA) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ 
+	- @ $(RM) $(IMI) 
+	- @ $(RM) $(IBR)
+	- @ $(RM) version.o
+	- @ $(RM) ctmp.o ctdt.c ctdt.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) -o ctmp.o usrConfig_ba.o $(MACH_DEP) version.o \
+		$(LD_PARTIAL_START_GROUP) $(LD_LINK_PATH) $(LIBS) \
+		$(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(NM) ctmp.o | $(MUNCH) > ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(LD) $(LDFLAGS) $(ROM_LDFLAGS) $(LD_ENTRY_OPT) $(ROM_ENTRY)  \
+              $(LD_LINK_PATH) $(LIBS) \
+              $(LD_HIGH_FLAGS) -o $@ romInit.o $(ROM_EXTRA) bootInit_uncmp.o \
+              ctmp.o ctdt.o $(LD_DATA_SEG_NOALIGN) $(LD_SCRIPT_RAM)
+	- @ $(RM) ctmp.o
+	$(LDOUT_HOST) $@
+	$(ROMSIZEPROG) -b $(ROM_SIZE) $@
+	$(LDOUT_CONV) $@
+
+bootrom_res : depend.$(BSP_NAME) bootInit_res.o romInit_res.o  \
+			usrConfig_ba.o $(MACH_DEP) $(LDDEPS) \
+			$(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) $(ROM_EXTRA) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@
+	- @ $(RM) $(IMI)
+	- @ $(RM) $(IBR)
+	- @ $(RM) version.o
+	- @ $(RM) ctmp.o ctdt.c ctdt.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) -o ctmp.o usrConfig_ba.o $(MACH_DEP) version.o \
+		$(LD_PARTIAL_START_GROUP) $(LD_LINK_PATH) $(LIBS) \
+		$(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(NM) ctmp.o | $(MUNCH) > ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(LD) $(LDFLAGS) $(RES_LDFLAGS) $(ROM_LDFLAGS) $(LD_ENTRY_OPT) \
+		$(ROM_ENTRY) $(RES_HIGH_FLAGS) -o $@ romInit_res.o \
+		$(ROM_EXTRA) bootInit_res.o ctmp.o ctdt.o $(LD_SCRIPT_ROM)
+	- @ $(RM) ctmp.o
+	$(LDOUT_HOST) $@
+	$(ROMSIZEPROG) -b $(ROM_SIZE) $@
+	$(LDOUT_CONV) $@
+
+bootrom_res_high : depend.$(BSP_NAME) bootInit_res_high.o \
+			romInit_res_high.o usrConfig_ba.o $(MACH_DEP) \
+			$(LDDEPS) $(patsubst -l%,lib%.a,$(LIBS)) $(CC_LIB) \
+			$(ROM_EXTRA) $(TOOL_OPTIONS_FILES_ALL)
+	- @ $(RM) $@ 
+	- @ $(RM) $(IMI) 
+	- @ $(RM) $(IBR)
+	- @ $(RM) version.o
+	- @ $(RM) ctmp.o ctdt.c ctdt.o
+	$(CC) $(OPTION_OBJECT_ONLY) $(CFLAGS) -o version.o \
+	      $(CONFIG_ALL)/version.c
+	$(LD_PARTIAL) -o ctmp.o usrConfig_ba.o $(MACH_DEP) version.o \
+		$(LD_PARTIAL_START_GROUP) $(LD_LINK_PATH) $(LIBS) \
+		$(LD_PARTIAL_END_GROUP) $(CC_LIB)
+	$(NM) ctmp.o | $(MUNCH) > ctdt.c
+	$(MAKE) CC_COMPILER="$(OPTION_DOLLAR_SYMBOLS)" ctdt.o
+	$(LD) $(LDFLAGS) $(RES_LDFLAGS) $(ROM_LDFLAGS) $(LD_ENTRY_OPT) \
+		$(ROM_ENTRY) $(RES_HIGH_FLAGS) -o $@ romInit_res_high.o \
+		$(ROM_EXTRA) bootInit_res_high.o ctmp.o ctdt.o $(LD_SCRIPT_ROM)
+	- @ $(RM) ctmp.o
+	$(LDOUT_HOST) $@
+	$(ROMSIZEPROG) -b $(ROM_SIZE) $@
+	$(LDOUT_CONV) $@
+
+imi :	$(IBR)
+	$(LD) -o $@ $(LD_IMI_ADRS) $(IBR)
+
+ifneq ($(MK_VXBCMDLINE),TRUE)
+$(WIND_BASE)/target/config/all/vxbUsrCmdLine.c:
+	$(MAKE) -C $(WIND_BASE)/target/config/comps/src/hwif $(WIND_BASE)/target/config/all/vxbUsrCmdLine.c
+endif
+
+ifneq ($(MK_VXBMETHODDECL),TRUE)
+$(WIND_BASE)/target/h/hwif/vxbus/vxbMethodDecl.h:
+	$(MAKE) -C $(WIND_BASE)/target/src/hwif/methods $(WIND_BASE)/target/h/hwif/vxbus/vxbMethodDecl.h
+endif
+	
+###############################################################################
+#
+# %.old - convert to old OMF's on targets that migrated to ELF
+#
+# Used by command-line users
+
+%.old:	%
+	- @ $(RM) $@
+	$(BINCONV) $(OBJCOPY_OLD_OMF) $< $@
+
+###############################################################################
+#
+# %.bin - convert to binary image
+#
+# Used by command-line users
+
+%.bin:	%
+	- @ $(RM) $@
+	$(EXTRACT_BIN) $< $@
+
+###############################################################################
+#
+# %.hex - convert kernel and bootrom executables to S-record image
+#
+# Used by command-line users
+
+%.hex:	% depend.$(BSP_NAME) $(IMI)
+	- @ $(RM) $@
+	- @ $(RM) out.tmp
+	$(BINHEX) $(START_FLAGS) $(HEX_FLAGS) $(SECT_SPEC)$<$(TXT_OFFSET) $@
+ifneq ($(strip $(NO_VMA_FLAGS)),)
+	$(MV) $@ out.tmp
+	$(BINCONV) $(NO_VMA_FLAGS) out.tmp $@
+	$(RM) out.tmp
+endif
+ifneq ($(strip $(VMA_FLAGS)),)
+	$(MV) $@ out.tmp
+	$(BINCONV) $(VMA_FLAGS) out.tmp $@$(MAP_EXT)
+	$(RM) out.tmp
+endif
+	- @ $(MV_BIN)
+	$(POST_HEX_BUILD_RULE)
+
+
+endif # SMP
+
+###############################################################################
+#
+# headerMacros - output the values of all header macros
+#
+# Used by the project creation scripts
+
+headerMacros: sysLib.c $(TOOL_OPTIONS_FILES_ALL)
+	@@  $(CPP_PRINT_MACROS) $(CDF_OVERRIDE) $(CFLAGS_OPTIONS_ALL) $(ALLFLAGS_VSBDEFS) sysLib.c
+
+###############################################################################
+#
+# makeMacrosReferred - output makefile-macros referred by project
+# 
+
+makeMacrosReferred:
+	$(NOP) VX_OS_LIBS = $(VX_OS_LIBS)
+
+###############################################################################
+#
+# makeMacros - output makefile-macros related to toolchain settings
+# 
+# Used by the project creation scripts
+
+makeMacros:
+	@ $(ECHO) '$(NOP) CPU = $(CPU)\n\
+$(NOP) TOOL = $(TOOL)\n\
+$(NOP) AR = $(AR)\n\
+$(NOP) CC = $(CC)\n\
+$(NOP) CPP = $(CPP)\n\
+$(NOP) NM = $(NM)\n\
+$(NOP) SIZE = $(SIZE)\n\
+$(NOP) AS = $(AS)\n\
+$(NOP) LD = $(LD)\n\
+$(NOP) CFLAGS_AS = $(CFLAGS_AS)\n\
+$(NOP) C++FLAGS = $(C++FLAGS)\n\
+$(NOP) CFLAGS_PROJECT = $(CFLAGS_PROJECT)\n\
+$(NOP) CFLAGS_AS_PROJECT = $(CFLAGS_AS_PROJECT)\n\
+$(NOP) LD_PARTIAL = $(LD_PARTIAL)\n\
+$(NOP) LD_PARTIAL_FLAGS = $(LD_PARTIAL_FLAGS)\n\
+$(NOP) EXTRA_CFLAGS = $(EXTRA_INCLUDE) $(EXTRA_DEFINE) $(OPT_DEFINE) $(ADDED_CFLAGS)\n\
+$(NOP) LIBS = $(LIB_EXTRA) $$(VX_OS_LIBS)\n\
+$(NOP) LD_LINK_PATH = $(LD_LINK_PATH)\n\
+$(NOP) LDDEPS = $(LDDEPS)\n\
+$(NOP) BOOT_EXTRA = $(BOOT_EXTRA)\n\
+$(NOP) MACH_DEP = $(MACH_DEP)\n\
+$(NOP) OPTION_DEPEND = $(OPTION_DEPEND)\n\
+$(NOP) OPTION_LANG_C = $(OPTION_LANG_C)\n\
+$(NOP) CC_ARCH_SPEC = $(CC_ARCH_SPEC)\n\
+$(NOP) TOOL_FAMILY = $(TOOL_FAMILY)\n\
+$(NOP) HEX_FLAGS = $(HEX_FLAGS)'
+ifneq ($(DEPEND_GEN_UTIL),)
+	@ $(ECHO) "$(NOP) DEPEND_GEN_UTIL = $(DEPEND_GEN_UTIL)"
+endif
+
+ifeq ($(CPU_TO_BUILD),$(CPU))
+ifeq ($(TOOL_TO_USE),$(TOOL))
+checkCpuAndBuild: $(TARGET)
+	@echo done
+else
+checkCpuAndBuild:
+	@echo nothing to do for BSP $(BSP_NAME)
+endif
+else
+checkCpuAndBuild:
+	@echo nothing to do for BSP $(BSP_NAME)
+endif
+
+.PHONY : echoBsp
+
+echoBsp :
+	@echo Bsp $(BSP_NAME) {
+	@echo CPU $(CPU)
+ifdef ENDIAN
+	@echo ENDIAN $(ENDIAN)
+endif
+ifdef FP
+	@echo FP $(FP)
+endif
+	@echo }
+
+#
+# It is possible to generate dependency lists automatically by depending on 
+# a make include file:
+#
+#     with: 		GNU make, SunOS 4.x/5.x make.
+#     but not with: 	clearmake, HPUX 9.x make, and probably plenty of others.
+#
+# If depend.$(BSP_NAME) has been removed and you are haplessly without
+# a copy of GNU make:
+#
+#	% # In the BSP in question...
+#	% touch depend.$(BSP_NAME)
+#	% make depend.$(BSP_NAME)
+#	% make
+#
+# Order in the Universe should be restored.
+#
+
+
+C_FILES := $(wildcard *.c $(CONFIG_ALL)/*.c)
+CPP_FILES := $(wildcard *.cpp $(CONFIG_ALL)/*.cpp)
+
+#
+# Create a dependency file if there are any C_FILES or CPP_FILES discovered
+#
+depend.$(BSP_NAME) : $(TOOL_OPTIONS_FILES_ALL)
+	@echo "# Dependency file created for $@" > $@
+ifneq ($(C_FILES),) 
+	# C dependencies found
+	#
+	$(CC) $(OPTION_DEPEND_C) $(CFLAGS) $(filter-out $(NODEPENDOBJS),$(C_FILES)) >> $@
+endif
+ifneq ($(CPP_FILES),) 
+	# CPP dependencies found
+	#
+	$(CPP) $(OPTION_DEPEND_C) $(C++FLAGS) $(filter-out $(NODEPENDOBJS),$(CPP_FILES)) >> $@ 
+endif
+
+# The two files below may not be present for simulators. So ignore the error
+# returned by the compiler if the file does not exist.
+
+ifneq ($(wildcard romInit.s),)
+	$(CPP) $(OPTION_DEPEND_AS) $(CASFLAGS) romInit.s >> $@
+endif
+ifneq ($(wildcard sysALib.s),)
+	$(CPP) $(OPTION_DEPEND_AS) $(CASFLAGS) sysALib.s >> $@
+endif
+
+# Post process the dependencies to substitute WIND variables
+
+	- @ $(BSP_PROCESS_DEP)
+
+# XXX generic rule for assembly files forthcoming
+
+ifneq ($(IS_PRJ),TRUE)
+
+BSP2PRJ=FALSE
+ifeq ($(BSP2PRJ),FALSE)
+ifneq ($(MAKECMDGOALS),clean) 
+ifeq ($(wildcard depend.$(BSP_NAME)),depend.$(BSP_NAME))
+-include depend.$(BSP_NAME)
+endif
+endif
+endif
+
+endif
+
+
+# Include BSP Test component rules if installed.
+-include $(TGT_DIR)/h/make/rules.bsptest
+
+include $(TGT_DIR)/h/make/rules.$(WIND_HOST_TYPE)
+
+# Include rules that support packaging of a bsp
+-include $(WIND_HOME)/setup/make/rules.resourcezip
+
+DOC_DIR	= $(DOCS_ROOT)/com.windriver.ide.doc.bsp
+
+# Include IPCOM make rules to support IPCOM build
+include $(WRVX_COMPBASE)/$(COMP_IPNET2)/osconfig/vxworks/make/rules.ipcom

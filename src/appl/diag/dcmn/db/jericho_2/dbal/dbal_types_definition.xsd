@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+<xs:include schemaLocation="dbal_fields_enumerator.xsd"/>
+
+<!-- General Types and Attributes -->
+    <xs:attributeGroup name="NameAttr">
+        <xs:attribute name="Name">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="50"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="instanceIndexAttr">
+         <xs:attribute name="instanceIndex" type="xs:integer" use="optional" />
+    </xs:attributeGroup>
+
+    <xs:simpleType name="LabelListType">
+        <xs:list>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="SYSTEM"/>
+                    <xs:enumeration value="L2"/>
+                    <xs:enumeration value="L3"/>
+                    <xs:enumeration value="MPLS"/>
+                    <xs:enumeration value="FCOE"/>
+                    <xs:enumeration value="SNIF"/>
+                    <xs:enumeration value="ECGM"/>
+                    <xs:enumeration value="ICGM"/>
+                    <xs:enumeration value="SCHEDULER"/>
+                    <xs:enumeration value="ITM"/>
+                    <xs:enumeration value="ETM"/>
+                    <xs:enumeration value="STACK"/>
+                    <xs:enumeration value="LAG"/>
+                    <xs:enumeration value="MULTICAST"/>
+                    <xs:enumeration value="FABRIC"/>
+                    <xs:enumeration value="NIF"/>
+                    <xs:enumeration value="FC"/>
+                    <xs:enumeration value="CRPS"/>
+                    <xs:enumeration value="MIRROR"/>
+                    <xs:enumeration value="SNOOP"/>
+                    <xs:enumeration value="OAM"/>
+                    <xs:enumeration value="BFD"/>
+                    <xs:enumeration value="PARSER"/>
+                    <xs:enumeration value="VSWITCH"/>
+                    <xs:enumeration value="PP_PORT"/>
+                    <xs:enumeration value="VLAN_TRANSLATION"/>
+                    <xs:enumeration value="VLAN"/>
+                    <xs:enumeration value="L2_LEARNING"/>
+                    <xs:enumeration value="VPLS"/>
+                    <xs:enumeration value="VPWS"/>
+                    <xs:enumeration value="EVPN"/>
+                    <xs:enumeration value="TRILL"/>
+                    <xs:enumeration value="L2GRE"/>
+                    <xs:enumeration value="MIN"/>
+                    <xs:enumeration value="VXLAN"/>
+                    <xs:enumeration value="ROO"/>
+                    <xs:enumeration value="HASHING"/>
+                    <xs:enumeration value="QOS_PHB"/>
+                    <xs:enumeration value="QOS_REMARKING"/>
+					<xs:enumeration value="STG"/>
+					<xs:enumeration value="L3_IF_RIF"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:list>
+    </xs:simpleType>
+
+    <xs:simpleType name="DeviceSpecificData">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="DNX_DATA[.][a-zA-Z0-9_]+[.][a-zA-Z0-9_]+[.][a-zA-Z0-9_]+(([.][a-zA-Z0-9_]+)|([*]{0}))"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+<!-- Fields Types and Attributes -->
+    <xs:attributeGroup name="FieldDefinitionAttr">
+        <xs:attribute name="Name">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="50"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Size">
+            <xs:simpleType>
+                <xs:union>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:positiveInteger"/>
+                    </xs:simpleType>
+                    <xs:simpleType>
+                         <xs:restriction base="DeviceSpecificData"/>
+                   </xs:simpleType>
+                </xs:union>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="InstanceSupport" use="optional" >
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="FALSE"/>
+                    <xs:enumeration value="TRUE"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="FieldTypeAttr">
+        <xs:attribute name="Type">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="BOOL"/>
+                <xs:enumeration value="INT32"/>
+                <xs:enumeration value="UINT32"/>
+                <xs:enumeration value="IP"/>
+                <xs:enumeration value="ARRAY8"/>
+                <xs:enumeration value="ARRAY32"/>
+                <xs:enumeration value="BITMAP"/>
+                <xs:enumeration value="ENUM"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+    </xs:attributeGroup>
+
+    <xs:complexType name="ParentFieldType">
+        <xs:attribute name="Name">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="50"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:attributeGroup name="FieldEncodeAttr">
+        <xs:attribute name="EncodeType">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="NONE"/>
+                    <xs:enumeration value="BOOL"/>
+                    <xs:enumeration value="PREFIX"/>
+                    <xs:enumeration value="SUFFIX"/>
+                    <xs:enumeration value="SUBTRACT"/>
+                    <xs:enumeration value="HARD_VALUE"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Value" type="xs:integer"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="EnumValsAttr">
+        <xs:attribute name="Name">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="50"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Description" type="xs:string"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="EnumMappingAttr">
+        <xs:attribute name="Name">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="50"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Value" type="xs:integer"/>
+    </xs:attributeGroup>
+
+<!-- Tables Types and Attributes -->
+    <xs:attributeGroup name="TableDefinitionAttr">
+        <xs:attribute name="Name">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="50"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Valid" type="DeviceSpecificData" use="optional" />
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="FieldInTableAttr">
+        <xs:attribute name="Name" type="FieldNamesEnum"/>
+        <xs:attribute name="NofInstances" use="optional" />
+        <xs:attribute name="Size" use="optional" >
+            <xs:simpleType>
+                <xs:union>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:positiveInteger"/>
+                    </xs:simpleType>
+                    <xs:simpleType>
+                        <xs:restriction base="DeviceSpecificData"/>
+                   </xs:simpleType>
+                </xs:union>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Offset" type="xs:positiveInteger" use="optional" />
+        <xs:attribute name="Valid" type="DeviceSpecificData" use="optional" />
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="ResultTypeFieldInTableAttr">
+        <xs:attribute name="Name" type="xs:string" fixed="RESULT_TYPE"/>
+        <xs:attribute name="Size" use="required">
+            <xs:simpleType>
+                <xs:union>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:positiveInteger"/>
+                    </xs:simpleType>
+                    <xs:simpleType>
+                        <xs:restriction base="DeviceSpecificData"/>
+                   </xs:simpleType>
+                </xs:union>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Offset" type="xs:positiveInteger" use="optional" />
+        <xs:attribute name="Value"  type="xs:string" use="required"/>
+        <xs:attribute name="Description"  type="xs:string" use="required"/>
+    </xs:attributeGroup>
+    
+        <xs:attributeGroup name="PemlaFieldMappingAttr">
+        <xs:attribute name="Name" type="FieldNamesEnum"/>
+        <xs:attribute name="HwValue" type="xs:integer" use="required"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="LogicalTableTypeAttr">
+        <xs:attribute name="Type">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="EM"/>
+                    <xs:enumeration value="TCAM"/>
+                    <xs:enumeration value="DIRECT"/>
+                    <xs:enumeration value="LPM"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:attributeGroup>
+
+    <xs:complexType name="CroeModeType">
+        <xs:attribute name="Mode">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="DPC"/>
+                    <xs:enumeration value="SBC"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:simpleType name="PhyDbType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="TCAM"/>
+            <xs:enumeration value="LPM_PRIVATE"/>
+            <xs:enumeration value="LPM_PUBLIC"/>
+            <xs:enumeration value="ISEM_1"/>
+            <xs:enumeration value="INLIF_1"/>
+            <xs:enumeration value="IVSI"/>
+            <xs:enumeration value="ISEM_2"/>
+            <xs:enumeration value="INLIF_2"/>
+            <xs:enumeration value="ISEM_3"/>
+            <xs:enumeration value="INLIF_3"/>
+            <xs:enumeration value="LEM"/>
+            <xs:enumeration value="IOEM_0"/>
+            <xs:enumeration value="IOEM_1"/>
+            <xs:enumeration value="MAP"/>
+            <xs:enumeration value="FEC_1"/>
+            <xs:enumeration value="FEC_2"/>
+            <xs:enumeration value="FEC_3"/>
+            <xs:enumeration value="MC_ID"/>
+            <xs:enumeration value="GLEM_0"/>
+            <xs:enumeration value="GLEM_1"/>
+            <xs:enumeration value="EEDB_1"/>
+            <xs:enumeration value="EEDB_2"/>
+            <xs:enumeration value="EEDB_3"/>
+            <xs:enumeration value="EEDB_4"/>
+            <xs:enumeration value="EOEM_0"/>
+            <xs:enumeration value="EOEM_1"/>
+            <xs:enumeration value="ESEM"/>
+            <xs:enumeration value="EVSI"/>
+            <xs:enumeration value="EXEM_1"/>
+            <xs:enumeration value="EXEM_2"/>
+            <xs:enumeration value="EXEM_3"/>
+            <xs:enumeration value="EXEM_4"/>
+            <xs:enumeration value="RMEP"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:attributeGroup name="CondAttr">
+        <xs:attribute name="Field" use="optional">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="50"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Type">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="BIGGER_THAN"/>
+                    <xs:enumeration value="LOWER_THAN"/>
+                    <xs:enumeration value="EQUAL_TO"/>
+                    <xs:enumeration value="IS_EVEN"/>
+                    <xs:enumeration value="IS_ODD"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Value" type="xs:integer" use="optional"/>
+        <xs:attribute name="Enum" type="xs:string" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="MemoryOffsetAttr">
+         <xs:attribute name="Field" use="optional">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="50"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+       <xs:attribute name="EncodeType">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="NONE"/>
+                    <xs:enumeration value="BOOL"/>
+                    <xs:enumeration value="MODULO"/>
+                    <xs:enumeration value="DIVIDE"/>
+                    <xs:enumeration value="MULTIPLE"/>
+                    <xs:enumeration value="SUBTRACT"/>
+                    <xs:enumeration value="HARD_VALUE"/>
+                    <xs:enumeration value="PARTIAL_KEY"/>
+                    <xs:enumeration value="MODULO_FIELD"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Value" type="xs:integer" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="HwFieldAttr">
+        <xs:attribute name="Name">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="50"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Offset" type="xs:integer" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:complexType name="MemoryType">
+        <xs:sequence>
+            <xs:element name="Alias" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="DataOffset" minOccurs="0" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:attributeGroup ref="MemoryOffsetAttr"/>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="NameAttr"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ArrayOffset" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="MemoryOffsetAttr"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="EntryOffset" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="MemoryOffsetAttr"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="BlockIndex" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="MemoryOffsetAttr"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="HwField" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="HwFieldAttr"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="DataOffset" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="MemoryOffsetAttr"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="NameAttr"/>
+    </xs:complexType>
+
+    <xs:complexType name="RegisterType">
+        <xs:sequence>
+            <xs:element name="Alias" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="DataOffset" minOccurs="0" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:attributeGroup ref="MemoryOffsetAttr"/>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="NameAttr"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ArrayOffset" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="MemoryOffsetAttr"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="HwField" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="HwFieldAttr"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="DataOffset" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="MemoryOffsetAttr"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="NameAttr"/>
+    </xs:complexType>
+
+     <xs:complexType name="SwStateType">
+       <xs:attribute name="SwType">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="SW"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="TableInterfaceType">
+    <xs:sequence>
+        <xs:element name="Key" minOccurs="1" maxOccurs="1">
+        <xs:complexType>
+        <xs:sequence>
+            <xs:element name="Field" minOccurs="0" maxOccurs="15"> <!-- maxOccurs = DBAL_TABLE_MAX_NUM_OF_KEY_FIELDS -->
+            <xs:complexType>
+                <xs:attributeGroup ref="FieldInTableAttr" />
+            </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        </xs:complexType>
+        </xs:element>
+        <xs:choice>
+            <xs:element name="Result" minOccurs="1" maxOccurs="1">
+            <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Field" minOccurs="1" maxOccurs="70"> <!-- maxOccurs = DBAL_TABLE_MAX_NUM_OF_RESULT_FIELDS -->
+                <xs:complexType>
+                    <xs:attributeGroup ref="FieldInTableAttr" />
+                </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            </xs:complexType>
+            </xs:element>
+            <xs:element name="MultipleResults" minOccurs="1" maxOccurs="1">
+            <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Result" minOccurs="1" maxOccurs="16"> <!-- maxOccurs = DBAL_MAX_NUMBER_OF_RESULT_TYPES -->
+                <xs:complexType>
+                <xs:sequence>
+                    <xs:element name="Field" minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:attributeGroup ref="ResultTypeFieldInTableAttr"/>
+                    </xs:complexType>
+                    </xs:element>
+                    <xs:element name="Field" minOccurs="1" maxOccurs="69"> <!-- maxOccurs = DBAL_TABLE_MAX_NUM_OF_RESULT_FIELDS - 1 -->
+                    <xs:complexType>
+                        <xs:attributeGroup ref="FieldInTableAttr"/>
+                    </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+                </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            </xs:complexType>
+            </xs:element>
+        </xs:choice>
+        <xs:element name="TableLabels" type="LabelListType" minOccurs="1" maxOccurs="1" />
+    </xs:sequence>
+        <xs:attributeGroup ref="LogicalTableTypeAttr"/>
+    </xs:complexType>
+
+    <xs:attributeGroup name="ResultIndicatorMappingAttr">
+         <xs:attribute name="LogicalValue" type="xs:string"/>
+         <xs:attribute name="Value" type="xs:integer"/>
+         <xs:attribute name="Priority" type="xs:integer" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="ResultTypeForFieldMappingAttr">
+         <xs:attribute name="ResultType" type="xs:string" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:complexType name="HwAccessMapping">
+    <xs:sequence>
+        <xs:element name="KeyCondition" minOccurs="0" maxOccurs="5" > <!-- maxOccurs = DBAL_DIRECT_ACCESS_MAX_NUM_OF_CONDITIONS -->
+        <xs:complexType>
+            <xs:attributeGroup ref="CondAttr" />
+        </xs:complexType>
+        </xs:element>
+        <xs:choice>
+            <xs:element name="Memory" type="MemoryType" />
+            <xs:element name="Register" type="RegisterType" />
+            <xs:element name="SwState" type="SwStateType" />
+        </xs:choice>
+    </xs:sequence>
+    <xs:attributeGroup ref="instanceIndexAttr"/>
+    </xs:complexType>
+
+    <xs:complexType name="SwAccessMapping">
+    <xs:sequence>
+        <xs:element name="SwState" type="SwStateType" />
+    </xs:sequence>
+    </xs:complexType>
+
+
+</xs:schema>
+

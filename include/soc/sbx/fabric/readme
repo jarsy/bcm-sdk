@@ -1,0 +1,8 @@
+/* $Id$
+* $Copyright: (c) 2016 Broadcom.
+* Broadcom Proprietary and Confidential. All rights reserved.$
+*/
+
+This directory contains the zframes related to the BM3200/QE2000.  These are
+generated and put in this directory.
+

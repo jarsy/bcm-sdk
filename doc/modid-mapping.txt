@@ -1,0 +1,575 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+
+                      BCM5675 Module ID Remapping
+
+                              Nithya Miyar
+                             Curt McDowell
+                        Broadcom Corp. 09-08-03
+                         Last Updated: 03-28-04
+
+------------------------------------------------------------------------------
+
+1) Introduction
+
+This document describes the software support and methodology provided by
+the SDK programming libraries to handle Module Identifier mapping in the
+XGS environment.
+
+The use of Module Identifier mapping is generally required in any system
+that uses BCM5675s and module IDs greater than 31.  For a complete
+description of the feature, please refer to the BCM5675 Programmers
+Reference Guide.
+
+2) Terminology
+
+The following terms are prerequisite to understanding the programming
+guidelines and API calls.
+
+2.1) Switch Device
+
+    XGS switches BCM5650/BCM5655/BCM5665, BCM5673/BCM5674,
+	BCM5690/BCM5691/BCM5692/BCM5693, BCM5695/BCM5696/BCM5697/BCM5698.
+
+2.2) Fabric Device
+
+    XGS fabric devices BCM5670/BCM5671, BCM5675/BCM5676.
+
+2.3) Legacy Fabric Device
+
+    Module identifier mapping incapable fabric device like BCM5670.
+
+2.4) Legacy Domain
+
+    An island of legacy fabric devices and switch devices bridged to one
+    another only by connection(s) to BCM5675 port(s). For example, in
+    the case of a line card with BCM5670 + 2 BCM5690 connecting to a
+    fabric  module with BCM5675, BCM5670 + 2 BCM5690 belong to a single
+    legacy domain.
+
+2.5) Local Module Identifier (LMODID, LMODID_MAX)
+
+    This is the module identifier programmed in the switch device in
+    CONFIG/ICONFIG register.  This is local to the switch device.
+
+    Each switch chip within a legacy domain must be assigned a unique
+    LMODID.  For example, a line card with BCM5670+4XBCM5690 should use
+    LMODIDs 0..3.
+
+    LMODID_MAX is the maximum LMODID assigned in any legacy domain
+    throughout the system.
+
+    LMODID equals 0 for devices directly connected to BCM5675, which is
+    often the case.  For each BCM5665, two LMODIDs are required (0 and 1).
+
+    LMODID is the module identifier recorded in various switching tables
+    like L2, L3, TRUNK, etc. for referring to switch ports within switch's
+    own legacy domain, as opposed to on the other side of a BCM5675 link.
+
+    This is also referred to as 32/64-space module identifier.
+
+2.6) Local Module Port (LPORT)
+
+    This is the zero-based port number used in switching tables in the
+    devices part of switch's own legacy domain.  The same appears mapped
+    to (SMODID, SPORT) in switching tables on other switch devices not
+    part of the switch's own legacy domain in the system;
+    see SMODID and SPORT defined below.
+
+    This is also referred to as 32/64-space port number.
+
+2.7) Fabric Module Identifier (FMODID)
+
+    Value 0..127.  A FMODID identifies a switch on the
+    translation-capable fabric. Each switch device is assigned a unique
+    FMODID.  Each BCM5665 requires two FMODIDs.
+
+    This is also referred to as 128-space module identifier.
+
+2.8) Fabric Module Port (FPORT)
+
+    Value 0..31.  Zero-based port number for all ports on a switch
+    device.
+
+    This is also referred to as 128-space port number.
+
+2.9) Switch Module Identifier (SMODID)
+
+    Value (LMODID_MAX+1)..31.  The range can be (LMODID_MAX+1)..63 if
+    only BCM5695s switch devices are used in the system.
+
+    Multiple switch devices within a legacy domain should have a unique
+    SMODID.  Multiple switch devices across a legacy domain can share
+    the same SMODID (for example, two BCM5690 devices or four BCM5673
+    devices).  Two legacy devices sharing the same SMODID should have
+    a translation capable fabric device (BCM5675) between them.
+
+    SMODID is the module identifier recorded in various switching tables
+    like L2, L3, TRUNK, etc. for referring to switch ports outside a
+    switch's own legacy domain.
+
+    This is also referred to as 32/64-space module identifier.
+
+2.10) Switch Module Port (SPORT)
+
+    Value 0..31.  This is the port identifier recorded in various
+    switching tables like L2, L3, TRUNK, etc. for referring to switch
+    ports outside a switch's own legacy domain.
+
+    This is also referred to as 32/64-space port number.
+
+3) Programming Guidelines
+
+3.1) LMODID
+
+    Program the LMODID(s) in each switch device.  This will be a call to
+    bcm_stk_my_modid_set(unit, LMODID);  /* LMODID = 0..LMODID_MAX */
+    This will set the device module ID in CONFIG/ICONFIG register.
+
+3.2) FMODID
+
+    Assign a unique FMODID for every device in the system after
+    determining all the devices.
+
+    It is recommended, but not required, to assign FMODIDs beginning
+    with 127 and decrementing, in order to reduce confusion while
+    debugging implementations.
+
+3.3) SMODID
+
+    Assign (SMODID, BASE_SPORT) to all devices in the system.  For
+    example, two BCM5690/BCM5695 devices attached to the BCM5675
+    can share the same SMODID with the base port level-shifted
+    suitably.  BCM5695 device 1 could be assigned (SMODID=A,
+    BASE_SPORT=0) and BCM5695 device 2 could be assigned (SMODID=A,
+    BASE_SPORT=16).  Up to four devices can share the same SMODID as
+    long as the sum of number of ports on these devices is <= 32.
+    SMODID values assigned must be outside the range of LMODIDs,
+    reducing the number of SMODIDs available.
+
+3.4) Switch Device Table Programming
+
+    There are many switch device table programming API calls similar
+    to the following which require as input, either through arguments or
+    through a structure, a module ID and port pair.  For example:
+            bcm_l3_ip_add/delete()
+            bcm_l2_addr_add/remove()
+            bcm_l2_addr_get()
+    In each case, the caller must pass the (SMODID, SPORT) when refering
+    to ports outside switch's own legacy domain and (LMODID, LPORT)
+    when refering to ports inside switch's own legacy domain
+    whenever these API routines call for a module ID and port number pair.
+    For systems not using module ID translation,
+            FMODID == SMODID and FPORT == SPORT
+
+3.5) Fabric Table Programming
+
+    Program the fabric device using FMODID to set up the crossbar
+    tables. This will use existing BCM API like bcm_stk_ucbitmap_set.
+
+4) Compatibility in Mixed Fabric Systems
+
+If only BCM5670 fabric devices are present in the system, no module ID
+translation is available and the module ID space is 0..31.
+
+If only BCM5675 fabric devices are present in the system, module ID
+translation is available and the module ID space is 0..127.
+
+If both types of devices are present in the system, module ID
+translation is available.  There is also a requirement that FMODID be
+assigned sequentially to the switch devices, i.e. if LMODID 0, 1, 2, 3
+are assigned to switch devices on a legacy Line card then assigned
+FMODIDs should be A+0, A+1, A+2 and A+3. The FMODID settings for the
+translation capable fabric port to which the Line card connects will be
+A.
+
+5) API Function Definitions
+
+This section covers all APIs that have been added or modified to permit
+module ID mapping to be programmed.
+
+There are two sets of APIs in SDK5 to control the use of the module
+mapping capability that the 5675 provides.
+
+There are a set of fabric related APIs to program the mapping tables in
+the 5675 itself (Fabric Configuration), and a set of APIs that control
+the software mapping that must be done on the connected switch chips
+such as 5695 and 5673 (Switch Configuration).
+
+5.1) Fabric Configuration
+
+The following APIs are provided to configure module ID translation,
+including enabling the feature and programming the BCM5675 translation
+tables.
+
+5.1.1) bcm_stk_fmod_lmod_mapping_set
+
+    /*
+     * Function:
+     *      bcm_stk_fmod_lmod_mapping_set
+     * Purpose:
+     *      Set up mapping of (FMODID, FPORT) <--> (LMODID, LPORT) on
+     *      a fabric port.  Assigns base FMODID and LMODID to devices
+     *      in the legacy domain attached to a fabric port. 
+     * Parameters:
+     *      unit - StrataSwitch PCI device unit number (driver internal).
+     *      port - StrataSwitch port number
+     *      fmod - Fabric Module Identifier
+     *      lmod - Local Module Identifier
+     *      enable - modmap enable = 1, disable = 0
+     * Returns:
+     *      BCM_E_NONE - Success.
+     *      BCM_E_XXX - Failure.
+     * Notes:
+     *      Fabric only (BCM5675).
+     *      The fmod assignment will be
+     *      Switch-1   LMODID = lmod     FMODID = fmod
+     *      Switch-2   LMODID = lmod + 1 FMODID = fmod + 1
+     *      Switch-3   LMODID = lmod + 2 FMODID = fmod + 2
+     *      Switch-4   LMODID = lmod + 3 FMODID = fmod + 3
+     *      and so on.
+     */
+
+    int
+    bcm_stk_fmod_lmod_mapping_set(int unit, bcm_port_t port,
+                            bcm_module_t fmod, bcm_module_t lmod);
+
+5.1.2) bcm_stk_fmod_lmod_mapping_get
+
+    /*
+     * Function:
+     *      bcm_stk_fmod_lmod_mapping_get
+     * Purpose:
+     *      Get the (FMODID, LMODID) associated with a fabric port.
+     *      Gets the base FMODID and LMODID assigned to the devices
+     *      in the legacy domain attached to this fabric port.
+     * Parameters:
+     *      unit - StrataSwitch PCI device unit number (driver internal).
+     *      port - StrataSwitch port number
+     *      fmod - (OUT) Fabric Module Identifier
+     *      lmod - (OUT)Local Module Identifier
+     * Returns:
+     *      BCM_E_NONE - Success.
+     *      BCM_E_XXX - Failure.
+     * Notes:
+     *      Fabric only (BCM5675)
+     */
+
+    int
+    bcm_stk_fmod_lmod_mapping_get(int unit, bcm_port_t port,
+                            bcm_module_t *fmod, bcm_module_t *lmod);
+
+
+5.1.3) bcm_stk_fmod_smod_mapping_set
+
+    /*
+     * Function:
+     *      bcm_stk_fmod_smod_mapping_set
+     * Purpose:
+     *      Set up mapping of (FMODID, FPORT) <--> (SMODID, SPORT) on fabric
+     * Parameters:
+     *      unit - StrataSwitch PCI device unit number (driver internal).
+     *      port - StrataSwitch port number (-1 = All ports)
+     *      fmod - Fabric Module Identifier
+     *      smod - Switch Module Identifier
+     *      sport - Switch Module Base Port
+     *      nports - Number of ports on switch device with fmod.
+     * Returns:
+     *      BCM_E_NONE - Success.
+     *      BCM_E_XXX - Failure.
+     * Notes:
+     *      Fabric only (BCM5675)
+     */
+
+    int
+    bcm_stk_fmod_smod_mapping_set(int unit, bcm_port_t port,
+                              bcm_module_t fmod, bcm_module_t smod,
+                              bcm_port_t sport, uint32 nports);
+
+5.1.4) bcm_stk_fmod_smod_mapping_get
+
+    /*
+     * Function:
+     *      bcm_stk_fmod_smod_mapping_get
+     * Purpose:
+     *      Get the (SMODID, BASE_SPORT) and num ports associated with
+     *      switch device with fmod
+     * Parameters:
+     *      unit - StrataSwitch PCI device unit number (driver internal).
+     *      port - StrataSwitch port number
+     *      fmod - Fabric Module Identifier
+     *      smod - (OUT) Switch Module Identifier
+     *      sport - (OUT) Switch Module Base Port
+     *      nports - (OUT) Number of ports on switch device with fmod.
+     * Returns:
+     *      BCM_E_NONE - Success.
+     *      BCM_E_XXX - Failure.
+     * Notes:
+     *      Fabric only (BCM5675)
+     */
+
+    int
+    bcm_stk_fmod_smod_mapping_get(int unit, bcm_port_t port,
+                              bcm_module_t fmod, bcm_module_t *smod,
+                              bcm_port_t *sport, uint32 *nports);
+5.1.5) bcm_stk_modmap_enable_set
+
+    /*
+     * Function:
+     *      bcm_stk_modmap_enable_set
+     * Purpose:
+     *      Enable/Disable Modid mapping on a given fabric port.
+     * Parameters:
+     *      unit - StrataSwitch PCI device unit number (driver internal).
+     *      port - StrataSwitch port number
+     *      enable -  Modmap enabled flag. 1 = enabled 0 = disabled
+     * Returns:
+     *      BCM_E_NONE - Success.
+     *      BCM_E_XXX - Failure.
+     * Notes:
+     *      Fabric only (BCM5675)
+     */
+
+    int
+    bcm_stk_modmap_enable_set(int unit,
+                      bcm_port_t port, int enable);
+
+5.1.6) bcm_stk_modmap_enable_get
+
+    /*
+     * Function:
+     *      bcm_stk_modmap_enable_get
+     * Purpose:
+     *      Get Modid mapping Enable/Disable state on a given fabric port.
+     * Parameters:
+     *      unit - StrataSwitch PCI device unit number (driver internal).
+     *      port - (OUT) StrataSwitch port number
+     *      enable - (OUT) Modmap enabled flag. 1 = enabled 0 = disabled
+     * Returns:
+     *      BCM_E_NONE - Success.
+     *      BCM_E_XXX - Failure.
+     * Notes:
+     *      Fabric only (BCM5675)
+     */
+
+    int
+    bcm_stk_modmap_enable_get(int unit,
+                      bcm_port_t port, int *enable);
+
+5.2) Switch Configuration
+
+The BCM and BCMX APIs take and return module IDs in the FMOD space
+(fabric virtual modids). However, they does not keep internal state to
+perform actual translations to and from LMOD and SMOD values.  The
+translation is potentially dynamic and hence application-specific.
+
+Therefore, whenever the BCM or BCMX API needs to program a hardware
+table with a translated (MODID, port) pair, it calls back to the
+application to perform the translation for it.  Conversely, whenever it
+reads a (MODID, port) pair from a hardware table, it calls back to the
+application to perform a reverse translation.  For example, there are
+callout points in the L2, L3, IPMC, Trunk, and Filter APIs.
+
+The switch related mapping APIs are defined in <bcm/stack.h>.  The
+following API function prototypes and calls are provided to allow an
+application to register a translation routine.
+
+5.2.1) bcm_stk_modmap_cb_t
+
+A single callback is used for forward (SET) and reverse (GET)
+translation.  The following declarations specify the required user
+callback format.
+
+    #define     BCM_STK_MODMAP_SET      1       /* global to local */
+    #define     BCM_STK_MODMAP_GET      2       /* local to global */
+
+    typedef int (*bcm_stk_modmap_cb_t)(int unit,
+                                       int setget,
+                                       bcm_module_t mod_in,
+                                       bcm_port_t port_in,
+                                       bcm_module_t *mod_out,
+                                       bcm_port_t *port_out);
+
+The setget argument to the callback function indicates in which
+direction the mapping should work:
+
+* When BCM_STK_MODMAP_SET is given, the callback is being called
+  from an API that is setting values into the switch hardware.
+  The mapping is from global space into switch hardware space.
+
+* When BCM_STK_MODMAP_GET is given, the callback is being called
+  from an API that is getting values from the switch hardware.
+  The mapping is from switch hardware space to global space.
+
+The registered callback must return a BCM_E_XXX error code.  If
+BCM_E_NONE is returned, then the mapped module/port pair that are
+outputs of the callback are used.  If any other error code is returned,
+then the BCM API will set the output module/port pair equal to the input
+module/port values (the identity mapping), and will internally propagate
+the callback's return value.
+
+The registered callback must implement a mapping that matches the
+programming of the attached BCM5675 fabric chip.  It must also handle
+translation to/from both LMODID and SMODID spaces, as required.
+
+5.2.2) bcm_stk_modmap_register
+
+The bcm_stk_modmap_register API should be called on each local unit on
+each CPU to register a callback.  There can be one mapping function
+registered per unit.  The bcm_stk_modmap_register API is not callable
+remotely through RPC.
+
+    /*
+     * Function:
+     *      bcm_stk_modmap_register
+     * Purpose:
+     *      Register module ID mapping/unmapping callback function
+     * Parameters:
+     *      unit - SOC unit #
+     *      func - User callback function for module ID mapping/unmapping
+     */
+    int
+    bcm_stk_modmap_register(int unit, bcm_stk_modmap_cb_t func);
+
+5.2.3) bcm_stk_modmap_unregister
+
+The bcm_stk_modmap_unregister API should be called on each local unit on
+each CPU to unregister a callback.  The bcm_stk_modmap_unregister API is
+not callable remotely through RPC.
+
+    /*
+     * Function:
+     *      bcm_stk_modmap_unregister
+     * Purpose:
+     *      Unregister module ID mapping/unmapping callback function
+     * Parameters:
+     *      unit - SOC unit #
+     */
+    int
+    bcm_stk_modmap_unregister(int unit);
+
+5.2.4) bcm_stk_modmap_map
+
+The bcm_stk_modmap_map API is called internally for all translation from
+within the BCM API implementation, but it is made available to users of
+the BCM API for informational purposes as well.  It is callable remotely
+through RPC.
+
+The bcm_stk_modmap_map function takes a module/port pair as input and
+produces a mapped module/port pair as output.
+
+In the absence of a user-registered callback for a unit, the
+bcm_stk_modmap_map API will set the output module/port pair to the input
+module/port pair (the identity mapping) and will return BCM_E_NONE.
+
+    /*
+     * Function:
+     *      bcm_stk_modmap_map
+     * Purpose:
+     *      Call module ID mapping/unmapping callback function
+     * Parameters:
+     *      unit - SOC unit #
+     * Notes:
+     *      This function is called from within the BCM API implementations
+     *      whenever module ID mapping is needed, but it can also be called
+     *      by the user application for informational purposes.
+     */
+    int
+    bcm_stk_modmap_map(int unit, int setget,
+                       bcm_module_t mod_in, bcm_port_t port_in,
+                       bcm_module_t *mod_out, bcm_port_t *port_out)
+
+6. Programming sequence for an example configuration
+
+6.1 Example Configuration
+
+Line card - 1
+=============
+                 --------
+5690 - (port-1) |       |------ port-5
+                |       | 
+5690 - (port-2) | 5675  |------ port-6
+                |       |                   To fabric card
+5690 - (port-3) |       |------ port-7
+                |       |
+5690 - (port-4) |       |------ port-8
+                |-------|
+
+unit-0 = 5675
+unit-1 = 5690 (connected to port-1 of 5675)
+unit-2 = 5690 (connected to port-2 of 5675)
+unit-3 = 5690 (connected to port-3 of 5675)
+unit-4 = 5690 (connected to port-4 of 5675)
+
+
+Line card - N
+=============
+                 --------
+5690 - (port-1) |       |------ port-5
+                |       | 
+5690 - (port-2) | 5675  |------ port-6
+                |       |                   To fabric card
+5690 - (port-3) |       |------ port-7
+                |       |
+5690 - (port-4) |       |------ port-8
+                |-------|
+
+unit-0 = 5675
+unit-1 = 5690 (connected to port-1 of 5675)
+unit-2 = 5690 (connected to port-2 of 5675)
+unit-3 = 5690 (connected to port-3 of 5675)
+unit-4 = 5690 (connected to port-4 of 5675)
+
+                Unit-1          unit-2          unit-3          unit-4
+                LMODID = 0      LMODID = 0      LMODID = 0      LMODID = 0
+Line card - 1   FMODID = 0      FMODID = 1      FMODID = 2      FMODID = 3
+                SMODID = 1      SMODID = 1      SMODID = 2      SMODID = 2
+                SPORT  = 0-15   SPORT  = 16-31  SPORT  = 0-15   SPORT  = 16-31
+
+
+                Unit-1          unit-2          unit-3          unit-4
+                LMODID = 0      LMODID = 0      LMODID = 0      LMODID = 0
+Line card - N   FMODID = X + 0  FMODID = X + 1  FMODID = X + 2  FMODID = X + 3
+X = 4 * (N-1)   SMODID = Y + 1  SMODID = Y + 1  SMODID = Y + 2  SMODID = Y + 2
+Y = 2 * (N-1)   SPORT  = 0-15   SPORT  = 16-31  SPORT  = 0-15   SPORT  = 16-31
+
+
+6.2 BCM API call sequence to initialize the MODIDS and mapping for
+    above configuration
+
+Line Card - N
+
+    /* LMODID assignment (3.1) */
+    bcm_stk_my_modid_set(1, 0);
+    bcm_stk_my_modid_set(2, 0);
+    bcm_stk_my_modid_set(3, 0);
+    bcm_stk_my_modid_set(4, 0);
+
+    /* FMODID assignment  and LMODID/FMODID mapping (3.2) */
+    x = 4 * (N -1);
+    y = 2 * (N -1);
+                             /* unit, port, fmod, lmod*/
+    bcm_stk_fmod_lmod_mapping_set(0, 1, x + 0, 0);
+    bcm_stk_fmod_lmod_mapping_set(0, 2, x + 1, 0);
+    bcm_stk_fmod_lmod_mapping_set(0, 3, x + 2, 0);
+    bcm_stk_fmod_lmod_mapping_set(0, 4, x + 3, 0);
+
+    /* FMODID, FPORT <--> SMODID, SPORT mapping  (3.3) */
+                             /* unit, fmod, smod, sport, nports */
+    bcm_stk_fmod_smod_mapping_set(0, -1, x + 0, y + 1, 0,  16);
+    bcm_stk_fmod_smod_mapping_set(0, -1, x + 1, y + 1, 16, 16);
+    bcm_stk_fmod_smod_mapping_set(0, -1, x + 2, y + 2, 0,  16);
+    bcm_stk_fmod_smod_mapping_set(0, -1, x + 3, y + 2, 16, 16);
+
+    /* Enable Modid mapping on ports connected to legacy domain*/
+                            /* unit, port, enable */ 
+    bcm_stk_modmap_enable_set(0, 1, TRUE);
+    bcm_stk_modmap_enable_set(0, 2, TRUE);
+    bcm_stk_modmap_enable_set(0, 3, TRUE);
+    bcm_stk_modmap_enable_set(0, 4, TRUE);
+

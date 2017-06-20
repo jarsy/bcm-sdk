@@ -1,0 +1,67 @@
+# $Id: config-sbx-sirius.bcm,v 1.11 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Example configuration file for SBX systems.
+#
+# config-sbx-sirius.bcm
+
+# Maximum number of COSes
+bcm_num_cos=8
+
+# Maximum number of modules in the system (number of QEs)
+num_modules=64
+
+# By default, run in standalone mode
+diag_chassis=0
+
+# TME mode
+qe_tme_mode=1
+
+# System (fabric) configuration
+# 0 : BM32 + QE2K
+# 1 : BM96 + Sirius
+# 2 : BM96 + QE2K
+# 3 : BM96 + QE2K + Sirius
+#
+# Vport mode, polaris+sirius
+fabric_configuration=1
+
+# Create subports, 4 ports on hg 0
+if_subports_create=1
+if_subports.port1=1
+if_subports.port2=1
+if_subports.port3=1
+if_subports.port4=1
+port_init_speed.port1=1000
+port_init_speed.port2=1000
+port_init_speed.port3=1000
+port_init_speed.port4=1000
+
+# Enable/Disable dual local grants
+dual_local_grants=1
+
+# Disable independent egress fifo flow control
+egress_fifo_independent_fc=0
+
+diag_emulator_partial_init=0
+
+# Default is HG
+# pbmp_xport_xe=0x0
+
+# Will use this for 1xGE SVK board
+# pbmp_xport_ge = 0
+
+# serdes speed and encoding
+# if not set, default speed and encoding are used
+# For 6.5G use 6500, for 3.125G use 3125
+# default encoding is 8B10B (TRUE); for 64B66B, use FALSE
+
+# backplane_serdes_speed=0
+# backplane_serdes_encoding=0
+
+# Hold TS: for 7 set it to 8
+hold_pri_num_timeslots=8
+
+# DDR stuff
+sirius_ddr3_clock_mhz=667

@@ -1,0 +1,143 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+				dma_rom
+		   Simplified API for Polled Mode DMA
+	       Jeff Townsend and Curt McDowell, 04-24-03
+
+This API is at the SOC layer in soc/dma.c.  It provides a way to do
+packet DMA that does not need any high level constructs such as threads,
+semaphores, or interrupts, and therefore is suitable for use in such
+applications as a Boot ROM.
+
+All the parameters required for transmitting and receiving packets are
+passed and returned in the opaque data type soc_dcb_t, which is a
+chip-specific DMA descriptor.  The caller must setup the DCB structure
+correctly for the chip on which the packet will be transmitted.  Also,
+on the BCM5670 series fabric chips, the packet data must contain the
+12-byte Higig header.
+
+All routines here are non-blocking and return immediately.  DMA transmit
+and receive operations are left outstanding in the background to
+complete in parallel with other code execution.  A receive DMA is always
+left outstanding so if a packet is present, it will already be sitting
+in memory by the time the application polls for it.
+
+EXAMPLES:
+
+The following examples demonstrate how to use the API.  Error checking
+is omitted in the examples, but it is important that thorough error
+checking is always done on all API calls.  Please see the function
+header comments in soc/dma.c for more detailed information.
+
+/* 
+ *  Example 1: Initializing and Finalizing
+ */
+
+int dma_main(int unit)
+{
+    /* Initialize DMA on the unit, maximum packet size of 2000 bytes */
+    soc_dma_rom_init(unit, 2000); 
+    
+    /* TX/RX packets... */
+
+    /* Cleanup */
+    soc_dma_rom_detach(unit); 
+    
+    return 0; 
+}
+
+/*
+ * Example 2: Transmitting a packet:
+ */
+
+int simple_port_tx(int unit, int port, uint8 *pkt, len)
+{
+    dcb_t *dcb;
+    dcb_type_t dt;
+    int done;
+    void *p;
+
+    /* Allocate a packet DCB */
+    dcb = soc_dma_rom_dcb_alloc(unit, len); 
+    
+    /* Copy our packet into the DCB's buffer */
+    /* This packet must be fully formed for the port it will transmit on. */
+    dt = soc_dcb_type(unit); 
+    p = soc_dcb_addr_get(unit, dt, dcb); 
+    memcpy(p, pkt, len); 
+
+    /* Program the port bitmap */
+    soc_dcb_tx_pbm_l2_set(dt, dcb, PBMP_PORT(port));
+    
+    /* Untagged port bitmap */
+    soc_dcb_tx_pbm_ut_set(dt, dcb, PBMP_PORT(port));
+
+    /* Start the transmit */
+    soc_dma_rom_tx_start(unit, dcb); 
+
+    /* Simple Poll for completion */
+    done = 0; 
+    while (!done) {
+	soc_dma_rom_tx_poll(unit, &done); 
+    }
+
+    /*
+     * In the case that your polling loop implements a timeout, you
+     * would need to clean up by calling soc_dma_rom_tx_abort(unit).
+     */
+
+    /* Must free the DCB after the packet has been transmitted */
+    soc_dma_rom_dcb_free(unit, dcb); 
+
+    return 0; 
+}
+
+/*
+ * Example 3: Receiving a packet:
+ */
+
+int simple_rx(int unit, uint8 *pkt, int *len, int* port)
+{
+    dcb_t dcb;
+    dcb_type_t dt;
+    void *p;
+
+    /* Is a packet available? */
+    soc_dma_rom_rx_poll(unit, &dcb);
+    if (dcb == NULL) {
+	/* No packet available */
+	return NO_PACKET; 
+    }
+
+    /* Retrieve the packet data from the DCB */
+    dt = soc_dcb_type(unit); 
+    p = soc_dcb_addr_get(unit, dt, dcb); 
+    *len = soc_dcb_addr_xfer_cnt_get(dt, dcb); 
+    
+    memcpy(pkt, p, *len); 
+    
+    *port = soc_dcb_rx_sp_get(dt, dcb); 
+
+    /* 
+     * The DCB contains a lot of other useful information related
+     * to the packet's ingress as well:
+     *
+     *	cos    = soc_dcb_rx_cos_get(dt, dcb); 
+     *	reason = soc_dcb_rx_op_get(dt, dcb); 
+     *	opcode = soc_dcb_rx_hg_mhop_get(dt, dcb); 		(5690 only)
+     *	source_mod = soc_dcb_rx_hg_sm_get(dt, dcb); 		(5690 only)
+     *	source_port = soc_dcb_rx_hg_sp_get(dt, dcb); 		(5690 only)
+     *	etc..
+     *
+     * See $SDK/include/soc/dcb.h for all available accessors
+     */
+
+    /* Done with this packet, need to free the DCB */
+    soc_dma_rom_dcb_free(unit, dcb);
+
+    return GOT_PACKET;
+}

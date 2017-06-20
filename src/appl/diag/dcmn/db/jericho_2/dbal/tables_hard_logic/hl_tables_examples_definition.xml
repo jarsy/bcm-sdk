@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="hard_logic_schema.xsd">
+
+    <AppDB Name="EXAMPLE_TABLE_FOR_REGISTER_USE">
+        <OneLineDescription>not real table</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="DEFAULT_AC_PROF" Size="2"/>
+            </Key>
+            <Result>
+               <Field Name="ENCAP_DEST" Size="14"/> 
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+             <FieldMapping>
+                <Field Name="ENCAP_DEST" Size="14">
+                    <Access>
+                        <Register Name="IPPB_OAM_DEFAULT_COUNTERSr"> 
+                            <DataOffset EncodeType="MULTIPLE" Field="DEFAULT_AC_PROF" Value="14"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EXAMPLE_TABLE_FOR_EMPTY_KEY">
+        <OneLineDescription>not real table</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+               <Field Name="ENCAP_DEST" Size="14"/> 
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+             <FieldMapping>
+                <Field Name="ENCAP_DEST" Size="14">
+                    <Access>
+                        <Register Name="IPPB_OAM_DEFAULT_COUNTERSr"/>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EXAMPLE_TABLE_FOR_HL_WITH_SW_FIELD">
+        <OneLineDescription>not real table, example for hl with sw</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="PORT_VID" Size="12"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <Memory Name="IPPA_VTT_IN_PP_PORT_CONFIGm"> 
+                            <BlockIndex EncodeType="PARTIAL_KEY" Field="CORE_ID"/>
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PORT_VID">
+                    <SwAccess>
+                        <SwState SwType="SW"/> 
+                    </SwAccess>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EXAMPLE_TABLE_FOR_MUL_INSTANCES">
+        <OneLineDescription>not real table</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="6"/>
+                <Field Name="CORE_ID" Size="1"/> 
+            </Key>
+            <Result>
+               <Field Name="COUNTER" Size="8" NofInstances="3"/> 
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+             <FieldMapping>
+                <Field Name="COUNTER">
+                    <Access instanceIndex="0">
+                        <Memory Name="SCH_QPAIR_TO_PORT_MAP_QPMm"> 
+                            <HwField Name="PORT_NDX_0f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="1">
+                        <Memory Name="SCH_QPAIR_TO_PORT_MAP_QPMm"> 
+                            <HwField Name="PORT_NDX_1f"/>
+                        </Memory>
+                    </Access>
+                    <Access instanceIndex="2">
+                        <Memory Name="SCH_QPAIR_TO_PORT_MAP_QPMm"> 
+                            <HwField Name="PORT_NDX_2f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EXAMPLE_FOR_HL_MULTIPLE_RESULT">
+        <OneLineDescription> example for hard logic table with multiple results</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="4"/>
+                <Field Name="CORE_ID" Size="1"/> 
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="RT0" Description="empty"/>
+                    <Field Name="VLAN_DOMAIN" Size="9"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="RT1" Description="empty"/>
+                    <Field Name="VLAN_DOMAIN" Size="9"/>
+                    <Field Name="PORT_VID" Size="12"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="RT2" Description="empty"/>
+                    <Field Name="VLAN_DOMAIN" Size="9"/>
+                    <Field Name="PORT_VID" Size="12"/>
+                    <Field Name="DEFAULT_LIF" Size="20"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <MultipleResultsMapping>
+                <Result LogicalValue="RT0" Value="3"/>
+                <Result LogicalValue="RT1" Value="1"/>
+                <Result LogicalValue="RT2" Value="0"/>
+            </MultipleResultsMapping>
+            <FieldMapping ResultType="RT1">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm"> 
+                            <HwField Name="ESEM_1_DEFAULT_RESULT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <Memory Name="IPPA_VTT_IN_PP_PORT_CONFIGm"> 
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PORT_VID">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm"> 
+                            <HwField Name="DEFAULT_INITIAL_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="RT2">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm"> 
+                            <HwField Name="ESEM_1_DEFAULT_RESULT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <Memory Name="IPPA_VTT_IN_PP_PORT_CONFIGm"> 
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="PORT_VID">
+                    <Access>
+                        <Memory Name="IPPE_PINFO_LLRm"> 
+                            <HwField Name="DEFAULT_INITIAL_VIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DEFAULT_LIF">
+                    <Access>
+                        <Memory Name="IPPA_VTT_IN_PP_PORT_CONFIGm">
+                            <HwField Name="DEFAULT_PORT_LIFf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="RT0">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <Memory Name="ETPPC_CFG_EM_ACCESS_CMDm">
+                            <HwField Name="ESEM_1_DEFAULT_RESULT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <Memory Name="IPPA_VTT_IN_PP_PORT_CONFIGm"> 
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EXAMPLE_FOR_HL_MULTIPLE_RESULT_WITH_REGISTER">
+        <OneLineDescription> example for hard logic table with multiple results</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/> 
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="RT0" Description="empty"/>
+                    <Field Name="VLAN_DOMAIN" Size="9"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="RT1" Description="empty"/>
+                    <Field Name="VLAN_DOMAIN" Size="9"/>
+                    <Field Name="PORT_VID" Size="12"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>SYSTEM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <MultipleResultsMapping>
+                <Result LogicalValue="RT0" Value="3"/>
+                <Result LogicalValue="RT1" Value="1"/>
+            </MultipleResultsMapping>
+            <FieldMapping ResultType="RT1">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <Register Name="IPPB_OAM_DEFAULT_COUNTERSr"> 
+                            <DataOffset EncodeType="HARD_VALUE" Value="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <Register Name="IPPB_OAM_DEFAULT_COUNTERSr"> 
+                            <DataOffset EncodeType="HARD_VALUE" Value="2"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PORT_VID">
+                    <Access>
+                        <Register Name="IPPB_OAM_DEFAULT_COUNTERSr"> 
+                            <DataOffset EncodeType="HARD_VALUE" Value="11"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+            <FieldMapping ResultType="RT0">
+                <Field Name="RESULT_TYPE">
+                    <Access>
+                        <Register Name="IPPB_OAM_DEFAULT_COUNTERSr"> 
+                            <DataOffset EncodeType="HARD_VALUE" Value="0"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <Register Name="IPPB_OAM_DEFAULT_COUNTERSr"> 
+                            <DataOffset EncodeType="HARD_VALUE" Value="23"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EXAMPLE_FOR_HL_WITH_MEMORY_ALIASING">
+    <OneLineDescription>mexample for hard logic table with memory aliasing</OneLineDescription>
+    <MaturityLevel>2</MaturityLevel>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="OUT_LIF" Size="7"/>
+      </Key>
+        <Result>
+          <Field Name="MPLS_OUT" Size="17"/>
+          <Field Name="MPLS_OUT_CMD" Size="17"/>
+        </Result>
+      <TableLabels>L2</TableLabels>
+    </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>         
+            <FieldMapping>
+                <Field Name="MPLS_OUT">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_LINK_LISTm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset EncodeType="MODULO_FIELD" Value="4"/>
+                            </Alias>
+                            <EntryOffset EncodeType="DIVIDE" Value="4"/>
+                            <HwField Name="NEXT_PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MPLS_OUT_CMD">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_LINK_LISTm"> 
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset EncodeType="MODULO_FIELD" Value="4"/>
+                            </Alias>
+                            <EntryOffset EncodeType="DIVIDE" Value="4"/>
+                            <HwField Name="PTRf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+  </AppDB>
+
+</AppDbCatalog>
+

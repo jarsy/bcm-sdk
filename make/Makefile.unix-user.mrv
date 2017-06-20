@@ -1,0 +1,187 @@
+# $Id: Makefile.unix-user 1.29 Broadcom SDK $
+# $Copyright: Copyright 2012 Broadcom Corporation.
+# This program is the proprietary software of Broadcom Corporation
+# and/or its licensors, and may only be used, duplicated, modified
+# or distributed pursuant to the terms and conditions of a separate,
+# written license agreement executed between you and Broadcom
+# (an "Authorized License").  Except as set forth in an Authorized
+# License, Broadcom grants no license (express or implied), right
+# to use, or waiver of any kind with respect to the Software, and
+# Broadcom expressly reserves all rights in and to the Software
+# and all intellectual property rights therein.  IF YOU HAVE
+# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+# ALL USE OF THE SOFTWARE.  
+#  
+# Except as expressly set forth in the Authorized License,
+#  
+# 1.     This program, including its structure, sequence and organization,
+# constitutes the valuable trade secrets of Broadcom, and you shall use
+# all reasonable efforts to protect the confidentiality thereof,
+# and to use this information only in connection with your use of
+# Broadcom integrated circuit products.
+#  
+# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+# 
+# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+#
+# Build rules for Linux user mode support
+
+# When using GDB on Linux, you may want to use "setenv GDB 1" to disable
+# editline.  For best results put "set environment GDB 1" in your .gdbinit.
+
+# Get cross tools and platform specific settings
+
+ifneq (,$(platform))
+include ${SDK}/make/Makefile.linux-$(platform)
+endif
+
+
+# Filter out features that cannot or should not be supported in Linux 
+ifdef ESW_CHIPS
+_FEATURE_EXCLUDE_LIST += OOB_RCPU
+endif
+FEATURE_EXCLUDE_LIST = $(sort $(_FEATURE_EXCLUDE_LIST))
+
+# User-Linux Configuration Flags
+
+CC	= $(LSRUN) $(CROSS_COMPILE)gcc
+CXX	= $(CROSS_COMPILE)g++
+LD	= $(CROSS_COMPILE)ld
+AR	= $(CROSS_COMPILE)ar
+ARFLAGS	= -rc
+STRIP	= $(CROSS_COMPILE)strip
+RANLIB  = $(CROSS_COMPILE)ranlib
+OBJCOPY = $(CROSS_COMPILE)objcopy
+
+OPTFLAGS_DEFAULT = -O2
+
+# Configuration Variable
+# OSType Defines: This defines the type of RTOS or microkernel which you
+# are compiling the SAL (and its associated driver) for. New platforms
+# can be created by porting the routines (system.c) to your platform and
+# adding the define in this Makefile.
+
+OSTYPE = LINUX
+
+# Linux
+LIBS= -lnsl -lpthread -lm -lrt
+
+#
+# ORIGIN is used to Optionally select different CFLAGS. It is used to import
+# source from other vendors. If SOURCE=Broadcom, then the BCM_ flags are added
+# to those passed to the compiler. If SOURCE != Broadcom, BCM_ flags are NOT
+# added.
+#
+# Default specifies Broadcom
+#
+ifndef ORIGIN
+	ORIGIN = Broadcom
+endif
+
+#
+# STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
+# BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
+# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of
+#			 this Makefile, to define local "Extra" flags.
+#
+
+STD_CFLAGS = $(OPTFLAGS) -D_REENTRANT -D${OSTYPE} ${CFGFLAGS} \
+    -D$(ENDIAN) -D__BSD_SOURCE -DUNIX
+ifeq ($(LINUX_MAKE_SHARED_LIB),1)
+STD_CFLAGS += -fPIC
+endif
+STD_CPPFLAGS = ${STD_CFLAGS}
+STD_CXXFLAGS = ${STD_CFLAGS}
+
+BCM_CFLAGS   = -Wall -fno-strict-aliasing
+
+ifeq ($(platform), robo-bsp-2_6)
+ifeq (2.0,$(WRS_LINUX_VERSION))
+BCM_CFLAGS   = -Wall -fno-strict-aliasing  -Wno-pointer-sign
+endif
+endif
+
+# Check for redundant declarations in pedantic build
+ifeq ($(DEBUG_PEDANTIC),TRUE)
+ifneq (,$(LOCALDIR))
+ifeq (,$(findstring $(LOCALDIR),src/bcm src/appl/cint src/appl/diag/cint src/sal/appl/editline))
+BCM_CFLAGS   += -Wredundant-decls
+endif
+endif
+endif
+
+BCM_CPPFLAGS = ${BCM_CFLAGS}
+BCM_CXXFLAGS = ${BCM_CFLAGS}
+
+ifeq (${ORIGIN}, Broadcom)
+	CFLAGS   += ${STD_CFLAGS}   ${BCM_CFLAGS}   ${OPT_CFLAGS}
+	CPPFLAGS += ${STD_CPPFLAGS} ${BCM_CPPFLAGS} ${OPT_CPPFLAGS}
+	CXXFLAGS += ${STD_CXXFLAGS} ${BCM_CXXFLAGS} ${OPT_CXXFLAGS}
+else
+	CFLAGS   += ${STD_CFLAGS}   ${OPT_CFLAGS}
+	CPPFLAGS += ${STD_CPPFLAGS} ${OPT_CPPFLAGS}
+	CXXFLAGS += ${STD_CXXFLAGS} ${OPT_CXXFLAGS}
+endif
+
+#
+# Add flags required for running on linux.
+#
+
+ifneq ($(LINUX_MAKE_SHARED_LIB),1)
+ifndef LINK_STATIC
+LINK_STATIC = 1
+endif
+endif
+
+ifeq (${LINK_STATIC},1)
+LDFLAGS += -static
+endif
+
+LDFLAGS += ${LIBS}
+
+#
+# DEPEND is used as a command to generate the list of dependencies.
+# The format of the output must be
+#	"file.o : file.c a/b/c.h d/e/f.h ...",
+# if it is on multiple lines, each line must end in a backslash.
+# The output MUST be on standard out.
+#
+DEPEND = ${CC} -M $(CFLAGS) $<
+
+#
+# Optionally link against different library versions.
+#
+ifneq (,${LIB_OVERRIDE})
+CFLAGS += -B${LIB_OVERRIDE} -nostdinc -I`$(CC) --print-file-name=include` -I${LIB_OVERRIDE}/../usr/include
+LDFLAGS += -Wl,-rpath-link,${LIB_OVERRIDE}
+endif
+#
+# Optionally use the linker --relax flag to enable linking larger
+# images on the GTO platform (currently only needed for
+# SBX+TCL+optimization disabled for debugging)
+#
+
+ifneq (,${LINKER_RELAX})
+LDFLAGS += -Wl,--relax
+endif
+
+# Add flags for kernel compile with x86_32
+MODULE_LDFLAGS += -m elf_i386
+

@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top device="jericho" version="1.1">
+    <signal-structures>
+        <structure name="VLAN_Edit_Cmd" size="34" perm="1">
+            <field name="VID_1" bits="11:0"/>
+            <field name="VID_2" bits="23:12"/>
+            <field name="DEI" bits="24:24"/>
+            <field name="PCP" bits="27:25"/>
+            <field name="Cmd" bits="33:28"/>
+        </structure>
+        <structure name="Fwd_Action_Dst_Flow" size="19" perm="1">
+            <field name="Flow_ID" bits="16:0"/>
+            <field name="Type_Flow" bits="18:17"/>
+        </structure>
+        <structure name="Fwd_Action_Dst_MC" size="19" perm="1">
+            <field name="MC_ID" bits="16:0"/>
+            <field name="Type_MC" bits="18:17"/>
+        </structure>
+        <structure name="Fwd_Action_Dst_FEC" size="19" perm="1">
+            <field name="FEC_Ptr" bits="16:0"/>
+            <field name="Type_FEC" bits="18:17"/>
+        </structure>
+        <structure name="Fwd_Action_Dst_DSPA" size="19" perm="1">
+            <field name="Dst_System_Port_Aggr" bits="15:0"/>
+            <field name="Type_DSPA" bits="18:16"/>
+        </structure>
+        <structure name="Fwd_Action_Dst_Trap" size="19" perm="1">
+            <field name="Trap_ID" bits="07:00"/>
+            <field name="Fwd_Strength" bits="10:08"/>
+            <field name="Snoop_Strength" bits="12:11"/>
+            <field name="Type_Trap" bits="18:13"/>
+        </structure>
+        <structure name="Fwd_Action_Dst" size="19" expansion="Dynamic" perm="1">
+            <option expansion="Fwd_Action_Dst_Flow" Enc_Type="3"/>
+            <option expansion="Fwd_Action_Dst_MC" Enc_Type="2"/>
+            <option expansion="Fwd_Action_Dst_FEC" Enc_Type="1"/>
+            <option expansion="Fwd_Action_Dst_DSPA" Enc_Type="0" DSPA_Flag="1"/>
+            <option expansion="Fwd_Action_Dst_Trap" Enc_Type="0" DSPA_Flag="0"/>
+            <field name="DSPA_Flag" bits="16:16"/>
+            <field name="Enc_Type" bits="18:17"/>
+        </structure>
+        <structure name="PP_PCT_Data" size="108" perm="1">
+            <field name="Acceptable_Frame_Type_Profile" bits="1:0"/>
+            <field name="Port_is_PBP" bits="2:2"/>
+            <field name="Egress_STP_Filter_Enable" bits="3:3"/>
+            <field name="Egress_VSI_Filter_Enable" bits="4:4"/>
+            <field name="Disable_Filter" bits="5:5"/>
+            <field name="Default_SEM_Result" bits="22:6"/>
+            <field name="Exp_Map_Profile" bits="24:23"/>
+            <field name="VLAN_Domain" bits="33:25"/>
+            <field name="CEP_C_VLAN_Edit" bits="34:34"/>
+            <field name="LLVP_Profile" bits="37:35"/>
+            <field name="MPLS_Eth_Type_Select" bits="38:38"/>
+            <field name="PRGE_Profile" bits="42:39"/>
+            <field name="PRGE_Var" bits="74:43"/>
+            <field name="Dst_System_Port" bits="90:75"/>
+            <field name="MTU" bits="104:91"/>
+            <field name="IEEE1588_MAC_Enable" bits="105:105"/>
+            <field name="OAM_Port_Profile" bits="106:106"/>
+            <field name="OSTS_Enable" bits="107:107"/>
+        </structure>
+        <structure name="SHR" size="365">
+            <field name="PPH_Learn_Extension" bits="39:0" condition="PPH_Base.Learn_Extension_Valid"/>
+            <field name="PPH_EEI_Extension" bits="63:40" condition="PPH_Base.EEI_Extension_Valid"/>
+            <field name="PPH_FHEI_Extension" bits="103:64 364:341" expansion="Dynamic" condition="PPH_Base.FHEI_Code">
+                <option expansion="FHEI_Bridge_3B" PPH_Base.Fwd_Code="Bridge" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_Bridge_5B" PPH_Base.Fwd_Code="Bridge" PPH_Base.FHEI_Code="FHEI_5B"/>
+                <option expansion="FHEI_CPU_TRAP_3B" PPH_Base.Fwd_Code="CPU_TRAP" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_CPU_TRAP_5B" PPH_Base.Fwd_Code="CPU_TRAP" PPH_Base.FHEI_Code="FHEI_5B"/>
+                <option expansion="FHEI_CPU_TRAP_8B" PPH_Base.Fwd_Code="CPU_TRAP" PPH_Base.FHEI_Code="FHEI_8B"/>
+                <option expansion="FHEI_IP_Routed_3B" PPH_Base.Fwd_Code="IPv4_UC_Routed" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_IP_Routed_3B" PPH_Base.Fwd_Code="IPv4_MC_Routed" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_IP_Routed_3B" PPH_Base.Fwd_Code="IPv6_UC_Routed" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_IP_Routed_3B" PPH_Base.Fwd_Code="IPv6_MC_Routed" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_IP_Routed_8B" PPH_Base.Fwd_Code="IPv4_UC_Routed" PPH_Base.FHEI_Code="FHEI_8B"/>
+                <option expansion="FHEI_IP_Routed_8B" PPH_Base.Fwd_Code="IPv4_MC_Routed" PPH_Base.FHEI_Code="FHEI_8B"/>
+                <option expansion="FHEI_IP_Routed_8B" PPH_Base.Fwd_Code="IPv6_UC_Routed" PPH_Base.FHEI_Code="FHEI_8B"/>
+                <option expansion="FHEI_IP_Routed_8B" PPH_Base.Fwd_Code="IPv6_MC_Routed" PPH_Base.FHEI_Code="FHEI_8B"/>
+                <option expansion="FHEI_MPLS_3B" PPH_Base.Fwd_Code="MPLS" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_MPLS_5B" PPH_Base.Fwd_Code="MPLS" PPH_Base.FHEI_Code="FHEI_5B"/>
+                <option expansion="FHEI_TRILL_3B" PPH_Base.Fwd_Code="TRILL" PPH_Base.FHEI_Code="FHEI_3B"/>
+            </field>
+            <field name="PPH_Base" bits="159:104" condition="FTMH_Base.PPH_Type"/>
+            <field name="OTSH" bits="205:160" expansion="Dynamic">
+                <option expansion="OAM_Header" OTSH_Type="OAM"/>
+                <option expansion="IEEE1588v2_Header" OTSH_Type="IEEE1588v2"/>
+                <option expansion="Latency_Measurement_Header" OTSH_Type="Latency_Measurement"/>
+            </field>
+            <field name="OTSH_Type" bits="207:206"/>
+            <field name="Stacking_Extension" bits="223:208"/>
+            <field name="DSP_Extension" bits="239:224" condition="FTMH_Base.DSP_Extension_Valid"/>
+            <field name="LB_Key_Extension" bits="247:240"/>
+            <field name="FTMH_Base" bits="319:248" perm="1"/>
+            <field name="Format_Code" bits="322:320"/>
+            <field name="Value_1" bits="330:323"/>
+            <field name="Value_2" bits="338:331"/>
+            <field name="Exclude_Src" bits="339:339"/>
+            <field name="Drop" bits="340:340"/>
+        </structure>
+        <structure name="SHR_ERPP_PMF" size="46" perm="1">
+            <field name="DSP_Ptr" bits="7:0"/>
+            <field name="Out_LIF" bits="25:8"/>
+            <field name="VSI_or_VRF" bits="41:26"/>
+            <field name="TC" bits="44:42"/>
+            <field name="Drop" bits="45:45"/>
+        </structure>
+        <structure name="GLEM_Data" size="41" perm="1">
+            <field name="Out_LIF" bits="17:0"/>
+            <field name="Out_LIF_Found" bits="18:18"/>
+            <field name="Out_LIF_Error" bits="19:19"/>
+            <field name="EEI" bits="37:20"/>
+            <field name="EEI_Found" bits="38:38"/>
+            <field name="EEI_Error" bits="39:39"/>
+            <field name="Lookup_Disabled" bits="40:40"/>
+        </structure>
+        <structure name="EES_Action_Short" size="28" perm="1">
+            <field name="EEI" bits="23:0"/>
+            <field name="Type" bits="27:24"/>
+        </structure>
+        <structure name="EE_Format_MPLS_Swap" size="43" perm="1">
+            <field name="Reserved" bits="22:0"/>
+            <field name="MPLS_1_Label" bits="42:23"/>
+        </structure>
+        <structure name="EE_Format_MPLS_Pop" size="43" perm="1">
+            <field name="Upper_Layer_Protocol" bits="3:0"/>
+            <field name="CW" bits="4"/>
+            <field name="Model_is_Pipe" bits="5"/>
+            <field name="TPID_Profile" bits="7:6"/>
+            <field name="Reserved" bits="42:8"/>
+        </structure>
+        <structure name="EE_Format_MPLS_Push" size="43" perm="1">
+            <field name="MPLS_2_Label" bits="19:0"/>
+            <field name="MPLS_2_Cmd" bits="22:20"/>
+            <field name="MPLS_1_Label" bits="42:23"/>
+        </structure>
+        <structure name="EE_Format_MPLS" size="88" perm="1">
+            <field name="Next_Out_LIF" bits="16:0"/>
+            <field name="VSI_LSB" bits="31:17"/>
+            <field name="EE_Format_MPLS_Data" bits="74:32" expansion="Dynamic">
+                <option expansion="EE_Format_MPLS_Swap" MPLS_1_Cmd="9"/>
+                <option expansion="EE_Format_MPLS_Pop" MPLS_1_Cmd="8"/>
+                <option expansion="EE_Format_MPLS_Push"/>
+            </field>
+            <field name="MPLS_1_Cmd" bits="78:75"/>
+            <field name="OAM_LIF_Set" bits="79"/>
+            <field name="Out_LIF_Profile" bits="85:80"/>
+            <field name="Drop" bits="86"/>
+            <field name="Type_MPLS" bits="87"/>
+        </structure>
+        <structure name="EE_Format_Data" size="88" perm="1">
+            <field name="Next_Out_LIF" bits="16:0"/>
+            <field name="Next_Out_LIF_Valid" bits="17"/>
+            <field name="Data" bits="73:18"/>
+            <field name="Reserved" bits="74"/>
+            <field name="OAM_LIF_Set" bits="75"/>
+            <field name="Out_LIF_Profile" bits="81:76"/>
+            <field name="Drop" bits="82"/>
+            <field name="Reserved" bits="84:83"/>
+            <field name="Type_EES" bits="87:85"/>
+        </structure>
+        <structure name="EE_Format_IPv4" size="88" perm="1">
+            <field name="Next_Out_LIF" bits="16:0"/>
+            <field name="VSI_LSB" bits="31:17"/>
+            <field name="Enc_Mode" bits="33:32"/>
+            <field name="TOS_Index" bits="37:34"/>
+            <field name="TTL_Index" bits="39:38"/>
+            <field name="IPv4_Src_Index" bits="43:40"/>
+            <field name="IPv4_Dst" bits="75:44"/>
+            <field name="OAM_LIF_Set" bits="76"/>
+            <field name="Out_LIF_Profile" bits="82:77"/>
+            <field name="Drop" bits="83"/>
+            <field name="Type_IPv4" bits="87:84"/>
+        </structure>
+        <structure name="EE_Format_ISID" size="88" perm="1">
+            <field name="Next_Out_LIF" bits="16:0"/>
+            <field name="Next_Out_LIF_Valid" bits="17"/>
+            <field name="ISID" bits="41:18"/>
+            <field name="Reserved" bits="73:42"/>
+            <field name="OAM_LIF_Set" bits="74"/>
+            <field name="Out_LIF_Profile" bits="80:75"/>
+            <field name="Drop" bits="81"/>
+            <field name="Reserved" bits="83:82"/>
+            <field name="Type_ISID" bits="87:84"/>
+        </structure>
+        <structure name="Out_RIF_Entry" size="41" perm="1">
+            <field name="ARP_Ptr_LSB" bits="15:0"/>
+            <field name="ARP_Ptr_Valid" bits="16"/>
+            <field name="VSI_LSB" bits="29:17"/>
+            <field name="Remark_Profile" bits="33:30"/>
+            <field name="OAM_LIF_Set" bits="34"/>
+            <field name="Out_LIF_Profile_LSB" bits="37:35"/>
+            <field name="Drop" bits="38"/>
+            <field name="Type" bits="40:39"/>
+        </structure>
+        <structure name="AC_Entry" size="41" perm="1">
+            <field name="PCP_DEI_Profile" bits="3:0"/>
+            <field name="VID_2" bits="15:4"/>
+            <field name="VID_1" bits="27:16"/>
+            <field name="VLAN_Edit_Profile" bits="32:28"/>
+            <field name="OAM_LIF_Set" bits="33"/>
+            <field name="Out_LIF_Profile_LSB" bits="36:34"/>
+            <field name="Drop" bits="37"/>
+            <field name="Use_as_Data" bits="38"/>
+            <field name="Type" bits="40:39"/>
+        </structure>
+        <structure name="EE_Format_AC_or_Out_RIF" size="88" perm="1">
+            <field name="Entry_0" bits="40:0" expansion="Dynamic">
+                <option expansion="Out_RIF_Entry" Entry0_Type="1"/>
+                <option expansion="AC_Entry" Entry0_Type="0"/>
+            </field>
+            <field name="Entry_0_Type" bits="40:39"/>
+            <field name="Entry_1" bits="81:41" expansion="Dynamic">
+                <option expansion="Out_RIF_Entry" Entry1_Type="1"/>
+                <option expansion="AC_Entry" Entry1_Type="0"/>
+            </field>
+            <field name="Entry_1_Type" bits="81:80"/>
+            <field name="Reserved" bits="83:82"/>
+            <field name="Type_AC_or_Out_RIF" bits="87:84"/>
+        </structure>
+        <structure name="TRILL_Half_Entry" size="41" perm="1">
+            <field name="Next_Out_LIF" bits="16:0"/>
+            <field name="Next_Out_LIF_Valid" bits="17"/>
+            <field name="Nick" bits="33:18"/>
+            <field name="MC" bits="34"/>
+            <field name="OAM_LIF_Set" bits="35"/>
+            <field name="Out_LIF_Profile_LSB" bits="38:36"/>
+            <field name="Drop" bits="39"/>
+            <field name="Reserved" bits="40"/>
+        </structure>
+        <structure name="EE_Format_TRILL_Half" size="88" perm="1">
+            <field name="Entry_0" bits="40:0" expansion="TRILL_Half_Entry"/>
+            <field name="Entry_1" bits="81:41" expansion="TRILL_Half_Entry"/>
+            <field name="Reserved" bits="82"/>
+            <field name="Half_Entry" bits="83"/>
+            <field name="Type_TRILL" bits="87:84"/>
+        </structure>
+        <structure name="EE_Format_TRILL_Full" size="88" perm="1">
+            <field name="Next_Out_LIF" bits="16:0"/>
+            <field name="Next_Out_LIF_Valid" bits="17"/>
+            <field name="Nick" bits="33:18"/>
+            <field name="MC" bits="34"/>
+            <field name="My_Nick_Index" bits="36:35"/>
+            <field name="VSI_LSB" bits="51:37"/>
+            <field name="VSI_Valid" bits="52"/>
+            <field name="Remark_Profile" bits="56:53"/>
+            <field name="Reserved" bits="72:57"/>
+            <field name="OAM_LIF_Set" bits="73"/>
+            <field name="Out_LIF_Profile" bits="79:74"/>
+            <field name="Drop" bits="80"/>
+            <field name="Reserved" bits="82:81"/>
+            <field name="Half_Entry" bits="83"/>
+            <field name="Type_TRILL" bits="87:84"/>
+        </structure>
+        <structure name="EE_Format_ARP_LL" size="88" perm="1">
+            <field name="Next_Out_LIF_LSB" bits="5:0"/>
+            <field name="Next_Out_LIF_Valid" bits="6"/>
+            <field name="VSI" bits="22:7"/>
+            <field name="VSI_Valid" bits="23"/>
+            <field name="MAC" bits="71:24"/>
+            <field name="Remark_Profile" bits="74:72"/>
+            <field name="OAM_LIF_Set" bits="75"/>
+            <field name="Out_LIF_Profile" bits="80:76"/>
+            <field name="ROO_Link_Format" bits="81"/>
+            <field name="Drop" bits="82"/>
+            <field name="Reserved" bits="84:83"/>
+            <field name="Type_ARP_LL" bits="87:85"/>
+        </structure>
+        <structure name="EE_Format_ROO_LL" size="88" perm="1">
+            <field name="Outer_Tag_MSB" bits="7:0"/>
+            <field name="Outer_Tag_PCP_DEI" bits="11:8"/>
+            <field name="Remark_Profile" bits="14:12"/>
+            <field name="Num_of_Tags" bits="16:15"/>
+            <field name="Eth_Type_Index" bits="20:17"/>
+            <field name="SA_LSB" bits="32:21"/>
+            <field name="DA" bits="80:33"/>
+            <field name="ROO_Link_Format" bits="81"/>
+            <field name="Drop" bits="82"/>
+            <field name="Reserved" bits="84:83"/>
+            <field name="Type_ROO_LL" bits="87:85"/>
+        </structure>
+        <structure name="EEDB_Entry" size="88" expansion="Dynamic" perm="1">
+            <option expansion="EE_Format_AC_or_Out_RIF" msb_4b="0"/>
+            <option expansion="EE_Format_TRILL_Half" msb_4b="1" TRILL_Half_Entry_Valid="1"/>
+            <option expansion="EE_Format_TRILL_Full" msb_4b="1" TRILL_Half_Entry_Valid="0"/>
+            <option expansion="EE_Format_ISID" msb_4b="2"/>
+            <option expansion="EE_Format_IPv4" msb_4b="3"/>
+            <option expansion="EE_Format_ARP_LL" msb_3b="2" ROO_Link_Format_Valid="0"/>
+            <option expansion="EE_Format_ROO_LL" msb_3b="2" ROO_Link_Format_Valid="1"/>
+            <option expansion="EE_Format_Data" msb_3b="3"/>
+            <option expansion="EE_Format_MPLS" msb_1b="1"/>
+            <field name="TRILL_Half_Entry_Valid" bits="83"/>
+            <field name="ROO_Link_Format_Valid" bits="81"/>
+            <field name="msb_1b" bits="87:87"/>
+            <field name="msb_3b" bits="87:85"/>
+            <field name="msb_4b" bits="87:84"/>
+        </structure>
+        <structure name="EES_Action" size="131" perm="1">
+            <field name="Type" bits="3:0"/>
+            <field name="EEDB_Ptr" bits="21:4"/>
+            <field name="EEDB_Entry" bits="109:22"/>
+            <field name="Protection_Ptr" bits="130:110"/>
+        </structure>
+        <structure name="TM_Cmd" size="323" perm="1">
+            <field name="Eth_Meter_Ptr" bits="10:0"/>
+            <field name="Learn_Info_Valid" bits="11"/>
+            <field name="Learn_Info" bits="115:12"/>
+            <field name="Learn_Info_Reserved" bits="117:116"/>
+            <field name="Dst_Valid" bits="118"/>
+            <field name="Snoop_Cmd" bits="122:119"/>
+            <field name="Mirror_Cmd" bits="126:123"/>
+            <field name="DP" bits="128:127"/>
+            <field name="TC" bits="131:129"/>
+            <field name="Dst" bits="150:132" expansion="Fwd_Action_Dst"/>
+            <field name="Ingress_is_Shaped" bits="151"/>
+            <field name="Ingress_Shaping_Dst" bits="168:152"/>
+            <field name="Eth_Enc" bits="170:169"/>
+            <field name="Statistics_Tag" bits="178:171"/>
+            <field name="St_VSQ_Ptr" bits="186:179"/>
+            <field name="Meter_B_Ptr" bits="203:187" condition="Meter_B_Update"/>
+            <field name="Meter_B_Update" bits="204"/>
+            <field name="Meter_A_Ptr" bits="221:205" condition="Meter_A_Update"/>
+            <field name="Meter_A_Update" bits="222"/>
+            <field name="Counter_B_Ptr" bits="243:223" condition="Counter_B_Update"/>
+            <field name="Counter_B_Update" bits="244"/>
+            <field name="Counter_A_Ptr" bits="265:245" condition="Counter_A_Update"/>
+            <field name="Counter_A_Update" bits="266"/>
+            <field name="LAG_LB_Key" bits="282:267"/>
+            <field name="DP_Meter_Cmd" bits="284:283"/>
+            <field name="Ignore_CP" bits="285"/>
+            <field name="LAG_Member_Valid" bits="286"/>
+            <field name="In_PP_Port" bits="294:287"/>
+            <field name="Network_Header_Truncate_Size" bits="302:295"/>
+            <field name="Network_Header_Append_Size_Ptr" bits="310:303"/>
+            <field name="Snoop_Code" bits="318:311"/>
+            <field name="Reserved" bits="322:319"/>
+        </structure>
+        <structure name="Fwd_Action" size="133" perm="1">
+            <field name="Strength" bits="2:0"/>
+            <field name="Dst" bits="21:3" expansion="Fwd_Action_Dst"/>
+            <field name="TC" bits="24:22"/>
+            <field name="DP" bits="26:25"/>
+            <field name="Meter_A_Update" bits="27"/>
+            <field name="Meter_A_Ptr" bits="44:28" condition="Meter_A_Update"/>
+            <field name="Meter_B_Update" bits="45"/>
+            <field name="Meter_B_Ptr" bits="62:46" condition="Meter_B_Update"/>
+            <field name="DP_Meter_Cmd" bits="64:63"/>
+            <field name="Counter_A_Update" bits="65"/>
+            <field name="Counter_A_Ptr" bits="86:66" condition="Counter_A_Update"/>
+            <field name="Counter_B_Update" bits="87"/>
+            <field name="Counter_B_Ptr" bits="108:88" condition="Counter_B_Update"/>
+            <field name="CPU_Trap_Code" bits="116:109"/>
+            <field name="CPU_Trap_Qualifier" bits="132:117"/>
+        </structure>
+        <structure name="Learn_Info" size="104" perm="1">
+            <field name="MAC" bits="47:0"/>
+            <field name="FID" bits="62:48"/>
+            <field name="Payload" bits="102:63"/>
+            <field name="Learn_or_Transplant" bits="103:103"/>
+        </structure>
+        <structure name="Eth_Tag_Format" size="5" perm="1">
+            <field name="Inner_Tag" bits="1:0" resolution="Tag_Encoding"/>
+            <field name="Outer_Tag_is_Priority" bits="2"/>
+            <field name="Outer_Tag" bits="4:3" resolution="Tag_Encoding"/>
+        </structure>
+        <structure name="Header_Offset" size="42" perm="1">
+            <field name="Header_0" bits="6:0"/>
+            <field name="Header_1" bits="13:7"/>
+            <field name="Header_2" bits="20:14"/>
+            <field name="Header_3" bits="27:21"/>
+            <field name="Header_4" bits="34:28"/>
+            <field name="Header_5" bits="41:35"/>
+        </structure>
+        <structure name="PFQ" size="11" perm="1">
+            <field name="Next_Protocol" bits="10:7"/>
+        </structure>
+        <structure name="Packet_Format_Qualifier" size="55" perm="1">
+            <field name="Header_1" bits="10:00" expansion="PFQ"/>
+            <field name="Header_2" bits="21:11" expansion="PFQ"/>
+            <field name="Header_3" bits="32:22" expansion="PFQ"/>
+            <field name="Header_4" bits="43:33" expansion="PFQ"/>
+            <field name="Header_5" bits="54:44" expansion="PFQ"/>
+        </structure>
+    </signal-structures>
+    <signal-params>
+        <signal name="Tag_Encoding" size="2">
+            <entry value="0" name="None"/>
+            <entry value="1" name="TPID1"/>
+            <entry value="2" name="TPID2"/>
+            <entry value="3" name="TPID3"/>
+        </signal>
+        <signal name="PPH_Type" size="2">
+            <entry value="0" name="No_PPH"/>
+            <entry value="1" name="PPH_Base"/>
+            <entry value="2" name="PPH_OAM_TS"/>
+            <entry value="3" name="PPH_Base_OAM_TS"/>
+        </signal>
+        <signal name="TM Action_Type" size="2">
+            <entry value="0" name="Fwd"/>
+            <entry value="1" name="Snoop"/>
+            <entry value="2" name="Mirror"/>
+            <entry value="3" name="TDM"/>
+        </signal>
+        <signal name="OTSH_Type" size="2">
+            <entry value="0" name="OAM"/>
+            <entry value="1" name="IEEE1588v2"/>
+            <entry value="2" name="Latency_Measurement"/>
+            <entry value="3" name="Reserved"/>
+        </signal>
+        <signal name="Fwd_Code" size="4" default="Reserved">
+            <entry value="0" name="Bridge"/>
+            <entry value="1" name="IPv4_UC_Routed"/>
+            <entry value="2" name="IPv4_MC_Routed"/>
+            <entry value="3" name="IPv6_UC_Routed"/>
+            <entry value="4" name="IPv6_MC_Routed"/>
+            <entry value="5" name="MPLS"/>
+            <entry value="6" name="TRILL"/>
+            <entry value="7" name="CPU_Trap"/>
+            <entry value="8" name="Reserved_8"/>
+            <entry value="9" name="Custom_1"/>
+            <entry value="10" name="Custom_2"/>
+            <entry value="11" name="Snoop/Mirror"/>
+            <entry value="15" name="TM"/>
+        </signal>
+        <signal name="Eth_Type_Code" size="4">
+            <entry value="0" name="No Match"/>
+            <entry value="1" name="M-in-M"/>
+            <entry value="2" name="IPv4"/>
+            <entry value="3" name="IPv6"/>
+            <entry value="4" name="ARP"/>
+            <entry value="5" name="CFM"/>
+            <entry value="6" name="TRILL"/>
+            <entry value="7" name="MPLS"/>
+            <entry value="8" name="Custom 1"/>
+            <entry value="9" name="Custom 2"/>
+            <entry value="10" name="Custom 3"/>
+            <entry value="11" name="Custom 4"/>
+            <entry value="12" name="Custom 5"/>
+            <entry value="13" name="Custom 6"/>
+            <entry value="14" name="Custom 7"/>
+            <entry value="15" name="Custom 8"/>
+        </signal>
+        <signal name="Packet_Format_Code" size="6" default="tm">
+            <entry value="0" name="Eth"/>
+            <entry value="1" name="M-in-M"/>
+            <entry value="2" name="Eth:IPv4"/>
+            <entry value="3" name="Eth:IPv6"/>
+            <entry value="4" name="Reserved"/>
+            <entry value="5" name="Eth:MPLSx3"/>
+            <entry value="6" name="Eth:MPLSx2"/>
+            <entry value="7" name="Eth:MPLSx3"/>
+            <entry value="8" name="Eth:FC"/>
+            <entry value="9" name="Eth:FC"/>
+            <entry value="10" name="Eth:IPv4:Eth"/>
+            <entry value="11" name="Reserved"/>
+            <entry value="12" name="Eth:TRILL:Eth"/>
+            <entry value="13" name="Eth:MPLS:Eth"/>
+            <entry value="14" name="Eth:MPLSx2:Eth"/>
+            <entry value="15" name="Eth:MPLSx3:Eth"/>
+            <entry value="16" name="Reserved"/>
+            <entry value="17" name="Reserved"/>
+            <entry value="18" name="Eth:IPv4:IPv4"/>
+            <entry value="19" name="Eth:IPv6:IPv4"/>
+            <entry value="20" name="Reserved"/>
+            <entry value="21" name="Eth:MPLS:IPv4"/>
+            <entry value="22" name="Eth:MPLSx2:IPv4"/>
+            <entry value="23" name="Eth:MPLSx3:IPv4"/>
+            <entry value="24" name="Reserved"/>
+            <entry value="25" name="Reserved"/>
+            <entry value="26" name="Eth:IPv4:IPv6"/>
+            <entry value="27" name="Eth:IPv6:IPv6"/>
+            <entry value="28" name="Reserved"/>
+            <entry value="29" name="Eth:MPLS:IPv6"/>
+            <entry value="30" name="Eth:MPLSx2:IPv6"/>
+            <entry value="31" name="Eth:MPLSx3:IPv6"/>
+        </signal>
+        <signal name="FHEI_Code" size="2">
+            <entry value="0" name="None"/>
+            <entry value="1" name="FHEI_3B"/>
+            <entry value="2" name="FHEI_5B"/>
+            <entry value="3" name="FHEI_8B"/>
+        </signal>
+        <signal name="Enc_Mode" size="2">
+            <entry value="0" name="None"/>
+            <entry value="1" name="EthIP_or_VxLAN"/>
+            <entry value="2" name="GRE_4B"/>
+            <entry value="3" name="GRE_8B"/>
+        </signal>
+        <signal name="TT_Code" size="4" default="Reserved">
+            <entry value="0" name="None"/>
+            <entry value="1" name="Eth"/>
+            <entry value="3" name="IPv4oE"/>
+            <entry value="4" name="MPLSoE"/>
+            <entry value="5" name="CW_MPLSoE"/>
+            <entry value="6" name="MPLSx2oE"/>
+            <entry value="7" name="CW_MPLSx2oE"/>
+            <entry value="8" name="MPLSx3oE"/>
+            <entry value="9" name="CW_MPLSx3oE"/>
+            <entry value="10" name="TRILLoE"/>
+            <entry value="11" name="IPv6oE"/>
+        </signal>
+        <signal name="IEEE1588_Enc" size="1">
+            <entry value="0" name="UDP"/>
+            <entry value="1" name="Eth"/>
+        </signal>
+        <signal name="STP_State" size="2" default="Reserved">
+            <entry value="0" name="Block"/>
+            <entry value="1" name="Learn"/>
+            <entry value="2" name="Forward"/>
+        </signal>
+        <signal name="In_LIF_Data_Index" size="2">
+            <entry value="0" name="VT_ISEM_A_Lookup"/>
+            <entry value="1" name="VT_ISEM_B_Lookup"/>
+            <entry value="2" name="TT_ISEM_A_Lookup"/>
+            <entry value="3" name="TT_ISEM_B_Lookup"/>
+        </signal>
+    </signal-params>
+</top>

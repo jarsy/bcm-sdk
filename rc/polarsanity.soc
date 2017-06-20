@@ -1,0 +1,117 @@
+# $Id: polarsanity.soc,v 1.3 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Script to run all available tests as quickly as possible.
+# For testing basic sanity of new drivers, simulators, chips, etc.
+
+echo "testsuite: started: polarsanity"
+rcload robo.soc
+counter off
+l2mode off
+
+# We need to print out port status since any cabling effects results.
+*:ps
+
+#Display config property settings
+config
+
+local done 'echo "   Done"'
+
+
+
+# Set run command script not to fail on errors reported by commands
+# this allows the script to continue if a test fails
+set rcerror=false
+
+# Set up test mode: don't stop on errors, show progress on each test
+tm -stoponerror +progress
+# Unselect all
+ts -*
+
+#Display some useful information
+ver
+soc
+
+echo "Running Register reset defaults ..."
+tr 1
+$done
+
+echo "Running Register read/write ..."
+tr 3
+$done
+
+#Clean up after register read/write test.
+rcload robo.soc
+counter off
+l2mode off
+
+echo "Running Switching Memory tests ..."
+echo "tr 50 M=CFP_ACT_POL";tr 50 M=CFP_ACT_POL IS=min IE=max; echo " Done"
+echo "tr 50 M=CFP_METER";tr 50 M=CFP_METER IS=min IE=max; echo " Done"
+echo "tr 50 M=CFP_STAT_IB";tr 50 M=CFP_STAT_IB IS=min IE=max; echo " Done"
+echo "tr 50 M=CFP_STAT_OB";tr 50 M=CFP_STAT_OB IS=min IE=max; echo " Done"
+echo "tr 50 M=TCAM_Chain_MASK";tr 50 M=TCAM_Chain_MASK IS=min IE=max; echo " Done"
+echo "tr 50 M=TCAM_Chain_SC";tr 50 M=TCAM_Chain_SC IS=min IE=max; echo " Done"
+echo "tr 50 M=EGRESS_VID_REMARK";tr 50 M=EGRESS_VID_REMARK IS=min IE=max; echo " Done"
+echo "tr 50 M=ARL";tr 50 M=ARL IS=min IE=max; echo " Done"
+echo "tr 50 M=MSPT";tr 50 M=MSPT IS=min IE=max; echo " Done"
+echo "tr 50 M=VLAN";tr 50 M=VLAN IS=min IE=max; echo " Done"
+
+echo "tr 51 M=CFP_ACT_POL";tr 51 M=CFP_ACT_POL IS=min IE=max; echo " Done"
+echo "tr 51 M=CFP_METER";tr 51 M=CFP_METER IS=min IE=max; echo " Done"
+echo "tr 51 M=CFP_STAT_IB";tr 51 M=CFP_STAT_IB IS=min IE=max; echo " Done"
+echo "tr 51 M=CFP_STAT_OB";tr 51 M=CFP_STAT_OB IS=min IE=max; echo " Done"
+echo "tr 51 M=TCAM_Chain_MASK";tr 51 M=TCAM_Chain_MASK IS=min IE=max; echo " Done"
+echo "tr 51 M=TCAM_Chain_SC";tr 51 M=TCAM_Chain_SC IS=min IE=max; echo " Done"
+echo "tr 51 M=EGRESS_VID_REMARK";tr 51 M=EGRESS_VID_REMARK IS=min IE=max; echo " Done"
+echo "tr 51 M=ARL";tr 51 M=ARL IS=min IE=max; echo " Done"
+echo "tr 51 M=MSPT";tr 51 M=MSPT IS=min IE=max; echo " Done"
+echo "tr 51 M=VLAN";tr 51 M=VLAN IS=min IE=max; echo " Done"
+
+echo "tr 52 M=CFP_ACT_POL";tr 52 M=CFP_ACT_POL IS=min IE=max; echo " Done"
+echo "tr 52 M=CFP_METER";tr 52 M=CFP_METER IS=min IE=max; echo " Done"
+echo "tr 52 M=CFP_STAT_IB";tr 52 M=CFP_STAT_IB IS=min IE=max; echo " Done"
+echo "tr 52 M=CFP_STAT_OB";tr 52 M=CFP_STAT_OB IS=min IE=max; echo " Done"
+echo "tr 52 M=TCAM_Chain_MASK";tr 52 M=TCAM_Chain_MASK IS=min IE=max; echo " Done"
+echo "tr 52 M=TCAM_Chain_SC";tr 52 M=TCAM_Chain_SC IS=min IE=max; echo " Done"
+echo "tr 52 M=EGRESS_VID_REMARK";tr 52 M=EGRESS_VID_REMARK IS=min IE=max; echo " Done"
+echo "tr 52 M=ARL";tr 52 M=ARL IS=min IE=max; echo " Done"
+echo "tr 52 M=MSPT";tr 52 M=MSPT IS=min IE=max; echo " Done"
+echo "tr 52 M=VLAN";tr 52 M=VLAN IS=min IE=max; echo " Done"
+
+#Do re-init after Switching Memory tests
+rcload robo.soc
+counter off
+l2mode off
+
+#Internal snake Loopback
+echo "Running internal snake on all ports, PHY loopback ..."
+tr 39 loopbackmode=phy
+$done
+
+#--------- PHY Loopback V2 ---------
+echo "Running PHY loopback V2 on all ports ..."
+tr 49
+$done
+
+#Traffic Test
+echo "Running Traffic Test in PHY mode ..."
+tr 72 RM=PHY 
+$done
+
+#echo "Running Traffic Test in EXTERNAL mode ..."
+tr 72 RM=EXT AN=F SP=100 PBM=ge0-ge3
+#$done
+
+# Show status
+tl 
+local returnCode $?
+
+echo Tests Complete.  Reinitializing ...
+rcload robo.soc
+
+# We want to show the return code from the tl command which
+# lists the results. The automated test infrastructure keys off of this 
+# value
+echo "testsuite: finished: polarsanity: $returnCode"

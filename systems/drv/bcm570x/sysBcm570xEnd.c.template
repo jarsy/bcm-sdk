@@ -1,0 +1,133 @@
+/*
+ * $Id: sysBcm570xEnd.c.template,v 1.2 Broadcom SDK $
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ *
+ * sysBcm570xEnd.c - system configuration module for BCM570x END
+ */
+
+
+/*
+DESCRIPTION
+This is an example configuration module for the VxWorks BCM570x (bc) END
+driver.  Something like this should be placed in your BSP.  It should then
+be #included somewhere like sysLib.c, so you don't need to write a
+build rule for it.
+
+
+N.B.: code formatting conventions used here are Wind River, not
+Broadcom's, since this driver wrapper resides in the BSP.
+*/
+
+#if (defined(INCLUDE_NETWORK) && defined(INCLUDE_BCM570XEND) \
+     && defined (INCLUDE_END))
+
+/* includes */
+
+#include "vxWorks.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
+#include "end.h"
+#include "config.h"
+
+/* 
+* The include below should point to whereever you have the
+* driver source directory
+*/
+
+#include "../../drv/bcm570x/bcm570xEnd.h"
+
+/* defines */
+
+/* forward declarations */
+
+/* typedefs */
+
+/* locals */
+
+IMPORT END_OBJ* bcm570xEndLoad (char *);
+
+/******************************************************************************
+*
+* sysBcm570xCacheFuncsGet - Get flush/invalidate routine for driver
+*
+* RETURNS: N/A
+*
+*/
+
+void sysBcm570xCacheFuncsGet
+    (
+    CACHE_FUNCS *pCacheFuncs
+    )
+    {
+
+#if 0
+    /* For a processor without bus snooping, e.g. many MIPS */
+
+    pCacheFuncs->flushRtn = cacheLib.flushRtn;
+    pCacheFuncs->invalidateRtn = cacheLib.invalidateRtn;
+    pCacheFuncs->virtToPhysRtn = cacheLib.dmaVirtToPhysRtn;
+    pCacheFuncs->physToVirtRtn = cacheLib.dmaPhysToVirtRtn;
+#else
+
+    /* If your processor does bus snooping, e.g. most PPC's */
+    *pCacheFuncs = cacheDmaFuncs;
+#endif
+    return;
+    }
+
+
+/******************************************************************************
+*
+* sysBcm570xEndLoad - board specific initialization for BCM570x
+*
+* RETURNS: pointer to END object or ERROR.
+*
+* SEE ALSO: bcm570xEndLoad()
+*/
+
+END_OBJ * sysBcm570xEndLoad
+    (
+    char * pParamStr,   /* ptr to initialization parameter string */
+    void * unused       /* BSP-specific param */
+    )
+    {
+    END_OBJ * pEnd;
+
+    if (strlen (pParamStr) == 0)
+        {
+        /*
+         * muxDevLoad() calls us twice.  If the string is
+         * zero length, then this is the first time through
+         * this routine, so we just return.
+         */
+
+        pEnd = bcm570xEndLoad (pParamStr);
+        }
+
+    else
+        {
+        /*
+        * Define a local function, sysEnetAddrGet, the fetch
+        * the MAC address from your board's flash or NVRAM
+        */
+        _func_bcm570xEnetAddrGet = sysEnetAddrGet;
+
+        /*
+        * Do any other preprocessing you want.  For example, 
+        * the END load string could be dynamic, i.e. built on
+        * the fly instead of taken from a static endDevTbl.
+        */
+
+        if ((pEnd = bcm570xEndLoad (pParamStr)) == (END_OBJ *)ERROR)
+            {
+            printf ("Error: bcm570x device failed bcm570xEndLoad routine.\n");
+            }
+        }
+
+    return (pEnd);
+    }
+
+#endif

@@ -1,0 +1,162 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+			 BCM56xx LED Processor
+		       by Curt McDowell 08/09/02
+
+1) LED Processor
+
+The LED Processor is featured in the BCM5605 and later StrataSwitch
+chips, as well as all StrataXGS switch and fabric chips.  It is a very
+simple, tiny 8-bit CPU integrated into the CPU Management Interface
+Controller (CMIC) portion of the chip.  The processor is very
+well-matched to the task of managing LEDs, but does not have enough
+power or capacity to perform additional functions.
+
+Downloading the LED Processor program, and subsequent communication
+between the LED Processor and the host device, is done via direct-mapped
+PCI memory accesses into the LED Processor program and data space.
+
+The net output of the LED Processor are two pins, clock and data, that
+output a scan chain of 0's and 1's into a series of external shift
+registers connected to LEDs.  The layout and length of the LED chain is
+completely dependent on board implementation, so if the customer LED
+chain is not the same as one of the existing SDK chains, then a custom
+program is needed.
+
+The entire LED Processor program runs from start to completion
+approximately 30 times per second, providing a maximum update rate of
+30Hz.  Little or no host CPU intervention is required, however the host
+CPU can always information to the LED Processor by writing into its data
+space.
+
+2) LED Processor Resources
+
+Starting in SDK 2.0.0 and later, the $SDK/led directory in the top
+level of the release tree contains PDF documentation, tools including
+assembler, disassembler, and debugger, and numerous sample programs for
+existing Broadcom SDK boards.
+
+On Broadcom SDK systems, the rc.soc initialization script starts a
+default program running on the LED Processor where appropriate.
+The rc.soc script is located in
+
+	$SDK/rc/rc.soc
+
+and rc.soc is also commonly programmed on the CPU flash filesystem as:
+
+	flash:rc.soc
+
+For example, the source code for the default LED program for BCM5605,
+BCM5615, and BCM5645 SDKs is called "sdk5605.asm" and is located in:
+
+	$SDK/led/example/sdk5605.asm
+	$SDK/led/example/sdk5605.hex	(assember output file)
+
+3) Developing LED Programs
+
+A LED program can be written or modified by the programmer to present
+other behaviors.
+
+In general, to try a new program the user should assemble the source
+code and test-load the program using the BCM commands:
+
+	led stop
+	led load my_prog.hex
+	led start
+
+Once a program is developed, the program's .hex data can be used to
+replace the one in rc.soc for custom behavior, or can be passed as a
+byte array to the soc_ledproc_config() routine in the driver library.
+
+4) An example SDK LED Program for BCM5605
+
+The BCM5605 SDK has 14 columns of 4 LEDs each as shown below:
+
+	Lxx  L25  L01 L03 L05 L07 L09 L11 L13 L15 L17 L19 L21 L23
+	Lxx  A25  A01 A03 A05 A07 A09 A11 A13 A15 A17 A19 A21 A23
+	Lxx  L26  L02 L04 L06 L08 L10 L12 L14 L16 L18 L20 L22 L24
+	Lxx  A26  A02 A04 A06 A08 A10 A12 A14 A16 A18 A20 A22 A24
+
+Lxx are voltage status LEDs and are not accessible.
+
+The sdk5605.asm program writes bits to the LED scan chain in the proper
+order in order to implement the following behavior (see sdk5605.asm for
+detailed information):
+
+L01 reflects port 1 link status:
+	Black: no link
+	Amber: 10 Mb/s
+	Green: 100 Mb/s
+	Alternating green/amber: 1000 Mb/s
+	Very brief flashes of black at 1 Hz: half duplex
+	Longer periods of black: collisions in progress
+
+A01 reflects port 1 activity (even if port is down)
+	Black: idle
+	Green: RX (pulse extended to 1/3 sec)
+	Amber: TX (pulse extended to 1/3 sec, takes precedence over RX)
+	Green/Amber alternating at 6 Hz: both RX and TX
+
+5) Information Available to the LED Processor
+
+The "pushst" instruction of the LED Processor can push the following
+status information, where a 1 indicates true and 0 indicates false:
+
+RX              0x0     Received packet in the last 1/30 sec window
+TX              0x1     Transmitted packet in the last 1/30 sec window
+COLL            0x2     Collision detected in the last 1/30 sec window
+SPEED_C         0x3     MAC is configured for 100 Mbps mode
+SPEED_M         0x4     MAC is configured for 1000 Mbps mode
+DUPLEX          0x5     MAC is configured for full duplex
+FLOW            0x6     Flow control capable
+LINKUP          0x7     Link is up
+LINKEN          0x8     Link is enabled
+
+The "port" instruction configures the port on which the "pushst"
+instruction operates.
+
+The LED Processor is part of the CMIC and has access only to the MACs,
+not to the PHYs or other parts of the switch chip.
+
+The latter two values, LINKUP and LINKEN, are not generally available in
+all MACs.  For example, the SERDES and Higig MACs have this information,
+but the 10/100 MAC does not.
+
+As such, it is recommended that link up/down status and other
+user-defined information be passed to the LED Processor by the main CPU,
+for example by the linkscan task.
+
+6) Passing Information to the LED Processor
+
+In the Broadcom SDK, memory locations 0x80 through 0x99 in the LED
+Processor program data space are reserved for communication from the
+host CPU to the LED Processor.  One byte per port has been assigned:
+
+Bit 0 of each byte is used to pass link up/down status.
+Bits 1-6 of each byte remain unassigned.
+Bit 7 of each byte is used to pass link turbo enable/disable status.
+
+There is no reason this format is required; the user may feel free to
+redefine the communication protocol and re-write parts of the driver
+code.
+
+Please refer to the file
+
+	$SDK/src/appl/diag/ledproc.c
+
+which demonstrates how to initialize and download the LED Processor, and
+how to tie into the linkscan callback routine to send link up/down
+status to the LED Processor whenever a link goes up or down.
+
+Note that, as mapped in the CMIC PCI memory space, each byte of the LED
+processor occupies an entire 32-bit word, of which only the least
+significant eight bits is actually valid.  Therefore, when reading or
+writing the LED program or data spaces from the main CPU, the byte
+offset must be multiplied by 4 and added to the PCI
+CMIC_LED_DATA_RAM_BASE, and 32-bit read/write operations should be used
+to avoid any endian issue.  The macros CMIC_LED_PROGRAM_RAM(offset) and
+CMIC_LED_DATA_RAM(offset) help calculate these offsets.

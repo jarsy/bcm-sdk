@@ -1,0 +1,113 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+		   Notes on StrataSwitch Endian Modes
+		 Curt McDowell, Broadcom Corp. 01-10-00
+			 Last Updated: 02-07-00
+------------------------------------------------------------------------------
+
+1. Data Transfer Types
+
+Endian issues affect the following types of data transfer that are used
+in the StrataSwitch:
+
+	PCI Config space
+		Generates special bus cycles used to configure PCI
+		parameters such as Base Address Registers.
+
+	PCI Memory space
+		Used to access CMIC registers, including the S-Channel
+		message buffer and ARL message buffers.  Sometimes
+		referred to as PIO (programmed I/O).
+
+	Packet DMA
+		Refers to the CMIC transferring network packet data
+		into or out of host memory.
+
+	Descriptor DMA
+		Refers to the CMIC fetching descriptors out of host
+		memory.  The descriptors contain control and status
+		words for packet DMA.
+
+	Counter DMA
+		Refers to the CMIC mirroring the contents of MAC
+		packet statistics counters into host memory.
+
+	ARL Message DMA
+		Refers to the CMIC mirroring S-Channel ARL insert/delete
+		messages into host memory.
+
+	Non-packet DMA
+		Used collectively to refer to Descriptor, Counter,
+		and ARL Message DMA.
+
+2. Swapping Requirements
+
+Regardless of CPU endianness, Packet DMA data always appears in host
+memory in big-endian format.  Packet DMA data does not have a 32-bit
+organization and is viewed as a byte stream.  Historically, software is
+always written to expect big-endian format when accessing a network byte
+stream.  Whenever software accesses a 2-byte or 4-byte quantity in the
+Packet DMA data, it uses ntohs() and ntohl() appropriately to perform
+the swap at that time.
+
+It happens that all data types except Packet DMA are most naturally
+accessed by the processor using 32-bit loads and stores.  CMIC
+registers, descriptor words, counter values, and ARL message contents
+have a 32-bit organization.  When software running on the host CPU
+performs 32-bit accesses to this little-endian data, the results are
+proper on a little-endian host CPU, but must be byte-swapped on a
+big-endian host CPU.
+
+3. Swapping Reduction Features (BCM5600N2 and higher)
+
+For performance reasons, it would be convenient to reduce the amount of
+swapping a big-endian CPU has to perform when accessing PCI Memory
+space.  The CMIC has a feature allowing it to be configured to
+automatically swap accesses to PCI Memory space.  This feature
+(ENDIAN_SELECT.PIO) can be enabled at initialization time on a
+big-endian processor, and then software can read and write PCI Memory
+space without worrying about swapping.  Note that this also causes PCI
+Memory accesses to appear swapped on a PCI bus analyzer.
+
+For performance reasons, it would also be convenient to reduce the
+amount of swapping required for Non-packet DMA.  The CMIC has a feature
+allowing it to be configured to automatically swap Non-packet DMA data.
+This feature (ENDIAN_SELECT.DMA_OTHER) can be enabled at initialization
+time on a big-endian processor, and then software can read and write
+Non-packet DMA data without worrying about swapping.
+
+When the CMIC writes big-endian Packet DMA data onto the little-endian
+PCI bus, it always performs endian swapping.  That is required for the
+packet data to finally appear as big-endian in host memory.  However,
+the CMIC has a feature allowing it to be configured to not swap packet
+data.  This feature (ENDIAN_SELECT.DMA_PACKET) must be enabled ONLY if a
+little-endian PCI bus is not being used, and instead CMIC is connected
+directly to a 32-bit big-endian processor bus.  Future revisions of the
+StrataSwitch may support a direct interface to a big-endian bus.
+
+The CMIC never swaps accesses to PCI Config space because PCI Config
+accesses are not done often enough to worry about performance.  Also, to
+do so might confuse PCI bus analyzers.
+
+The following table indicates the swapping required and the preferred
+settings of the ENDIAN_SELECT bits for each unique case:
+
+					PCI	    PCI		Coldfire*
+					LE CPU	    BE CPU	BE CPU
+					-------	    -------	-------
+	PCI Config			no swap	    no swap	N/A
+	PCI Memory			no swap	    swap	swap
+	Non-packet DMA			no swap	    swap	swap
+	Packet DMA			swap	    swap	no swap
+
+	ENDIAN_SELECT.PIO		0	    1		1
+	ENDIAN_SELECT.DMA_PACKET	0	    0		1
+	ENDIAN_SELECT.DMA_OTHER		0	    1		1
+
+*Note: Coldfire refers only to a proposed native Coldfire bus interface.
+       When Coldfire is used with a PCI bridge, PCI BE CPU applies.

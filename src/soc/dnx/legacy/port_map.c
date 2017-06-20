@@ -1,0 +1,615 @@
+/*
+ * $Id: $
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ *
+ */
+#ifdef _ERR_MSG_MODULE_NAME 
+    #error "_ERR_MSG_MODULE_NAME redefined" 
+#endif
+#define _ERR_MSG_MODULE_NAME BSL_SOC_PORT
+
+#include <shared/bsl.h>
+#include <shared/swstate/access/sw_state_access.h>
+#include <soc/dnxc/legacy/error.h>
+#include <soc/dnx/legacy/drv.h>
+#include <soc/dnx/legacy/port_sw_db.h>
+#include <soc/dnx/legacy/port_map.h>
+
+#define _SOC_DNX_PORT_DEF_PRIORITY (2)
+
+/* Track which pp ports and tm ports are free or in use */
+int _dnx_dflt_tm_pp_port_map[SOC_MAX_NUM_DEVICES];
+soc_dnx_port_map_t _dnx_port_map[SOC_MAX_NUM_DEVICES][SOC_MAX_NUM_PORTS];
+
+/* Internal port map ERP/OLP not visible in pbmp bcm_port_config_t */
+static soc_dnx_port_map_t _internal_port_map[SOC_MAX_NUM_DEVICES][SOC_DNX_PORT_RANGE_NUM_ENTRIES];
+
+/* Track which pp ports and tm ports are free or in use */
+soc_dnx_port_t *soc_dnx_pp_ports[SOC_MAX_NUM_DEVICES] = {NULL};
+soc_dnx_port_t *soc_dnx_tm_ports[SOC_MAX_NUM_DEVICES] = {NULL};
+
+
+
+int
+_soc_dnx_wb_pp_port_restore(int unit)
+{
+    
+#ifdef DNX_LEGACY_FIXME
+    int rv;
+    int port_i;
+    int nof_local_ports;
+    int pp_port;
+    soc_dnx_port_t pp_port_use;    
+    soc_dnx_port_map_t *pmap;
+    
+    for (port_i = 0; port_i < SOC_MAX_NUM_PORTS; ++port_i) {
+        pmap = &_dnx_port_map[unit][port_i];
+
+
+        rv = sw_state_access[unit].dnx.soc.jer2_arad.pp.pp_port_map.pp_port.get(unit, port_i, &pp_port);
+        DNXC_IF_ERR_RETURN(rv);
+        pmap->pp_port = pp_port;
+    }
+
+    nof_local_ports = SOC_DNX_DEFS_GET(unit, nof_local_ports);
+    for (port_i=0; port_i< nof_local_ports; port_i++) {
+        rv = sw_state_access[unit].dnx.soc.jer2_arad.pp.pp_port_map.pp_port_use.get(unit,
+            port_i,
+            &pp_port_use);
+        DNXC_IF_ERR_RETURN(rv);            
+        soc_dnx_pp_ports[unit][port_i].in_use = pp_port_use.in_use;
+    }
+    
+    return rv;
+#else 
+    return -1;
+#endif 
+}
+
+static int
+_soc_dnx_is_this_port_internal(soc_port_t port, int *port_adjust)
+{
+    int port_is_internal;
+
+    if ((port >= SOC_DNX_PORT_INTERNAL_START) && (port <= SOC_DNX_PORT_INTERNAL_END)) {
+         *port_adjust = port - SOC_DNX_PORT_INTERNAL_START;
+         port_is_internal = TRUE;
+    } else {
+         *port_adjust = port;
+         port_is_internal = FALSE;
+    }
+    return port_is_internal;
+}
+
+int
+_soc_dnx_port_map_init(int unit) {
+    int port_i;
+    int nof_local_ports;
+    int nof_tm_ports;
+    soc_dnx_port_map_t *pmap, *ipmap;
+
+    DNXC_INIT_FUNC_DEFS;
+
+    nof_local_ports = SOC_DNX_DEFS_GET(unit, nof_local_ports);
+    nof_tm_ports = SOC_DNX_DEFS_GET(unit, nof_logical_ports);
+
+    for (port_i = 0; port_i < SOC_MAX_NUM_PORTS; ++port_i) {
+        pmap = &_dnx_port_map[unit][port_i];
+        pmap->nif_id = DNX_TMC_NIF_ID_NONE;
+        pmap->tm_port = _SOC_DNX_PORT_INVALID;
+        pmap->pp_port = _SOC_DNX_PORT_INVALID;
+        pmap->channel = 0;
+        pmap->pp_port = _SOC_DNX_PORT_INVALID;
+        pmap->if_rate_mbps = 0;
+    }
+
+    for (port_i = 0; port_i < SOC_DNX_PORT_RANGE_NUM_ENTRIES; ++port_i) {
+        ipmap = &_internal_port_map[unit][port_i];
+        ipmap->nif_id = DNX_TMC_NIF_ID_NONE;
+        ipmap->tm_port = _SOC_DNX_PORT_INVALID;
+        ipmap->pp_port = _SOC_DNX_PORT_INVALID;
+        ipmap->channel = 0;
+    }
+
+    /* In use tm and pp ports, initially none */
+    if (soc_dnx_pp_ports[unit] == NULL) {
+        soc_dnx_pp_ports[unit] = sal_alloc(sizeof(soc_dnx_port_t) * nof_local_ports, "pp_ports");
+        if (soc_dnx_pp_ports[unit] == NULL) {
+             return SOC_E_MEMORY;
+        }
+    }
+
+    if (soc_dnx_tm_ports[unit] == NULL) {
+        soc_dnx_tm_ports[unit] = sal_alloc(sizeof(soc_dnx_port_t) * nof_tm_ports, "tm_ports");
+        if (soc_dnx_tm_ports[unit] == NULL) {
+             return SOC_E_MEMORY;
+        }
+    }
+
+    if (!SOC_WARM_BOOT(unit)) {
+        for (port_i=0; port_i< nof_local_ports; port_i++) {
+            SOC_DNX_PP_PORT_FREE(unit, port_i);  
+        }
+
+        for (port_i=0; port_i< nof_tm_ports; port_i++) {
+            SOC_DNX_TM_PORT_FREE(unit, port_i);  
+        }
+    }
+
+    _dnx_dflt_tm_pp_port_map[unit] = TRUE;
+
+    DNXC_FUNC_RETURN;
+}
+
+int
+_soc_dnx_port_map_deinit(int unit) 
+{
+    int port_i; 
+    int nof_local_ports;
+    int nof_tm_ports;
+
+    DNXC_INIT_FUNC_DEFS;
+
+    nof_local_ports = SOC_DNX_DEFS_GET(unit, nof_local_ports);
+    nof_tm_ports = SOC_DNX_DEFS_GET(unit, nof_logical_ports);
+
+   /* soc_dnx_port_map_t *pmap, *ipmap; */
+    for (port_i=0; port_i< nof_local_ports; port_i++) {
+        SOC_DNX_PP_PORT_FREE(unit, port_i);  
+    }
+
+    for (port_i=0; port_i< nof_tm_ports; port_i++) {
+        SOC_DNX_TM_PORT_FREE(unit, port_i);  
+    }
+
+    _dnx_dflt_tm_pp_port_map[unit] = FALSE;
+
+
+    /* In use tm and pp ports, initially none */
+    if (soc_dnx_pp_ports[unit] != NULL) {
+        sal_free(soc_dnx_pp_ports[unit]);
+
+    }
+
+    if (soc_dnx_tm_ports[unit] != NULL) {
+        sal_free(soc_dnx_tm_ports[unit]); 
+    }
+    soc_dnx_pp_ports[unit]  = NULL;
+    soc_dnx_tm_ports[unit] = NULL;
+
+    DNXC_FUNC_RETURN;
+}
+
+
+int
+petra_soc_dnx_local_port_valid(int unit, soc_port_t port) {
+    int valid_port = FALSE, valid_internal_port = FALSE;
+    int port_adjust;
+    soc_dnx_port_map_t *ipmap;
+
+    if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+
+        ipmap = &_internal_port_map[unit][port_adjust];
+        valid_internal_port = ((ipmap->tm_port != _SOC_DNX_PORT_INVALID) && 
+                               (ipmap->nif_id != DNX_TMC_NIF_ID_NONE));
+    } else {
+        valid_port = (port >= 0 &&  port <SOC_MAX_NUM_PORTS &&
+                     (_dnx_port_map[unit][port].tm_port != _SOC_DNX_PORT_INVALID) && 
+                     (_dnx_port_map[unit][port].pp_port != _SOC_DNX_PORT_INVALID) &&
+                     (_dnx_port_map[unit][port].nif_id != DNX_TMC_NIF_ID_NONE));
+    }
+    return (valid_port || valid_internal_port);
+}
+
+int
+petra_soc_dnx_local_port_partial(int unit, soc_port_t port) {
+    int port_adjust;
+    soc_dnx_port_map_t *pmap;
+
+     
+    if ((50 <= port) && (port <= 53)) return FALSE;
+
+    if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+        /* these ports can be partial (no pp_port required for erp */
+        return FALSE;
+    }
+    pmap = &_dnx_port_map[unit][port];
+
+    return (!petra_soc_dnx_local_port_valid(unit, port) &&
+        ((pmap->tm_port != _SOC_DNX_PORT_INVALID) ||
+         (pmap->pp_port != _SOC_DNX_PORT_INVALID) ||
+         (pmap->nif_id != DNX_TMC_NIF_ID_NONE)));
+}
+
+int
+petra_soc_dnx_local_to_nif_id_get(int unit, soc_port_t port, DNX_TMC_INTERFACE_ID *nif_id, uint32 *channel) {
+
+    int port_adjust;
+    soc_dnx_port_map_t *pmap, *ipmap;
+
+    if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+        ipmap = &_internal_port_map[unit][port_adjust];
+        *nif_id = ipmap->nif_id;
+        *channel = ipmap->channel;
+        return SOC_E_NONE;
+
+    } else if (port >= SOC_DNX_MAX_LOCAL_PORTS_PER_DEVICE(unit)) {
+        return SOC_E_PARAM;
+    }
+    pmap = &_dnx_port_map[unit][port];
+    *nif_id = pmap->nif_id;
+    *channel = pmap->channel;
+
+    return SOC_E_NONE;
+}
+
+int
+petra_soc_dnx_local_to_nif_id_set(int unit, soc_port_t port, DNX_TMC_INTERFACE_ID nif_id, uint32 channel) {
+
+    int port_adjust;
+    soc_dnx_port_map_t *pmap, *ipmap;
+
+    DNXC_INIT_FUNC_DEFS;
+
+   if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+       ipmap = &_internal_port_map[unit][port_adjust];
+
+       ipmap->nif_id = nif_id;
+       ipmap->channel = channel;
+
+       /* internal ports do not have a default mapping */
+#ifdef DBG_LOCAL_PORT
+        LOG_INFO(BSL_LS_SOC_PORT,
+                 (BSL_META_U(unit,
+                             "petra_soc_dnx_local_to_nif_id_set() internal port(%d) mapped to nif_id(%d) channel(%d)\n"), 
+                             port, nif_id, channel));
+#endif
+        return SOC_E_NONE;
+
+    } else if (port >= SOC_DNX_MAX_LOCAL_PORTS_PER_DEVICE(unit)) {
+        return SOC_E_PARAM;
+    }
+    pmap = &_dnx_port_map[unit][port];
+
+    pmap->nif_id = nif_id;
+    pmap->channel = channel;
+    
+    /* Default mapping:
+     * All CPU ports are mapped to pp port 0 in Petra-B
+     * Local port 0 is mapped to tm/pp ports 62 
+     * Olp port  
+     */
+    if (_dnx_dflt_tm_pp_port_map[unit] == TRUE) {
+        /* 1x1 mapping without any restriction (i.e., even CPU) */
+         pmap->tm_port = port;
+         pmap->pp_port = port;
+         SOC_DNX_TM_PORT_RESERVE(unit, port);
+         SOC_DNX_PP_PORT_RESERVE(unit, port);
+    }
+#ifdef DBG_LOCAL_PORT
+    LOG_INFO(BSL_LS_SOC_PORT,
+             (BSL_META_U(unit,
+                         "petra_soc_dnx_local_to_nif_id_set() pbmp port(%d) mapped to nif_id(%d) channel(%d)\n"), 
+                         port, nif_id, channel));
+#endif
+    DNXC_FUNC_RETURN;
+}
+
+int
+petra_soc_dnx_local_to_tm_port_get(int unit, soc_port_t port, uint32* tm_port, int* core) {
+    int port_adjust;
+    soc_dnx_port_map_t *pmap, *ipmap;
+
+    if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+       ipmap = &_internal_port_map[unit][port_adjust];    
+        *tm_port = ipmap->tm_port;
+
+    } else if (port >= SOC_DNX_MAX_LOCAL_PORTS_PER_DEVICE(unit)) {
+        return SOC_E_PARAM;
+    }
+
+    pmap = &_dnx_port_map[unit][port];
+    *tm_port = pmap->tm_port; 
+    *core = 0;
+
+    return SOC_E_NONE;
+}
+
+int
+petra_soc_dnx_tm_to_local_port_get(int unit, int core, uint32 tm_port, soc_port_t *port) {
+    int port_i;
+    soc_dnx_port_map_t *pmap, *ipmap;
+
+    *port = _SOC_DNX_PORT_INVALID;
+
+    for (port_i = 0; port_i < SOC_DNX_MAX_LOCAL_PORTS_PER_DEVICE(unit); ++port_i) {
+        pmap = &_dnx_port_map[unit][port_i];
+        if (pmap->tm_port == tm_port) {
+            *port = port_i;
+            return SOC_E_NONE;
+        }
+    }
+
+    for (port_i = 0; port_i < SOC_DNX_PORT_RANGE_NUM_ENTRIES ; ++port_i) {
+        ipmap = &_internal_port_map[unit][port_i];    
+        if (ipmap->tm_port == tm_port) {
+            *port = port_i + SOC_DNX_PORT_INTERNAL_START;
+            return SOC_E_NONE;
+        }
+    }
+    return SOC_E_NOT_FOUND;
+}
+
+int
+petra_soc_dnx_pp_to_local_port_get(int unit, int core, uint32 pp_port, soc_port_t *port) {
+    int port_i;
+    soc_dnx_port_map_t *pmap, *ipmap;
+
+    if (!SOC_DNX_PP_PORT_IN_USE(unit, pp_port)) {
+       LOG_ERROR(BSL_LS_SOC_PORT,
+                 (BSL_META_U(unit,
+                             "pp_port(%d) not in use\n"), pp_port));
+        *port = _SOC_DNX_PORT_INVALID;
+    } else {
+
+        for (port_i = 0; port_i < SOC_DNX_MAX_LOCAL_PORTS_PER_DEVICE(unit); ++port_i) {
+            pmap = &_dnx_port_map[unit][port_i];
+            if (pmap->pp_port == pp_port) {
+                *port = port_i;
+                return SOC_E_NONE;
+            }
+        }
+        for (port_i = 0; port_i < SOC_DNX_PORT_RANGE_NUM_ENTRIES ; ++port_i) {
+           ipmap = &_internal_port_map[unit][port_i];
+            if (ipmap->pp_port == pp_port) {
+                *port = port_i + SOC_DNX_PORT_INTERNAL_START;
+                return SOC_E_NONE;
+            }
+        }    
+    }
+    return SOC_E_NOT_FOUND;
+}
+/* set an internal port up without affecting the default mapping */
+int
+petra_soc_dnx_local_to_tm_port_set_internal(int unit, soc_port_t port, int tm_port) {
+
+    int port_adjust;
+    soc_dnx_port_map_t *ipmap;
+
+    if (!SOC_DNX_TM_PORT_IN_USE(unit, tm_port)) {
+
+        if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+#ifdef DBG_LOCAL_PORT
+            LOG_INFO(BSL_LS_SOC_PORT,
+                     (BSL_META_U(unit,
+                                 "soc_dnx_local_to_tm_port_set_internal() internal port(%d) map to tm_port(%d)\n"), 
+                                 port, tm_port));
+#endif
+            ipmap = &_internal_port_map[unit][port_adjust];
+            ipmap->tm_port = tm_port;
+            SOC_DNX_TM_PORT_RESERVE(unit, tm_port);
+
+        } else {
+           LOG_ERROR(BSL_LS_SOC_PORT,
+                     (BSL_META_U(unit,
+                                 "only internal ports valid for this function\n"))); 
+            return SOC_E_PARAM;
+        }
+    } else {
+       LOG_ERROR(BSL_LS_SOC_PORT,
+                 (BSL_META_U(unit,
+                             "tm_port(%d) already in use\n"), tm_port));
+        return SOC_E_RESOURCE;
+    }
+    
+    return SOC_E_NONE;
+}
+/* Note: first call to this function invalidates default mapping */
+int
+petra_soc_dnx_local_to_tm_port_set(int unit, soc_port_t port, int core, uint32 tm_port) {
+    int port_adjust=0;
+    int port_i;
+    soc_dnx_port_map_t *pmap, *ipmap;
+
+    DNXC_INIT_FUNC_DEFS;
+
+    if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+
+    } else if (port >= SOC_DNX_MAX_LOCAL_PORTS_PER_DEVICE(unit)) {
+        return SOC_E_PARAM;
+    }
+    
+    if (_dnx_dflt_tm_pp_port_map[unit] == TRUE) {
+        /* This is the first mapping which overrides the default mapping.
+           Let's invalidate all entries */
+        for (port_i = 0; port_i < SOC_DNX_MAX_LOCAL_PORTS_PER_DEVICE(unit); ++port_i) {
+            pmap = &_dnx_port_map[unit][port_i];
+            pmap->tm_port = _SOC_DNX_PORT_INVALID;
+            pmap->pp_port = _SOC_DNX_PORT_INVALID;
+        }      
+        for (port_i = 0; port_i < SOC_DNX_PORT_RANGE_NUM_ENTRIES; ++port_i) {
+            ipmap = &_internal_port_map[unit][port_i];
+            ipmap->tm_port = _SOC_DNX_PORT_INVALID;
+            ipmap->pp_port = _SOC_DNX_PORT_INVALID;
+        }    
+    for (port_i = 0; port_i < SOC_DNX_DEFS_GET(unit, nof_logical_ports); ++port_i) {
+            SOC_DNX_TM_PORT_FREE(unit, port_i);
+        }
+    for (port_i = 0; port_i < SOC_DNX_DEFS_GET(unit, nof_local_ports); ++port_i) {
+            SOC_DNX_PP_PORT_FREE(unit, port_i);
+        }
+        _dnx_dflt_tm_pp_port_map[unit] = FALSE;
+
+    }
+
+    if (tm_port != _SOC_DNX_PORT_INVALID && SOC_DNX_TM_PORT_IN_USE(unit, tm_port)) {
+       LOG_ERROR(BSL_LS_SOC_PORT,
+                 (BSL_META_U(unit,
+                             "tm_port(%d) already in use\n"), tm_port));
+        return SOC_E_RESOURCE;
+    }
+
+    if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+#ifdef DBG_LOCAL_PORT
+        LOG_INFO(BSL_LS_SOC_PORT,
+                 (BSL_META_U(unit,
+                             "soc_dnx_local_to_tm_port_set() internal port(%d) map to tm_port(%d)\n"), 
+                             port, tm_port));
+#endif
+        ipmap = &_internal_port_map[unit][port_adjust];
+        _internal_port_map[unit][port_adjust].tm_port = tm_port;
+        if (tm_port != _SOC_DNX_PORT_INVALID) {
+            SOC_DNX_TM_PORT_RESERVE(unit, tm_port);
+        }
+    } else {
+#ifdef DBG_LOCAL_PORT
+        LOG_INFO(BSL_LS_SOC_PORT,
+                 (BSL_META_U(unit,
+                             "soc_dnx_local_to_tm_port_set() pbmp port(%d) map to tm_port(%d)\n"), 
+                             port, tm_port));
+#endif
+        pmap = &_dnx_port_map[unit][port];
+        pmap->tm_port = tm_port;
+        if (tm_port != _SOC_DNX_PORT_INVALID) {
+            SOC_DNX_TM_PORT_RESERVE(unit, tm_port);
+        }
+    }
+
+    DNXC_FUNC_RETURN;
+}
+
+int
+petra_soc_dnx_local_to_pp_port_get(int unit, soc_port_t port, uint32* pp_port, int* core) {
+    int port_adjust;
+    soc_dnx_port_map_t *pmap, *ipmap;
+
+    *core = 0;
+
+   if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+        ipmap = &_internal_port_map[unit][port_adjust];
+        *pp_port = ipmap->pp_port;
+    } else if (port >= SOC_DNX_MAX_LOCAL_PORTS_PER_DEVICE(unit) || port < 0) {
+        return SOC_E_PARAM;
+    }
+
+    pmap = &_dnx_port_map[unit][port];
+    *pp_port = pmap->pp_port; 
+
+    return SOC_E_NONE;
+}
+
+/* set an internal port up without affecting the default mapping */
+int
+petra_soc_dnx_local_to_pp_port_set_internal(int unit, soc_port_t port, int pp_port) {
+    int port_adjust;
+    soc_dnx_port_map_t *ipmap;
+
+    DNXC_INIT_FUNC_DEFS;
+
+    if (SOC_DNX_PP_PORT_IN_USE(unit, pp_port)) {
+       LOG_ERROR(BSL_LS_SOC_PORT,
+                 (BSL_META_U(unit,
+                             "pp_port(%d) already in use\n"), pp_port));
+        return SOC_E_RESOURCE;
+    }
+
+   if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+#ifdef DBG_LOCAL_PORT
+        LOG_INFO(BSL_LS_SOC_PORT,
+                 (BSL_META_U(unit,
+                             "soc_dnx_local_to_tm_port_set_internal() internal port(%d) map to pp_port(%d)\n"), 
+                             port, pp_port));
+#endif
+        ipmap = &_internal_port_map[unit][port_adjust];
+        ipmap->pp_port = pp_port;
+        SOC_DNX_PP_PORT_RESERVE(unit, pp_port);
+    } else {
+       LOG_ERROR(BSL_LS_SOC_PORT,
+                 (BSL_META_U(unit,
+                             "only internal ports valid for this function\n"))); 
+        return SOC_E_PARAM;
+    }
+
+    DNXC_FUNC_RETURN;
+}
+
+int
+petra_soc_dnx_local_to_pp_port_set(int unit, soc_port_t port, uint32 pp_port) {
+        
+#ifdef FIXME_DNX_LEGACY
+    soc_error_t rv;
+    int port_i;
+    int port_adjust=0;
+    soc_dnx_port_map_t *pmap, *ipmap;
+
+    DNXC_INIT_FUNC_DEFS;
+
+    if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+    } else if (port >= SOC_DNX_MAX_LOCAL_PORTS_PER_DEVICE(unit)) {
+        return SOC_E_PARAM;
+    }    
+    if (_dnx_dflt_tm_pp_port_map[unit]) {
+        /* This is the first mapping which overrides the default mapping.
+           Let's invalidate all entries */
+        for (port_i = 0; port_i < SOC_DNX_MAX_LOCAL_PORTS_PER_DEVICE(unit); ++port_i) {
+            pmap = &_dnx_port_map[unit][port_i];
+            pmap->tm_port = _SOC_DNX_PORT_INVALID;
+            pmap->pp_port = _SOC_DNX_PORT_INVALID;
+        }      
+        for (port_i = 0; port_i < SOC_DNX_PORT_RANGE_NUM_ENTRIES; ++port_i) {
+            ipmap = &_internal_port_map[unit][port_i];
+            ipmap->tm_port = _SOC_DNX_PORT_INVALID;
+            ipmap->pp_port = _SOC_DNX_PORT_INVALID;
+        }        
+        for (port_i = 0; port_i < SOC_DNX_DEFS_GET(unit, nof_logical_ports); ++port_i) {
+            SOC_DNX_TM_PORT_FREE(unit, port_i);
+        }
+        for (port_i = 0; port_i < SOC_DNX_DEFS_GET(unit, nof_local_ports); ++port_i) {
+            SOC_DNX_PP_PORT_FREE(unit, port_i);
+        }
+        _dnx_dflt_tm_pp_port_map[unit] = FALSE;
+   }
+   if (_soc_dnx_is_this_port_internal(port, &port_adjust)) {
+#ifdef DBG_LOCAL_PORT    
+       LOG_INFO(BSL_LS_SOC_PORT,
+                (BSL_META_U(unit,
+                            "soc_dnx_local_to_pp_port_set() internal port(%d) map to pp_port(%d)\n"), 
+                            port, pp_port));
+#endif   
+       ipmap = &_internal_port_map[unit][port_adjust];
+       ipmap->pp_port = pp_port;
+       if(pp_port != _SOC_DNX_PORT_INVALID) {
+           SOC_DNX_PP_PORT_RESERVE(unit, pp_port);
+       }
+
+   } else {
+
+#ifdef DBG_LOCAL_PORT    
+       LOG_INFO(BSL_LS_SOC_PORT,
+                (BSL_META_U(unit,
+                            "soc_dnx_local_to_pp_port_set() pbmp port(%d) map to pp_port(%d)\n"), 
+                            port, pp_port));
+#endif
+        pmap = &_dnx_port_map[unit][port];
+        pmap->pp_port = pp_port;
+        rv = sw_state_access[unit].dnx.soc.jer2_arad.pp.pp_port_map.pp_port.set(unit, port, pp_port);
+        if(SOC_FAILURE(rv)) {
+            return rv;
+        }
+
+        if(pp_port != _SOC_DNX_PORT_INVALID) {
+            SOC_DNX_PP_PORT_RESERVE(unit, pp_port);
+        }
+
+   }
+    DNXC_FUNC_RETURN;
+#else 
+    return -1;
+#endif 
+}
+
+#undef _ERR_MSG_MODULE_NAME
+
+
+

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields DB:
+    This xml contains the fields DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<FieldDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="fields_schema.xsd">
+
+    <Field Name="PEMLA_TPID_1" Size="16">
+        <OneLineDescription>TPID Value used to identify Etherent Tags. If matched, Qualifier is set to 1</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PEMLA_TPID_2" Size="16">
+        <OneLineDescription>TPID Value used to identify Etherent Tags. If matched, Qualifier is set to 2</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PEMLA_TPID_3" Size="16">
+        <OneLineDescription>TPID Value used to identify Etherent Tags. If matched, Qualifier is set to 3</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PEMLA_TPID_4" Size="16">
+        <OneLineDescription>TPID Value used to identify Etherent Tags. If matched, Qualifier is set to 4</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PEMLA_TPID_5" Size="16">
+        <OneLineDescription>TPID Value used to identify Etherent Tags. If matched, Qualifier is set to 5</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PEMLA_TPID_6" Size="16">
+        <OneLineDescription>TPID Value used to identify Etherent Tags. If matched, Qualifier is set to 6</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PEMLA_TPID_7" Size="16">
+        <OneLineDescription>TPID Value used to identify Etherent Tags. If matched, Qualifier is set to 7</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+</FieldDbCatalog>

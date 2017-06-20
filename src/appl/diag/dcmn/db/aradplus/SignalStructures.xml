@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SignalStructures.xml created inside Eclipse at 18 March 2015 -->
+<top device="aradplus" version="1.1">
+    <signal-structures>
+        <structure name="VLAN_Edit_Cmd" size="34" perm="1">
+            <field name="VID_1" bits="11:0"/>
+            <field name="VID_2" bits="23:12"/>
+            <field name="DEI" bits="24:24"/>
+            <field name="PCP" bits="27:25"/>
+            <field name="Cmd" bits="33:28"/>
+        </structure>
+        <structure name="Fwd_Action_Dst_Flow" size="19" perm="1">
+            <field name="Flow_ID" bits="16:0"/>
+            <field name="Type_Flow" bits="18:17"/>
+        </structure>
+        <structure name="Fwd_Action_Dst_MC" size="19" perm="1">
+            <field name="MC_ID" bits="15:0"/>
+            <field name="MC_Flag" bits="16:16"/>
+            <field name="Enc_Type" bits="18:17"/>
+        </structure>
+        <structure name="Fwd_Action_Dst_FEC" size="19" perm="1">
+            <field name="FEC_Ptr" bits="14:0"/>
+            <field name="FEC_Flag" bits="15:15"/>
+            <field name="MC_Flag" bits="16:16"/>
+            <field name="Enc_Type" bits="18:17"/>
+        </structure>
+        <structure name="Fwd_Action_Dst_DSPA" size="19" perm="1">
+            <field name="Dst_System_Port_Aggr" bits="15:0"/>
+            <field name="MC_Flag" bits="16:16"/>
+            <field name="Enc_Type" bits="18:17"/>
+        </structure>
+        <structure name="Fwd_Action_Dst_Trap" size="19" perm="1">
+            <field name="Trap_ID" bits="07:00"/>
+            <field name="Snoop_Action_Profile" bits="11:08"/>
+            <field name="Fwd_Strength" bits="14:12"/>
+            <field name="Snoop_Strength" bits="16:15"/>
+            <field name="Enc_Type" bits="18:17"/>
+        </structure>
+        <structure name="Fwd_Action_Dst" size="19" expansion="Dynamic" perm="1">
+            <option expansion="Fwd_Action_Dst_Flow" Enc_Type="3"/>
+            <option expansion="Fwd_Action_Dst_MC" Enc_Type="2" MC_Flag="1"/>
+            <option expansion="Fwd_Action_Dst_FEC" Enc_Type="1" MC_Flag="0"/>
+            <option expansion="Fwd_Action_Dst_DSPA" Enc_Type="2" MC_Flag="0"/>
+            <option expansion="Fwd_Action_Dst_Trap" Enc_Type="0"/>
+            <field name="MC_Flag" bits="16:16"/>
+            <field name="Enc_Type" bits="18:17"/>
+        </structure>
+        <structure name="PP_PCT_Data" size="106" perm="1">
+            <field name="Acceptable_Frame_Type_Profile" bits="1:0"/>
+            <field name="Port_is_PBP" bits="2:2"/>
+            <field name="Egress_STP_Filter_Enable" bits="3:3"/>
+            <field name="Egress_VSI_Filter_Enable" bits="4:4"/>
+            <field name="Disable_Filter" bits="5:5"/>
+            <field name="Default_SEM_Result" bits="21:6"/>
+            <field name="Exp_Map_Profile" bits="23:22"/>
+            <field name="VLAN_Domain" bits="31:24"/>
+            <field name="CEP_C_VLAN_Edit" bits="32:32"/>
+            <field name="LLVP_Profile" bits="35:33"/>
+            <field name="MPLS_Eth_Type_Select" bits="36:36"/>
+            <field name="PRGE_Profile" bits="40:37"/>
+            <field name="PRGE_Var" bits="72:41"/>
+            <field name="Dst_System_Port" bits="88:73"/>
+            <field name="MTU" bits="102:89"/>
+            <field name="IEEE1588_MAC_Enable" bits="103:103"/>
+            <field name="OAM_Port_Profile" bits="104:104"/>
+            <field name="OSTS_Enable" bits="105:105"/>
+        </structure>
+        <structure name="SHR" size="341">
+            <field name="PPH_Learn_Extension" bits="39:0"/>
+            <field name="EEI_Extension" bits="63:40"/>
+            <field name="FHEI_Extension" bits="103:64" expansion="Dynamic">
+                <option expansion="FHEI_Bridge_3B" PPH_Base.Fwd_Code="Bridge" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_Bridge_5B" PPH_Base.Fwd_Code="Bridge" PPH_Base.FHEI_Code="FHEI_5B"/>
+                <option expansion="FHEI_CPU_TRAP_3B" PPH_Base.Fwd_Code="CPU_TRAP" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_CPU_TRAP_5B" PPH_Base.Fwd_Code="CPU_TRAP" PPH_Base.FHEI_Code="FHEI_5B"/>
+                <option expansion="FHEI_IP_Routed_3B" PPH_Base.Fwd_Code="IPv4_UC_Routed" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_IP_Routed_3B" PPH_Base.Fwd_Code="IPv4_MC_Routed" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_IP_Routed_3B" PPH_Base.Fwd_Code="IPv6_UC_Routed" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_IP_Routed_3B" PPH_Base.Fwd_Code="IPv6_MC_Routed" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_MPLS_3B" PPH_Base.Fwd_Code="MPLS" PPH_Base.FHEI_Code="FHEI_3B"/>
+                <option expansion="FHEI_MPLS_5B" PPH_Base.Fwd_Code="MPLS" PPH_Base.FHEI_Code="FHEI_5B"/>
+                <option expansion="FHEI_TRILL_3B" PPH_Base.Fwd_Code="TRILL" PPH_Base.FHEI_Code="FHEI_3B"/>
+            </field>
+            <field name="PPH_Base" bits="159:104" condition="FTMH_Base.PPH_Type"/>
+            <field name="OTSH" bits="205:160" expansion="Dynamic">
+                <option expansion="OAM_Header" OTSH_Type="OAM"/>
+                <option expansion="IEEE1588v2_Header" OTSH_Type="IEEE1588v2"/>
+                <option expansion="Latency_Measurement_Header" OTSH_Type="Latency_Measurement"/>
+            </field>
+            <field name="OTSH_Type" bits="207:206"/>
+            <field name="Stacking_Extension" bits="223:208"/>
+            <field name="DSP_Extension" bits="239:224" condition="FTMH_Base.DSP_Extension_Valid"/>
+            <field name="LB_Key_Extension" bits="247:240"/>
+            <field name="FTMH_Base" bits="319:248" perm="1"/>
+            <field name="Format_Code" bits="322:320"/>
+            <field name="Value_1" bits="330:323"/>
+            <field name="Value_2" bits="338:331"/>
+            <field name="Exclude_Src" bits="339:339"/>
+            <field name="Drop" bits="340:340"/>
+        </structure>
+        <structure name="SHR_ERPP_PMF" size="44" perm="1">
+            <field name="DSP_Ptr" bits="7:0"/>
+            <field name="Out_LIF" bits="23:8"/>
+            <field name="VSI_or_VRF" bits="39:24"/>
+            <field name="TC" bits="42:40"/>
+            <field name="Drop" bits="43:43"/>
+        </structure>
+        <structure name="EES_Action_Short" size="24" perm="1">
+            <field name="EEI" bits="23:0"/>
+        </structure>
+        <structure name="EES_Action" size="97" perm="1">
+            <field name="Type" bits="3:0"/>
+            <field name="EEDB_Ptr" bits="19:4"/>
+            <field name="EEDB_Entry" bits="96:20"/>
+        </structure>
+        <structure name="TM_Cmd" size="310" perm="1">
+            <field name="Eth_Meter_Ptr" bits="10:0"/>
+            <field name="Learn_Info_Valid" bits="11"/>
+            <field name="Learn_Info" bits="115:12"/>
+            <fi_ld name="Learn_Info_Reserved" bits="117:116"/>
+            <field name="Dst_Valid" bits="116"/>
+            <field name="Snoop_Cmd" bits="120:117"/>
+            <field name="Mirror_Cmd" bits="124:121"/>
+            <field name="DP" bits="126:125"/>
+            <field name="TC" bits="129:127"/>
+            <field name="Dst" bits="147:130" expansion="Fwd_Action_Dst"/>
+            <field name="Ingress_is_Shaped" bits="148"/>
+            <field name="Ingress_Shaping_Dst" bits="165:149"/>
+            <field name="Eth_Enc" bits="167:166"/>
+            <field name="Eth_DA_Type" bits="169:168"/>
+            <field name="Statistics_Tag" bits="187:170"/>
+            <field name="St_VSQ_Ptr" bits="195:188"/>
+            <field name="Meter_Action" bits="225:196"/>
+            <field name="Counter_B_Ptr" bits="241:226" condition="Counter_B_Update"/>
+            <field name="Counter_B_Update" bits="242"/>
+            <field name="Counter_A_Ptr" bits="258:243" condition="Counter_A_Update"/>
+            <field name="Counter_A_Update" bits="259"/>
+            <field name="MTR_CNT_COMPENSATION" bits="265:260"/>
+            <field name="SEQUENCE_NUMBER" bits="281:266"/>
+            <field name="LAG_LB_Key" bits="297:282"/>
+            <field name="DP_Meter_Cmd" bits="299:298"/>
+            <field name="Ignore_CP" bits="300"/>
+            <field name="LAG_Member_Valid" bits="301"/>
+            <field name="Reserved" bits="309:302"/>
+        </structure>
+        <structure name="Fwd_Action" size="129" perm="1">
+            <field name="Strength" bits="2:0"/>
+            <field name="Dst" bits="21:3" expansion="Fwd_Action_Dst"/>
+            <field name="TC" bits="24:22"/>
+            <field name="DP" bits="26:25"/>
+            <field name="Meter_A_Update" bits="27"/>
+            <field name="Meter_A_Ptr" bits="42:28"/>
+            <field name="Meter_B_Update" bits="43"/>
+            <field name="Meter_B_Ptr" bits="60:44"/>
+            <field name="DP_Meter_Cmd" bits="60:59"/>
+            <field name="Counter_A_Update" bits="61"/>
+            <field name="Counter_A_Ptr" bits="82:62"/>
+            <field name="Counter_B_Update" bits="83"/>
+            <field name="Counter_B_Ptr" bits="104:84"/>
+            <field name="CPU_Trap_Code" bits="112:105"/>
+            <field name="CPU_Trap_Qualifier" bits="128:113"/>
+        </structure>
+        <structure name="Learn_Info" size="104" perm="1">
+            <field name="MAC" bits="47:0"/>
+            <field name="FID" bits="62:48"/>
+            <field name="Payload" bits="102:63"/>
+            <field name="Learn_or_Transplant" bits="103:103"/>
+        </structure>
+        <structure name="Eth_Tag_Format" size="5" perm="1">
+            <field name="Inner_Tag" bits="1:0" resolution="Tag_Encoding"/>
+            <field name="Outer_Tag_is_Priority" bits="2"/>
+            <field name="Outer_Tag" bits="4:3" resolution="Tag_Encoding"/>
+        </structure>
+        <structure name="Header_Offset" size="42" perm="1">
+            <field name="Header_0" bits="6:0"/>
+            <field name="Header_1" bits="13:7"/>
+            <field name="Header_2" bits="20:14"/>
+            <field name="Header_3" bits="27:21"/>
+            <field name="Header_4" bits="34:28"/>
+            <field name="Header_5" bits="41:35"/>
+        </structure>
+        <structure name="PFQ" size="11" perm="1">
+            <field name="Next_Protocol" bits="10:7"/>
+        </structure>
+        <structure name="Packet_Format_Qualifier" size="55" perm="1">
+            <field name="Header_1" bits="10:00" expansion="PFQ"/>
+            <field name="Header_2" bits="21:11" expansion="PFQ"/>
+            <field name="Header_3" bits="32:22" expansion="PFQ"/>
+            <field name="Header_4" bits="43:33" expansion="PFQ"/>
+            <field name="Header_5" bits="54:44" expansion="PFQ"/>
+        </structure>
+    </signal-structures>
+    <signal-params>
+        <signal name="Tag_Encoding" size="2">
+            <entry value="0" name="None"/>
+            <entry value="1" name="TPID1"/>
+            <entry value="2" name="TPID2"/>
+            <entry value="3" name="TPID3"/>
+        </signal>
+        <signal name="PPH_Type" size="2">
+            <entry value="0" name="No_PPH"/>
+            <entry value="1" name="PPH_Base"/>
+            <entry value="2" name="PPH_OAM_TS"/>
+            <entry value="3" name="PPH_Base_OAM_TS"/>
+        </signal>
+        <signal name="TM Action_Type" size="2">
+            <entry value="0" name="Fwd"/>
+            <entry value="1" name="Snoop"/>
+            <entry value="2" name="Mirror"/>
+            <entry value="3" name="TDM"/>
+        </signal>
+        <signal name="OTSH_Type" size="2">
+            <entry value="0" name="OAM"/>
+            <entry value="1" name="IEEE1588v2"/>
+            <entry value="2" name="Latency_Measurement"/>
+            <entry value="3" name="Reserved"/>
+        </signal>
+        <signal name="Fwd_Code" size="4" default="Reserved">
+            <entry value="0" name="Bridge"/>
+            <entry value="1" name="IPv4_UC_Routed"/>
+            <entry value="2" name="IPv4_MC_Routed"/>
+            <entry value="3" name="IPv6_UC_Routed"/>
+            <entry value="4" name="IPv6_MC_Routed"/>
+            <entry value="5" name="MPLS"/>
+            <entry value="6" name="TRILL"/>
+            <entry value="7" name="CPU_Trap"/>
+            <entry value="8" name="Reserved_8"/>
+            <entry value="9" name="Custom_1"/>
+            <entry value="10" name="Custom_2"/>
+            <entry value="11" name="Snoop/Mirror"/>
+        </signal>
+        <signal name="FHEI_Code" size="2">
+            <entry value="0" name="None"/>
+            <entry value="1" name="FHEI_3B"/>
+            <entry value="2" name="FHEI_5B"/>
+            <entry value="3" name="Not Supported"/>
+        </signal>
+        <signal name="STP_State" size="2" default="Reserved">
+            <entry value="0" name="Block"/>
+            <entry value="1" name="Learn"/>
+            <entry value="2" name="Forward"/>
+        </signal>
+    </signal-params>
+</top>

@@ -1,0 +1,12 @@
+# Filename Make.local.Polaris
+FEATURE_LIST=CINT  L3 I2C BCMX BCMX_DIAG MEM_SCAN EDITLINE BCM_SAL_PROFILE  CUSTOMER TEST CHASSIS MSTP 
+BCM_PTL_SPT = 1
+
+#BCM_FE2000_A0 = 1  
+BCM_QE2000_A0 = 1 
+BCM_BM9600_A0 = 1 
+BCM_BME3200_A0 = 1 
+BCM_BME3200_B0 = 1
+
+# workspace:system=Polaris
+# linux-user:system=Polaris buildDir=systems/linux/user/gto cpu=gto

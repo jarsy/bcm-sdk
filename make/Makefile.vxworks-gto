@@ -1,0 +1,224 @@
+# $Id: Makefile.vxworks-gto,v 1.32 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Makefile for MPC8548 host running VxWorks
+
+include ${SDK}/make/Makefile.vxworks-common
+
+# WIND_BASE and WIND_HOST_TYPE must be modified according to your
+# installed location.  The environment variables are ignored intentionally.
+
+ifndef VX_VERSION
+VX_VERSION = 65
+endif
+
+
+ifeq (${VX_VERSION},64)
+WORKBENCH_VERSION = workbench-2.6
+VXWORKS_VERSION = 6.4
+GNU_COMPILER_VERSION = 3.4.4
+DIAB_COMPILER_VERSION = 5.5.0.0
+else
+ifeq (${VX_VERSION},65)
+WORKBENCH_VERSION = workbench-2.6
+VXWORKS_VERSION = 6.5
+GNU_COMPILER_VERSION = 3.4.4
+DIAB_COMPILER_VERSION = 5.5.1.0
+else
+WORKBENCH_VERSION = workbench-3.3
+VXWORKS_VERSION = 6.9
+GNU_COMPILER_VERSION = 4.3.3
+DIAB_COMPILER_VERSION = 5.9.1.0
+endif
+endif
+
+ifeq (${HOSTTYPE},sun4)
+WIND_HOST_TYPE ?= sun4-solaris2
+WIND_HOME ?= /tools/windriver/vxworks/$(VXWORKS_VERSION)/SunOS
+WIND_COMPILER_HOST ?= SUNS
+else
+WIND_HOST_TYPE ?= x86-linux2
+WIND_HOME ?= /tools/windriver/vxworks/$(VXWORKS_VERSION)/Linux
+WIND_COMPILER_HOST ?= LINUX386
+endif
+
+WIND_GNU_PATH = ${WIND_HOME}/gnu/${GNU_COMPILER_VERSION}-vxworks-${VXWORKS_VERSION}
+WIND_DIAB_PATH = ${WIND_HOME}/diab/${DIAB_COMPILER_VERSION}
+WIND_BASE ?= ${WIND_HOME}/vxworks-${VXWORKS_VERSION}
+
+
+CPU = PPC32
+CPU_VARIANT   = _ppc85XX
+ifeq (,$(TOOL))
+TOOL = sfgnu
+endif
+#TOOL = sfdiab
+
+ifdef ALT_GTO_BSP_DIR
+VX_SRC = \
+    ${ALT_GTO_BSP_DIR}
+else
+VX_SRC = \
+    ${SDK}/systems/vxworks/gto/mpc8548/vxworks-${VXWORKS_VERSION}
+endif
+
+VX_SRC_ALL = \
+    ${VX_SRC}/all
+
+# Extra libraries for this platform
+COND_LIB_BSP = 
+
+# Configuration Flags
+CFGFLAGS += -DMPC8548 -DBCM_PLATFORM_STRING=\"GTO_MPC8548\"
+CFGFLAGS += -DOVERRIDE_PCI_MAX_BUS=150
+
+# fast pci access
+CFGFLAGS+= -DVXWORKS
+
+ifeq (${TOOL},sfgnu)
+GNU_STD_CFLAGS = -msoft-float -nostdlib -fno-builtin -mlongcall
+DIAB_STD_CFLAGS =
+OPTFLAGS_DEFAULT = -O2
+toolbase = $(WIND_GNU_PATH)/$(WIND_HOST_TYPE)/bin/
+ifeq (${VX_VERSION},69)
+toolbase_alt = $(WIND_HOME)/utilities-1.0/$(WIND_HOST_TYPE)/bin/
+else
+toolbase_alt = $(WIND_HOME)/$(WORKBENCH_VERSION)/$(WIND_HOST_TYPE)/bin/
+endif
+CC 	= $(toolbase)ccppc
+CPP	= $(toolbase)cppppc
+CXX 	= $(toolbase)g++ppc
+RANLIB 	= $(toolbase)ranlibppc
+AR 	= $(toolbase)arppc
+LD 	= $(toolbase)ldppc
+NM 	= $(toolbase_alt)nmppc
+SIZE 	= $(toolbase_alt)sizeppc
+STRIP	= $(toolbase_alt)stripppc
+OBJCOPY = $(toolbase_alt)objcopyppc
+endif
+
+ifeq (${TOOL},sfdiab)
+GNU_STD_CFLAGS =
+DIAB_STD_CFLAGS = -tPPCE500FS:vxworks$(VX_VERSION) -Xlicense-wait
+OPTFLAGS_DEFAULT = -O1
+toolbase = $(WIND_DIAB_PATH)/$(WIND_COMPILER_HOST)/bin/
+toolbase_alt = $(WIND_HOME)/$(WORKBENCH_VERSION)/$(WIND_HOST_TYPE)/bin/
+export WIND_PREFERRED_PACKAGES = diab-${DIAB_COMPILER_VERSION}
+CC 	= $(toolbase)dcc
+CPP	= $(toolbase)dplus
+CXX 	= $(toolbase)g++ppc
+RANLIB 	= $(toolbase)ranlibppc
+AR 	= $(toolbase)dar
+LD 	= $(toolbase)dld
+NM 	= $(toolbase_alt)nmppc
+SIZE 	= $(toolbase_alt)sizeppc
+STRIP	= $(toolbase_alt)stripppc
+OBJCOPY = $(toolbase_alt)objcopyppc
+endif
+
+export WIND_TOOLS = $(WIND_HOME)/$(WORKBENCH_VERSION)
+export WIND_LIC_PROXY = $(WIND_HOME)/setup/$(WIND_HOST_TYPE)/bin/
+export WRSD_LICENSE_FILE = $(WIND_HOME)/license/
+
+MFLAGS = $(OPTFLAGS) -DCPU=$(CPU)
+ARFLAGS = -rc
+
+# TARGETTYPE Defines: This defines the type of system you are compiling
+# the driver for; there are several values allowed. New values can be created
+# by porting the routines (system.c) to your platform and adding
+# the define in this Makefile.
+
+TARGETTYPE = GTO 
+
+# OSType Defines: This defines the type of RTOS or microkernel which you
+# are compiling the SAL (and its associated driver) for. New platforms
+# can be created by porting the routines (system.c) to your platform and
+# adding the define in this Makefile.
+
+OSTYPE = VXWORKS
+
+INCS += -I$(VX_SRC) -I${VX_SRC_ALL} -I$(WIND_BASE)/target/h
+INCS += -I$(WIND_BASE)/target/h/wrn/coreip 
+INCS += -I$(WIND_BASE)/target/h/wrn/coreip/net 
+
+ifeq (${VX_VERSION},65)
+# Includes path to new network stack component.
+INCS += -I$(WIND_HOME)/components/ip_net2-6.5
+INCS += -I$(WIND_HOME)/components/ip_net2-6.5/ipnet2/src
+INCS += -I$(WIND_HOME)/components/ip_net2-6.5/ipnet2/include
+INCS += -I$(WIND_HOME)/components/ip_net2-6.5/ipnet2/config
+INCS += -I$(WIND_HOME)/components/ip_net2-6.5/ipcom/port/vxworks/include
+INCS += -I$(WIND_HOME)/components/ip_net2-6.5/ipcom/port/vxworks/config
+INCS += -I$(WIND_HOME)/components/ip_net2-6.5/ipcom/include
+INCS += -I$(WIND_HOME)/components/ip_net2-6.5/ipcom/config
+endif
+
+ifeq (${VX_VERSION},69)
+export WRVX_COMPBASE = $(WIND_HOME)/components
+export COMP_IPNET2 = ip_net2-6.9
+# Includes path to new network stack component.
+INCS += -I$(WIND_HOME)/components/ip_net2-6.9
+INCS += -I$(WIND_HOME)/components/ip_net2-6.9/ipnet2/src
+INCS += -I$(WIND_HOME)/components/ip_net2-6.9/ipnet2/include
+INCS += -I$(WIND_HOME)/components/ip_net2-6.9/ipnet2/config
+INCS += -I$(WIND_HOME)/components/ip_net2-6.9/ipcom/port/vxworks/include
+INCS += -I$(WIND_HOME)/components/ip_net2-6.9/ipcom/port/vxworks/config
+INCS += -I$(WIND_HOME)/components/ip_net2-6.9/ipcom/include
+INCS += -I$(WIND_HOME)/components/ip_net2-6.9/ipcom/config
+endif
+
+LIBS = 
+
+#
+# STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
+# BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
+# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of 
+#			 this Makefile, to define local "Extra" flags.
+#
+# We include -DTRUE=1 to fix a Tornado 1 problem where stdarg macros are
+# defined incorrectly if TRUE is not defined ahead of including stdarg.h.
+# NOTE: Extra -I${INCDIR} puts $SDK/include before system incs, for assert.h
+#
+ifeq (${VX_VERSION},65)
+STD_CFLAGS = $(MFLAGS) ${GNU_STD_CFLAGS} ${DIAB_STD_CFLAGS} \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} -DBROADCOM_BSP \
+	-DVX_VERSION=${VX_VERSION} \
+	${CFGFLAGS} -DTRUE=1 -DBE_HOST=1 \
+        -DVXWORKS_NETWORK_STACK_6_5 
+# -DVXWORKS_NETWORK_STACK_FIXME_SHOW
+else
+ifeq (${VX_VERSION},69)
+STD_CFLAGS = $(MFLAGS) ${GNU_STD_CFLAGS} ${DIAB_STD_CFLAGS} \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} -DBROADCOM_BSP \
+	-DVX_VERSION=${VX_VERSION} \
+	${CFGFLAGS} -DTRUE=1 -DBE_HOST=1 \
+        -DVXWORKS_NETWORK_STACK_6_5 
+else
+STD_CFLAGS = $(MFLAGS) ${GNU_STD_CFLAGS} ${DIAB_STD_CFLAGS} \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} -DBROADCOM_BSP \
+	-DVX_VERSION=${VX_VERSION} \
+	${CFGFLAGS} -DTRUE=1 -DBE_HOST=1 
+endif
+endif
+
+ifeq (${SBX_CHIPS},1)
+STD_CFLAGS += -fno-strict-aliasing
+endif
+
+ifdef DPP_CHIPS
+CFLAGS += -DDUNE_BCM -D__DUNE_GTO_BCM_CPU__ -D__DUNE_LINUX_BCM_CPU_PCIE__
+CFGFLAGS += -DSOC_CM_FUNCTION
+endif
+
+ifdef DFE_CHIPS
+CFLAGS += -DDUNE_BCM -D__DUNE_GTO_BCM_CPU__ -D__DUNE_LINUX_BCM_CPU_PCIE__
+CFGFLAGS += -DSOC_CM_FUNCTION
+endif
+
+ifdef SHADOW_PLX
+STD_CFLAGS += -DSHADOW_SVK
+endif
+
+STD_CPPFLAGS = ${STD_CFLAGS}
+STD_CXXFLAGS = ${STD_CFLAGS}

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <xs:include schemaLocation="../dbal_types_definition.xsd" />
+
+    <xs:element name="AppDbCatalog">
+    <xs:complexType>
+    <xs:sequence>
+        <xs:element name="AppDB" maxOccurs="unbounded">
+        <xs:complexType>
+        <xs:sequence>
+            <xs:element name="OneLineDescription" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <xs:element name="MaturityLevel" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                    <xs:minInclusive value="0"/>
+                    <xs:maxInclusive value="2"/>
+                </xs:restriction>
+            </xs:simpleType>
+            </xs:element>
+            
+            <!-- Interface -->
+            <xs:element name="AppDbInterface" type="TableInterfaceType" minOccurs="1" maxOccurs="1"/>
+        
+            <!-- Physical Mapping -->
+            <xs:element name="AppToPhyDbMapping" minOccurs="1" maxOccurs="1">
+            <xs:complexType>
+            <xs:sequence>
+                <xs:element name="CoreMode" type="CroeModeType" minOccurs="1" maxOccurs="1" />
+                
+                <xs:element name="MultipleResultsMapping" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                <xs:sequence>
+                    <xs:element name="Result" minOccurs="1" maxOccurs="16"> <!-- maxOccurs = DBAL_MAX_NUMBER_OF_RESULT_TYPES -->
+                    <xs:complexType>
+                        <xs:attributeGroup ref="ResultIndicatorMappingAttr" />
+                    </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+                </xs:complexType>
+                </xs:element>
+                
+                <xs:element name="FieldMapping" minOccurs="1" maxOccurs="7">
+                <xs:complexType>
+                <xs:sequence>
+                    <xs:element name="Field" minOccurs="1" maxOccurs="70"> <!-- maxOccurs = DBAL_TABLE_MAX_NUM_OF_RESULT_FIELDS -->
+                    <xs:complexType>
+                    <xs:sequence>
+                        <xs:choice>
+                            <xs:element name="Access" type="HwAccessMapping" minOccurs="1" maxOccurs="10"/> <!-- maxOccurs = ????? -->       
+                            <xs:element name="SwAccess" type="SwAccessMapping" minOccurs="0" maxOccurs="1"/>
+                        </xs:choice>
+                    </xs:sequence>
+                        <xs:attributeGroup ref="FieldInTableAttr" />
+                    </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+                    <xs:attributeGroup ref="ResultTypeForFieldMappingAttr" />
+                </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+            <xs:attributeGroup ref="TableDefinitionAttr" />
+        </xs:complexType>
+
+            <!-- In AppDB, Fields that serve as condition must be in interface->key -->
+            <xs:keyref name="MappingConditionKeyFieldRef" refer="KeyFields">
+                <xs:selector xpath="AppToPhyDbMapping/FieldMapping/Field/Access/KeyCondition" />
+                <xs:field xpath="@Name" />
+            </xs:keyref>
+
+            <xs:key name="KeyFields">
+                <xs:selector xpath="AppDbInterface/Key/Field" />
+                <xs:field xpath="@Name" />
+            </xs:key>
+
+        </xs:element>
+        
+    </xs:sequence>
+    </xs:complexType>
+
+        <!-- In AppDBCatalog, AppDB names are unique -->
+        <xs:unique name="UniqueAppDBName">
+            <xs:selector xpath="AppDB" />
+            <xs:field xpath="@Name" />
+        </xs:unique>
+        
+    </xs:element>
+
+</xs:schema>

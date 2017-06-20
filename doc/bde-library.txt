@@ -1,0 +1,248 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+-------------------------------------------------------------------------
+                   User Guide for Shared BDE Library
+                   Broadcom Corp. September 19, 2014
+                   Last Updated: March 6, 2015
+-------------------------------------------------------------------------
+
+
+(1) Background
+
+The Broadcom SDK requires that a number of hardware abstraction
+functions are provided through the Configuration Manager (CM)
+initialization.  The SDK includes sample implementations of these
+functions in the Broadcom Device Enumerator (BDE) modules located in
+the $SDK/systems/bde directory.
+
+In addition to providing the required functions for CM initialization,
+the BDE probes for switch devices and performs additional system
+initialization such as PCI bridge tuning.  Many newer Broadcom switch
+devices also contain an embedded microcontroller (iProc) which needs
+to be configured switch access to work correctly from a host CPU
+across a PCI bus.
+
+For more information on the CM interface and initialization, please
+refer to the Network Switching Software Platform Guide.
+
+
+(2) Shared BDE Library
+
+In order to support source code sharing between different BDEs and
+customer equivalents, certain pieces of the BDE code have been
+rewritten to allow sharing as well as easy integration in non-BDE
+implementations of the CM hardware abstraction functions.
+
+The shared BDE source code can be found in the following directory:
+
+$SDK/systems/bde/shared
+
+Two classes of shared BDE functions exist:
+
+1. PCI initialization functions
+2. iProc initialization functions
+
+The two classes of functions share the same system interface, see below
+for more details.
+
+
+(3) System Interface
+
+Users of the shared BDE functions must provide a simple interface to
+perform the actual hardware acccess.  The system interface structure
+looks like this:
+
+/* Hardware abstraction functions */
+typedef struct shbde_hal_s {
+
+    /* Optional log output interface */
+    shbde_log_func_t log_func;
+
+    /* PCI configuration access */
+    unsigned char (*pcic8_read)(void *pci_dev, unsigned int reg);
+    void (*pcic8_write)(void *pci_dev, unsigned int reg, unsigned char data);
+    unsigned short (*pcic16_read)(void *pci_dev, unsigned int reg);
+    void (*pcic16_write)(void *pci_dev, unsigned int reg, unsigned short data);
+    unsigned int (*pcic32_read)(void *pci_dev, unsigned int reg);
+    void (*pcic32_write)(void *pci_dev, unsigned int reg, unsigned int data);
+
+    /* iProc register access */
+    unsigned int (*io32_read)(void *addr);
+    void (*io32_write)(void *addr, unsigned int);
+
+    /* usleep function (optional) */
+    void (*usleep)(int usec);
+
+} shbde_hal_t;
+
+The log output function is optional, but allows the shared BDE
+functions print warning and debug messages.  The interface supports a
+severity level, a string and one parameter:
+
+typedef void (*shbde_log_func_t)(int level, const char *str, int param);
+
+#define SHBDE_ERR       0
+#define SHBDE_WARN      1
+#define SHBDE_DBG       2
+
+The PCI configuration access functions must read/write 8/16/32-bit
+entities to the PCI configuration space.  An example implementation
+of the 16-bit access functions for Linux could look like this:
+
+static unsigned short
+linux_pcic16_read(void *pci_dev, unsigned int addr)
+{
+    u16 data;
+    pci_read_config_word((struct pci_dev *)pci_dev, addr, &data);
+    return data;
+}
+
+static void
+linux_pcic16_write(void *pci_dev, unsigned int addr, unsigned short data)
+{
+    pci_write_config_word((struct pci_dev *)pci_dev, addr, (u16)data);
+}
+
+The iProc access functions must support memory-mapped registers in the
+PCI device.  Usually this involves mapping a PCI Base Address Register
+(BAR) value into the CPU virtual memory address space.
+
+The shared BDE iProc access functions will use a pointer to CPU
+virtual memory space when reading and writing registers.  A sample
+implementation could look like this:
+
+static unsigned int
+linux_io32_read(void *addr)
+{
+    return *((volatile u32 *)addr);
+}
+
+static void
+linux_io32_write(void *addr, unsigned int data)
+{
+    *((volatile u32 *)addr) = data;
+}
+
+The usleep function is optional, but provides the shared BDE
+functions to suspend execution for microsecond intervals.
+An example implementation of the usleep function for Linux
+could look like this:
+
+static void
+linux_usleep(int usec)
+{
+    udelay(usec);
+}
+
+
+(4) Shared BDE PCI Initialization Functions
+
+Currently the following functions are defined:
+
+extern unsigned int
+shbde_pci_pcie_cap(shbde_hal_t *shbde, void *pci_dev);
+
+The function requires a pointer to an initialized hardware abstraction
+structure (shbde) and a PCI device handle (pci_dev.)  It will return a
+non-zero value (PCIe capability offset) if the device contains
+PCIe (PCI Express) capability.
+
+extern unsigned int
+shbde_pci_is_pcie(shbde_hal_t *shbde, void *pci_dev);
+
+The function requires a pointer to an initialized hardware abstraction
+structure (shbde) and a PCI device handle (pci_dev.)  It will return a
+non-zero value if the device is a PCIe (PCI Express) device.
+
+extern unsigned int
+shbde_pci_is_iproc(shbde_hal_t *shbde, void *pci_dev);
+
+The function requires a pointer to an initialized hardware abstraction
+structure (shbde) and a PCI device handle (pci_dev.)  It will return a
+non-zero value if the device has an embedded iProc microcontroller.
+
+extern int
+shbde_pci_max_payload_set(shbde_hal_t *shbde, void *pci_dev, int maxpayload);
+
+The function requires a pointer to an initialized hardware abstraction
+structure (shbde), and a PCI device handle (pci_dev) and a maximum
+PCIe payload size (in bytes.)
+
+The PCI device handle (pci_dev) is not used by the shared BDE
+functions, but it will be passed back to the caller via the HAL for
+use in the PCI configuration access functions.
+
+
+(5) Shared BDE iProc Initialization Functions
+
+Currently the following functions are defined:
+
+extern int
+shbde_iproc_paxb_init(shbde_hal_t *shbde, void *iproc_regs,
+                      shbde_iproc_config_t *icfg);
+
+The function requires a pointer to an initialized hardware abstraction
+structure (shbde), a pointer to the iProc register memory window
+(iproc_regs) and the desired iProc configuration (icfg).
+
+extern int
+shbde_iproc_pcie_preemphasis_set(shbde_hal_t *shbde, void *iproc_regs,
+                                 shbde_iproc_config_t *icfg, void *pci_dev);
+
+The function requires a pointer to an initialized hardware abstraction
+structure (shbde), a pointer to the iProc register memory window
+(iproc_regs) and the desired iProc configuration (icfg), and a PCI device
+handle (pci_dev).
+
+The iProc configuration structure must be initialized first using the
+following function:
+
+extern int
+shbde_iproc_config_init(shbde_iproc_config_t *icfg,
+                        unsigned int dev_id, unsigned int dev_rev);
+
+
+Note that the shbde_iproc_paxb_init function will return the iProc PCI
+core number used for the host CPU connection. If this value is 1
+(instead of normally 0), then the SAL_DEV_BUS_ALT flag must be set in
+the bus_type member of the soc_cm_device_vectors_t structure when
+soc_cm_device_init() is called.  The SAL_DEV_BUS_ALT flag is defined
+in $SDK/include/sal/types.h, and it is used by the switch DMA
+controller to map DMA transfers into the host CPU memory space.
+
+If the system is configured to use MSI interrupts on the PCI bus, then
+this needs to be communicated to the switch driver through a similar
+flag called SAL_DEV_BUS_MSI.
+
+Example:
+
+int
+iproc_init(pci_device_t *pci_dev, shbde_hal_t *shbde, void *iproc_regs)
+{
+    int pci_core_num;
+    shbde_iproc_config_t icfg;
+    soc_cm_device_vectors_t cm_dev;
+  ...
+
+    memset(&icfg, 0, sizeof(icfg));
+    shbde_iproc_config_init(&icfg, pci_dev->device_id, pci_dev->rev);
+    icfg.use_msi = use_msi_interrrupt;
+
+    pci_core_num = shbde_iproc_paxb_init(shbde, iproc_regs, &icfg);
+  ...
+
+    if (pci_core_num == 1) {
+        cm_dev.bus_type |= SAL_DEV_BUS_ALT;
+    }
+    if (use_msi_interrupt == 1) {
+        cm_dev.bus_type |= SAL_DEV_BUS_MSI;
+    }
+  ...
+
+    shbde_iproc_pcie_preemphasis_set(shbde, iproc_regs, &icfg, pci_dev);
+  ...
+}

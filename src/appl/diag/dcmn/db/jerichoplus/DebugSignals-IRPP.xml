@@ -1,0 +1,3088 @@
+<?xml version="1.0"?>
+<SignalInfo device="jerichoplus">
+	<Signal>
+		<Attribute>Parser_Leaf_Context</Attribute>
+		<Size>4</Size>
+		<From>Parser</From>
+		<To>LL</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd1,16'd0} bits: [3 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Format_Code</Attribute>
+		<Size>6</Size>
+		<From>Parser</From>
+		<To>LL</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd1,16'd2} bits: [66 : 61]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Parser_Program_Ptr</Attribute>
+		<Size>4</Size>
+		<From>Port Termination</From>
+		<To>Parser</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd1,16'd2} bits: [70 : 67]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Header_Size</Attribute>
+		<Size>7</Size>
+		<From>NIF</From>
+		<To>Port Termination</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd1,16'd2} bits: [88 : 82]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Header</Attribute>
+		<Size>1024</Size>
+		<From>NIF</From>
+		<To>Port Termination</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd1,16'd2} bits: [255 : 89] | {15'd1,16'd3} bits: [255 : 0] | {15'd1,16'd4} bits: [255 : 0] | {15'd1,16'd5} bits: [255 : 0] | {15'd1,16'd6} bits: [88 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Format_Qualifier</Attribute>
+		<Size>55</Size>
+		<From>Parser</From>
+		<To>LL</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd1,16'd6} bits: [146 : 92]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Header_Offset</Attribute>
+		<Size>42</Size>
+		<From>Parser</From>
+		<To>LL</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd1,16'd6} bits: [190 : 149]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Src_System_Port</Attribute>
+		<Size>16</Size>
+		<From>Port Termination</From>
+		<To>Parser</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd1,16'd6} bits: [206 : 191]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Port_Termination_Context</Attribute>
+		<Size>8</Size>
+		<From>NIF</From>
+		<To>Port Termination</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd1,16'd6} bits: [218 : 211]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_PP_Port</Attribute>
+		<Size>8</Size>
+		<From>Port Termination</From>
+		<To>Parser</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd1,16'd7} bits: [40 : 33]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Initial_VID</Attribute>
+		<Size>12</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd0} bits: [24 : 13]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Snoop_Strength</Attribute>
+		<Size>2</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd0} bits: [55 : 54]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Snoop_Code</Attribute>
+		<Size>8</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd0} bits: [63 : 56]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LL_Mirror_Profile</Attribute>
+		<Size>4</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd0} bits: [68 : 65]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_TC</Attribute>
+		<Size>3</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd0} bits: [117 : 115]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_Strength</Attribute>
+		<Size>3</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd0} bits: [120 : 118]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_DP</Attribute>
+		<Size>2</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd0} bits: [122 : 121]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_CPU_Trap_Qualifier</Attribute>
+		<Size>16</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd0} bits: [138 : 123]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_CPU_Trap_Code</Attribute>
+		<Size>8</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd0} bits: [146 : 139]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Outer_VID</Attribute>
+		<Size>12</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd5} bits: [76 : 65]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Inner_VID</Attribute>
+		<Size>12</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd5} bits: [89 : 78]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_PP_Port</Attribute>
+		<Size>8</Size>
+		<From>LL</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd2,16'd5} bits: [105 : 98]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_TC</Attribute>
+		<Size>3</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd0} bits: [58 : 56]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_DP</Attribute>
+		<Size>2</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd0} bits: [62 : 61]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VSI</Attribute>
+		<Size>16</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd0} bits: [230 : 215]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VRF</Attribute>
+		<Size>14</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd0} bits: [244 : 231]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_Code</Attribute>
+		<Size>4</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd0} bits: [251 : 248]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TRILL_MC</Attribute>
+		<Size>1</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd1} bits: [76 : 76]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Snoop_Strength</Attribute>
+		<Size>2</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd1} bits: [96 : 95]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Snoop_Code</Attribute>
+		<Size>8</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd1} bits: [104 : 97]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Format_Code</Attribute>
+		<Size>6</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd1} bits: [195 : 190]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_LIF</Attribute>
+		<Size>18</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd1} bits: [213 : 196]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LL_Mirror_Profile</Attribute>
+		<Size>4</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd1} bits: [235 : 232]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Incoming_Tag_Structure</Attribute>
+		<Size>4</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd2} bits: [29 : 26]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_LIF</Attribute>
+		<Size>18</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd2} bits: [131 : 114]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_Strength</Attribute>
+		<Size>3</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd2} bits: [158 : 156]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_Dst</Attribute>
+		<Size>19</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd2} bits: [177 : 159]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_CPU_Trap_Qualifier</Attribute>
+		<Size>16</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd2} bits: [193 : 178]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_CPU_Trap_Code</Attribute>
+		<Size>8</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd2} bits: [201 : 194]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EEI</Attribute>
+		<Size>24</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd2} bits: [226 : 203]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>COS_Profile</Attribute>
+		<Size>6</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd3} bits: [20 : 15]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Terminated_DSCP_EXP</Attribute>
+		<Size>8</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd3} bits: [39 : 32]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Offset_Index</Attribute>
+		<Size>3</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd7} bits: [159 : 157]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Offset_Extension</Attribute>
+		<Size>2</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd7} bits: [161 : 160]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Code</Attribute>
+		<Size>4</Size>
+		<From>TT</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd3,16'd7} bits: [165 : 162]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Consistent_Hashing_Key_Gen_Instructions</Attribute>
+		<Size>136</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [135 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Mem_Soft_Error</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [136 : 136]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_Processing_Profile</Attribute>
+		<Size>3</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [139 : 137]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_ISEM_B_Result</Attribute>
+		<Size>17</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [156 : 140]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_ISEM_B_Found</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [157 : 157]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_ISEM_A_Result</Attribute>
+		<Size>17</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [174 : 158]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_ISEM_A_Found</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [175 : 175]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VSI_Profile</Attribute>
+		<Size>4</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [179 : 176]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VSI</Attribute>
+		<Size>16</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [195 : 180]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VRF</Attribute>
+		<Size>14</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [209 : 196]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VLAN_Edit_Cmd</Attribute>
+		<Size>34</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [243 : 210]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>User_Priority</Attribute>
+		<Size>3</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [246 : 244]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Unknown_Addr</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [247 : 247]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_Code</Attribute>
+		<Size>4</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [251 : 248]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_Processing_Profile</Attribute>
+		<Size>3</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [254 : 252]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_B_Result</Attribute>
+		<Size>17</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd0} bits: [255 : 255] | {15'd4,16'd1} bits: [15 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_B_Found</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [16 : 16]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_A_Result</Attribute>
+		<Size>17</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [33 : 17]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_A_Found</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [34 : 34]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_Traps_1_Result</Attribute>
+		<Size>48</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [82 : 35]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_Traps_1_Match</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [83 : 83]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_Traps_0_Result</Attribute>
+		<Size>48</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [131 : 84]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Result</Attribute>
+		<Size>48</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [180 : 133]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Match</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [181 : 181]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Result</Attribute>
+		<Size>48</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [229 : 182]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Match</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [230 : 230]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>STP_State</Attribute>
+		<Size>2</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [232 : 231]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Stamp_Native_VSI</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [233 : 233]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Src_System_Port</Attribute>
+		<Size>16</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [249 : 234]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Snoop_Strength</Attribute>
+		<Size>2</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [251 : 250]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Snoop_Code</Attribute>
+		<Size>8</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd1} bits: [255 : 252] | {15'd4,16'd2} bits: [3 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>RPF_Native_VSI_Valid</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd2} bits: [4 : 4]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>RPF_Native_VSI</Attribute>
+		<Size>15</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd2} bits: [19 : 5]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>RPF_Dst_Valid</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd2} bits: [20 : 20]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>RPF_Dst</Attribute>
+		<Size>19</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd2} bits: [39 : 21]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Parser_Leaf_Context</Attribute>
+		<Size>4</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd2} bits: [113 : 110]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_is_IEEE1588</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd2} bits: [114 : 114]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_is_Compatible_MC</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd2} bits: [115 : 115]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_is_BOOTP_DHCP</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd2} bits: [116 : 116]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Header_Size</Attribute>
+		<Size>7</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd2} bits: [123 : 117]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Header</Attribute>
+		<Size>1024</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd2} bits: [255 : 124] | {15'd4,16'd3} bits: [255 : 0] | {15'd4,16'd4} bits: [255 : 0] | {15'd4,16'd5} bits: [255 : 0] | {15'd4,16'd6} bits: [123 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Format_Qualifier_0</Attribute>
+		<Size>3</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [126 : 124]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Format_Qualifier</Attribute>
+		<Size>55</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [181 : 127]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Orientation_is_Hub</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [182 : 182]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>OAM_Up_MEP</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [183 : 183]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>OAM_Sub_Type</Attribute>
+		<Size>3</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [186 : 184]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>OAM_Stamp_Offset</Attribute>
+		<Size>7</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [193 : 187]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>OAM_Offset</Attribute>
+		<Size>7</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [200 : 194]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>OAM_Meter_Disable</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [201 : 201]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>OAM_ID</Attribute>
+		<Size>17</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [218 : 202]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Native_VSI</Attribute>
+		<Size>15</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [233 : 219]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_Lookup_Result</Attribute>
+		<Size>20</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [253 : 234]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_Lookup_Found</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [254 : 254]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_Lookup_Result</Attribute>
+		<Size>20</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd6} bits: [255 : 255] | {15'd4,16'd7} bits: [18 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_Lookup_Found</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [19 : 19]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Local_In_LIF</Attribute>
+		<Size>17</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [36 : 20]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LL_Mirror_Profile</Attribute>
+		<Size>4</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [40 : 37]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_2nd_Result</Attribute>
+		<Size>45</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [85 : 41]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_2nd_Found</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [86 : 86]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_1st_Result</Attribute>
+		<Size>45</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [131 : 87]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_1st_Found</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [132 : 132]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Learn_or_Transplant</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [133 : 133]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Learn_Key</Attribute>
+		<Size>63</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [196 : 134]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Learn_Data</Attribute>
+		<Size>40</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [236 : 197]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Ingress_Learn_Enable</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [237 : 237]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Incoming_Tag_Structure</Attribute>
+		<Size>4</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [241 : 238]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_TTL</Attribute>
+		<Size>8</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [249 : 242]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_RIF_Profile</Attribute>
+		<Size>6</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd7} bits: [255 : 250]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_RIF</Attribute>
+		<Size>15</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [14 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_LIF_Profile</Attribute>
+		<Size>4</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [18 : 15]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_LIF_Data_Index</Attribute>
+		<Size>2</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [20 : 19]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_LIF_Data</Attribute>
+		<Size>57</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [77 : 21]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_LIF</Attribute>
+		<Size>18</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [95 : 78]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_DSCP_EXP</Attribute>
+		<Size>8</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [103 : 96]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>IEEE1588_Header_Offset</Attribute>
+		<Size>7</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [110 : 104]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>IEEE1588_Enc</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [111 : 111]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>IEEE1588_Compensate_Time_Stamp</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [112 : 112]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>IEEE1588_Cmd</Attribute>
+		<Size>2</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [114 : 113]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Header_Offset</Attribute>
+		<Size>42</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [156 : 115]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Processing_Profile</Attribute>
+		<Size>3</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [159 : 157]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Offset_Index</Attribute>
+		<Size>3</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [162 : 160]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Offset_Extension</Attribute>
+		<Size>2</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [164 : 163]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Code</Attribute>
+		<Size>4</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [168 : 165]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_TC</Attribute>
+		<Size>3</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [171 : 169]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_Strength</Attribute>
+		<Size>3</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [174 : 172]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_Meter_TC</Attribute>
+		<Size>2</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [176 : 175]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_DP</Attribute>
+		<Size>2</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [178 : 177]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_Dst</Attribute>
+		<Size>19</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [197 : 179]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_CPU_Trap_Qualifier</Attribute>
+		<Size>16</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [213 : 198]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action_CPU_Trap_Code</Attribute>
+		<Size>8</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [221 : 214]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>FID</Attribute>
+		<Size>15</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [236 : 222]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>KBP_Result_LSB</Attribute>
+		<Size>128</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd8} bits: [255 : 237] | {15'd4,16'd9} bits: [108 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>KBP_Result_MSB</Attribute>
+		<Size>128</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd9} bits: [236 : 109]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>KBP_Error</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd9} bits: [237 : 237]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Egress_Learn_Enable</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd9} bits: [238 : 238]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EEI</Attribute>
+		<Size>24</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd9} bits: [255 : 239] | {15'd4,16'd10} bits: [6 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Counter_B_Update</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd10} bits: [7 : 7]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Counter_A_Update</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd10} bits: [8 : 8]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Counter_B_Ptr</Attribute>
+		<Size>21</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd10} bits: [29 : 9]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Counter_A_Ptr</Attribute>
+		<Size>21</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd10} bits: [50 : 30]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Consistent_Hashing_Program_Valid</Attribute>
+		<Size>1</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd10} bits: [51 : 51]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Consistent_Hashing_Program</Attribute>
+		<Size>3</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd10} bits: [54 : 52]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Format_Code</Attribute>
+		<Size>6</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd10} bits: [60 : 55]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_LIF</Attribute>
+		<Size>18</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd10} bits: [78 : 61]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Port_Termination_Context</Attribute>
+		<Size>8</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd10} bits: [86 : 79]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_PP_Port</Attribute>
+		<Size>8</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd4,16'd10} bits: [94 : 87]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>OAM_Counter</Attribute>
+		<Size>32</Size>
+		<From>FLP</From>
+		<To>PMF</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd5,16'd0} bits: [31 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LL_LEM_Result</Attribute>
+		<Size>45</Size>
+		<From>LEM</From>
+		<To>LL</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd7,16'd0} bits: [44 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LL_LEM_Match</Attribute>
+		<Size>1</Size>
+		<From>LEM</From>
+		<To>LL</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd7,16'd0} bits: [45 : 45]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LL_LEM_Found</Attribute>
+		<Size>1</Size>
+		<From>LEM</From>
+		<To>LL</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd7,16'd0} bits: [46 : 46]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_A_Key</Attribute>
+		<Size>50</Size>
+		<From>TT</From>
+		<To>ISEM_A</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd22,16'd0} bits: [49 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_ISEM_A_Key</Attribute>
+		<Size>50</Size>
+		<From>VT</From>
+		<To>ISEM_A</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd22,16'd0} bits: [99 : 50]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_A_Result</Attribute>
+		<Size>17</Size>
+		<From>ISEM_A</From>
+		<To>TT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd23,16'd0} bits: [16 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_A_Error</Attribute>
+		<Size>1</Size>
+		<From>ISEM_A</From>
+		<To>TT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd23,16'd0} bits: [17 : 17]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_A_Found</Attribute>
+		<Size>1</Size>
+		<From>ISEM_A</From>
+		<To>TT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd23,16'd0} bits: [18 : 18]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_ISEM_A_Result</Attribute>
+		<Size>17</Size>
+		<From>ISEM_A</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd23,16'd0} bits: [35 : 19]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_ISEM_A_Error</Attribute>
+		<Size>1</Size>
+		<From>ISEM_A</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd23,16'd0} bits: [36 : 36]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_ISEM_A_Found</Attribute>
+		<Size>1</Size>
+		<From>ISEM_A</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd23,16'd0} bits: [37 : 37]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_B_Key</Attribute>
+		<Size>50</Size>
+		<From>TT</From>
+		<To>ISEM_B</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd24,16'd0} bits: [49 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_ISEM_B_Key</Attribute>
+		<Size>50</Size>
+		<From>VT</From>
+		<To>ISEM_B</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd24,16'd0} bits: [99 : 50]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_B_Result</Attribute>
+		<Size>17</Size>
+		<From>ISEM_B</From>
+		<To>TT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd25,16'd0} bits: [16 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_B_Error</Attribute>
+		<Size>1</Size>
+		<From>ISEM_B</From>
+		<To>TT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd25,16'd0} bits: [17 : 17]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TT_ISEM_B_Found</Attribute>
+		<Size>1</Size>
+		<From>ISEM_B</From>
+		<To>TT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd25,16'd0} bits: [18 : 18]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_ISEM_B_Error</Attribute>
+		<Size>1</Size>
+		<From>ISEM_B</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd25,16'd0} bits: [36 : 36]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VT_ISEM_B_Found</Attribute>
+		<Size>1</Size>
+		<From>ISEM_B</From>
+		<To>VT</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd25,16'd0} bits: [37 : 37]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_2nd_Key</Attribute>
+		<Size>80</Size>
+		<From>FLP</From>
+		<To>LEM</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd26,16'd0} bits: [79 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_1st_Key</Attribute>
+		<Size>80</Size>
+		<From>FLP</From>
+		<To>LEM</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd26,16'd0} bits: [205 : 126]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_2nd_Result</Attribute>
+		<Size>45</Size>
+		<From>LEM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd27,16'd0} bits: [44 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_2nd_Found</Attribute>
+		<Size>1</Size>
+		<From>LEM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd27,16'd0} bits: [47 : 47]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_1st_Result</Attribute>
+		<Size>45</Size>
+		<From>LEM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd27,16'd0} bits: [92 : 48]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_1st_Found</Attribute>
+		<Size>1</Size>
+		<From>LEM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd27,16'd0} bits: [95 : 95]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_B_Lookup_Key</Attribute>
+		<Size>160</Size>
+		<From>FLP</From>
+		<To>LPM</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd30,16'd0} bits: [166 : 7]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_B_Lookup_Key</Attribute>
+		<Size>160</Size>
+		<From>FLP</From>
+		<To>LPM</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd30,16'd0} bits: [255 : 174] | {15'd30,16'd1} bits: [77 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_A_Lookup_Key</Attribute>
+		<Size>160</Size>
+		<From>FLP</From>
+		<To>LPM</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd30,16'd1} bits: [244 : 85]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_A_Lookup_Key</Attribute>
+		<Size>160</Size>
+		<From>FLP</From>
+		<To>LPM</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd30,16'd1} bits: [255 : 252] | {15'd30,16'd2} bits: [155 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_B_Lookup_Length</Attribute>
+		<Size>8</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [7 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_B_Lookup_Status</Attribute>
+		<Size>2</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [9 : 8]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_B_Lookup_Result</Attribute>
+		<Size>20</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [29 : 10]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_B_Lookup_Length</Attribute>
+		<Size>8</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [37 : 30]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_B_Lookup_Status</Attribute>
+		<Size>2</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [39 : 38]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_B_Lookup_Result</Attribute>
+		<Size>20</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [59 : 40]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_A_Lookup_Length</Attribute>
+		<Size>8</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [67 : 60]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_A_Lookup_Status</Attribute>
+		<Size>2</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [69 : 68]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_A_Lookup_Result</Attribute>
+		<Size>20</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [89 : 70]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_A_Lookup_Length</Attribute>
+		<Size>8</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [97 : 90]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_A_Lookup_Status</Attribute>
+		<Size>2</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [99 : 98]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_A_Lookup_Result</Attribute>
+		<Size>20</Size>
+		<From>LPM</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd31,16'd0} bits: [119 : 100]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>KBP_Key</Attribute>
+		<Size>1024</Size>
+		<From>FLP</From>
+		<To>KBP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd32,16'd0} bits: [255 : 8] | {15'd32,16'd1} bits: [255 : 0] | {15'd32,16'd2} bits: [255 : 0] | {15'd32,16'd3} bits: [255 : 0] | {15'd32,16'd4} bits: [7 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>KBP_Result_LSB</Attribute>
+		<Size>128</Size>
+		<From>KBP</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd33,16'd0} bits: [128 : 1]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>KBP_Result_MSB</Attribute>
+		<Size>128</Size>
+		<From>KBP</From>
+		<To>FLP</To>
+		<BlockID>4</BlockID>
+		<Address>{15'd33,16'd0} bits: [255 : 129] | {15'd33,16'd1} bits: [0 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Valid</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd0} bits: [0 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VSI_VTT</Attribute>
+		<Size>16</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd0} bits: [16 : 1]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Header</Attribute>
+		<Size>1024</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd0} bits: [255 : 18] | {15'd0,16'd1} bits: [255 : 0] | {15'd0,16'd2} bits: [255 : 0] | {15'd0,16'd3} bits: [255 : 0] | {15'd0,16'd4} bits: [17 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Format_Qualifier</Attribute>
+		<Size>55</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd4} bits: [72 : 18]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VSI_LB</Attribute>
+		<Size>16</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd4} bits: [88 : 73]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Header</Attribute>
+		<Size>1024</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd4} bits: [255 : 90] | {15'd0,16'd5} bits: [255 : 0] | {15'd0,16'd6} bits: [255 : 0] | {15'd0,16'd7} bits: [255 : 0] | {15'd0,16'd8} bits: [89 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Format_Qualifier</Attribute>
+		<Size>55</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd8} bits: [144 : 90]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Header_Offset</Attribute>
+		<Size>42</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd8} bits: [186 : 145]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Offset_Index</Attribute>
+		<Size>3</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd8} bits: [189 : 187]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Offset_Extension</Attribute>
+		<Size>2</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd8} bits: [191 : 190]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VSI_ACL</Attribute>
+		<Size>16</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd8} bits: [207 : 192]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VRF</Attribute>
+		<Size>14</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd8} bits: [221 : 208]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VLAN_Edit_Cmd</Attribute>
+		<Size>34</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd8} bits: [255 : 222]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>User_Header_2</Attribute>
+		<Size>32</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [103 : 72]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>User_Header_1</Attribute>
+		<Size>32</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [135 : 104]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Unknown_Addr</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [136 : 136]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>System_Port_LAG_Valid</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [137 : 137]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>System_Port_LAG</Attribute>
+		<Size>15</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [152 : 138]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>System_Header_Profile_Index</Attribute>
+		<Size>4</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [156 : 153]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Statistics_Tag</Attribute>
+		<Size>8</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [164 : 157]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Stamp_Native_VSI</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [207 : 207]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Stacking_Route_History_Bitmap</Attribute>
+		<Size>16</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [223 : 208]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>St_VSQ_Ptr</Attribute>
+		<Size>8</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [231 : 224]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Src_System_Port</Attribute>
+		<Size>16</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [247 : 232]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Snoop_Strength</Attribute>
+		<Size>2</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [249 : 248]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Snoop_Code</Attribute>
+		<Size>8</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd9} bits: [255 : 250] | {15'd0,16'd10} bits: [1 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>RPF_Native_VSI_Valid</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd10} bits: [2 : 2]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>RPF_Native_VSI</Attribute>
+		<Size>15</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd10} bits: [17 : 3]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>RPF_Dst_Valid</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd10} bits: [18 : 18]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>RPF_Dst</Attribute>
+		<Size>19</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd10} bits: [37 : 19]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>PPH_Type</Attribute>
+		<Size>2</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd10} bits: [39 : 38]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>PPH_Reserved</Attribute>
+		<Size>3</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd10} bits: [42 : 40]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_is_IEEE1588</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [113 : 113]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_is_BOOTP_DHCP</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [114 : 114]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_Mirror_Disable</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [115 : 115]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_LIF</Attribute>
+		<Size>18</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [133 : 116]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Orientation_is_Hub</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [134 : 134]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>OAM_Up_MEP</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [135 : 135]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>OAM_Sub_Type</Attribute>
+		<Size>3</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [138 : 136]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>OAM_Stamp_Offset</Attribute>
+		<Size>7</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [145 : 139]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>OAM_Offset</Attribute>
+		<Size>7</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [152 : 146]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Native_VSI</Attribute>
+		<Size>15</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [167 : 153]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Mirror_Action</Attribute>
+		<Size>4</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [171 : 168]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Mem_Soft_Error</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [172 : 172]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Learn_or_Transplant</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [173 : 173]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Learn_Key</Attribute>
+		<Size>63</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [236 : 174]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Learn_Data</Attribute>
+		<Size>40</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd12} bits: [255 : 237] | {15'd0,16'd13} bits: [20 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LAG_LB_Key_Packet_Data</Attribute>
+		<Size>20</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [59 : 40]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Ingress_Shaping_Dst</Attribute>
+		<Size>19</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [87 : 69]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Ingress_Learn_Enable</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [88 : 88]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_TTL</Attribute>
+		<Size>8</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [96 : 89]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_RIF_Profile</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [102 : 97]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_RIF</Attribute>
+		<Size>15</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [117 : 103]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_PP_Port</Attribute>
+		<Size>8</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [125 : 118]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_LIF_Profile</Attribute>
+		<Size>4</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [129 : 126]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_LIF</Attribute>
+		<Size>18</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [147 : 130]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_DSCP_EXP</Attribute>
+		<Size>8</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [155 : 148]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Ignore_CP</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [156 : 156]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>IEEE1588_Header_Offset</Attribute>
+		<Size>7</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [163 : 157]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>IEEE1588_Enc</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [164 : 164]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>IEEE1588_Compensate_Time_Stamp</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [165 : 165]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>IEEE1588_Cmd</Attribute>
+		<Size>2</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [167 : 166]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Offset_Index</Attribute>
+		<Size>3</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [170 : 168]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Offset_Fix</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [176 : 171]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Header_Enc</Attribute>
+		<Size>2</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [178 : 177]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Code</Attribute>
+		<Size>4</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [182 : 179]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action</Attribute>
+		<Size>133</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd13} bits: [255 : 183] | {15'd0,16'd14} bits: [59 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>FEC_ECMP_Valid</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [60 : 60]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>FEC_ECMP</Attribute>
+		<Size>17</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [77 : 61]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Exclude_Src_Action</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [78 : 78]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Egress_Learn_Enable</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [79 : 79]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EEI</Attribute>
+		<Size>24</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [103 : 80]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>ECMP_LB_Key_Packet_Data</Attribute>
+		<Size>20</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [123 : 104]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Consistent_Hashing_LEM_Key</Attribute>
+		<Size>80</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [203 : 124]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Consistent_Hashing_LEM_Found</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [204 : 204]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Bytes_to_Remove_Index</Attribute>
+		<Size>2</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [206 : 205]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Bytes_to_Remove_Fix</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [212 : 207]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Parser_Leaf_Context</Attribute>
+		<Size>4</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [219 : 216]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Packet_Format_Code</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [225 : 220]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_PP_Port</Attribute>
+		<Size>8</Size>
+		<From>PMF</From>
+		<To>FER</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd0,16'd14} bits: [233 : 226]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>CoE_Packet_Data</Attribute>
+		<Size>64</Size>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd1,16'd0} bits: [63 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>CoE_Ch_ID</Attribute>
+		<Size>8</Size>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd1,16'd0} bits: [71 : 64]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Learn_Data</Attribute>
+		<Size>40</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd0} bits: [68 : 29]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>VLAN_Edit_Cmd</Attribute>
+		<Size>34</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd0} bits: [158 : 125]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>User_Header_2</Attribute>
+		<Size>32</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd0} bits: [254 : 223]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Snoop_Action_Profile_Index</Attribute>
+		<Size>4</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd1} bits: [136 : 133]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Out_LIF</Attribute>
+		<Size>18</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd1} bits: [162 : 145]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Learn_or_Transplant</Attribute>
+		<Size>1</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd1} bits: [195 : 195]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Learn_Key</Attribute>
+		<Size>63</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd1} bits: [255 : 196] | {15'd2,16'd2} bits: [2 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Ingress_Learn_Enable</Attribute>
+		<Size>1</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd2} bits: [66 : 66]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>In_DSCP_EXP</Attribute>
+		<Size>8</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd2} bits: [101 : 94]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Fwd_Action</Attribute>
+		<Size>133</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd3} bits: [163 : 31]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>FEC_ECMP_Ptr_is_Stateful</Attribute>
+		<Size>1</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd3} bits: [165 : 165]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Egress_Learn_Enable</Attribute>
+		<Size>1</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd3} bits: [191 : 191]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>EEI</Attribute>
+		<Size>24</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd2,16'd3} bits: [215 : 192]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>ECMP_LB_Key</Attribute>
+		<Size>16</Size>
+		<From>FER</From>
+		<To>LBP</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd3,16'd0} bits: [15 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TM_Cmd</Attribute>
+		<Size>323</Size>
+		<From>LBP</From>
+		<To>ITM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd4,16'd0} bits: [255 : 0] | {15'd4,16'd1} bits: [66 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>Bytes_to_Remove</Attribute>
+		<Size>7</Size>
+		<From>LBP</From>
+		<To>ITM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd4,16'd3} bits: [9 : 3]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Key_3</Attribute>
+		<Size>160</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd0} bits: [159 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Profile_Index_3</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd0} bits: [165 : 160]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Key_2</Attribute>
+		<Size>160</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd0} bits: [255 : 166] | {15'd5,16'd1} bits: [69 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Profile_Index_2</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd1} bits: [75 : 70]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Profile_Index_1</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd1} bits: [241 : 236]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Key_0</Attribute>
+		<Size>160</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd1} bits: [255 : 242] | {15'd5,16'd2} bits: [145 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Profile_Index_0</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd2} bits: [151 : 146]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Key_3</Attribute>
+		<Size>160</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd2} bits: [255 : 152] | {15'd5,16'd3} bits: [55 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Profile_Index_3</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd3} bits: [61 : 56]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Key_2</Attribute>
+		<Size>160</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd3} bits: [221 : 62]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Profile_Index_2</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd3} bits: [227 : 222]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Key_1</Attribute>
+		<Size>160</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd3} bits: [255 : 228] | {15'd5,16'd4} bits: [131 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Profile_Index_1</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd4} bits: [137 : 132]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Key_0</Attribute>
+		<Size>160</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd4} bits: [255 : 138] | {15'd5,16'd5} bits: [41 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Profile_Index_0</Attribute>
+		<Size>6</Size>
+		<From>PMF</From>
+		<To>TCAM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd5,16'd5} bits: [47 : 42]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Error_3</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [0 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Action_3</Attribute>
+		<Size>48</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [48 : 1]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Match_3</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [49 : 49]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Error_2</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [50 : 50]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Action_2</Attribute>
+		<Size>48</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [98 : 51]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Match_2</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [99 : 99]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Error_1</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [100 : 100]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Action_1</Attribute>
+		<Size>48</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [148 : 101]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Match_1</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [149 : 149]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Error_0</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [150 : 150]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Action_0</Attribute>
+		<Size>48</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [198 : 151]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_2nd_Match_0</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [199 : 199]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Error_3</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [200 : 200]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Action_3</Attribute>
+		<Size>48</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [248 : 201]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Match_3</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [249 : 249]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Error_2</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [250 : 250]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Action_2</Attribute>
+		<Size>48</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd0} bits: [255 : 251] | {15'd6,16'd1} bits: [42 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Match_2</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd1} bits: [43 : 43]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Error_1</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd1} bits: [44 : 44]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Action_1</Attribute>
+		<Size>48</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd1} bits: [92 : 45]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Match_1</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd1} bits: [93 : 93]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Error_0</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd1} bits: [94 : 94]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Action_0</Attribute>
+		<Size>48</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd1} bits: [142 : 95]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>TCAM_1st_Match_0</Attribute>
+		<Size>1</Size>
+		<From>TCAM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd6,16'd1} bits: [143 : 143]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_Result</Attribute>
+		<Size>45</Size>
+		<From>LEM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd9,16'd0} bits: [44 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_Error</Attribute>
+		<Size>1</Size>
+		<From>LEM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd9,16'd0} bits: [45 : 45]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_Found</Attribute>
+		<Size>1</Size>
+		<From>LEM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd9,16'd0} bits: [46 : 46]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_Key</Attribute>
+		<Size>80</Size>
+		<From>PMF</From>
+		<To>LEM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd10,16'd0} bits: [79 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LEM_Lookup_Type</Attribute>
+		<Size>1</Size>
+		<From>PMF</From>
+		<To>LEM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd10,16'd0} bits: [80 : 80]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_Direct_Access_Key</Attribute>
+		<Size>17</Size>
+		<From>PMF</From>
+		<To>LPM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd11,16'd0} bits: [16 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_Direct_Access_Key</Attribute>
+		<Size>17</Size>
+		<From>PMF</From>
+		<To>LPM</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd11,16'd0} bits: [33 : 17]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_Direct_Access_Result</Attribute>
+		<Size>128</Size>
+		<From>LPM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd12,16'd0} bits: [127 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_2nd_Direct_Access_Status</Attribute>
+		<Size>1</Size>
+		<From>LPM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd12,16'd0} bits: [128 : 128]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_Direct_Access_Result</Attribute>
+		<Size>128</Size>
+		<From>LPM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd12,16'd0} bits: [255 : 129] | {15'd12,16'd1} bits: [0 : 0]</Address>
+		<Perm>1</Perm>
+	</Signal>
+	<Signal>
+		<Attribute>LPM_1st_Direct_Access_Status</Attribute>
+		<Size>1</Size>
+		<From>LPM</From>
+		<To>PMF</To>
+		<BlockID>21</BlockID>
+		<Address>{15'd12,16'd1} bits: [1 : 1]</Address>
+		<Perm>1</Perm>
+	</Signal>
+</SignalInfo>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top version="1.2" device="jericho_2" expansion="SignalStructures.xml">
+    <block-list>
+        <block name="all">
+        </block>
+    </block-list>
+</top>

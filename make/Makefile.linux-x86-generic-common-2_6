@@ -1,0 +1,39 @@
+# $Id: Makefile.linux-x86-generic-common-2_6,v 1.2 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+
+# Default kernel source directory
+ifeq (,$(KERNDIR))
+#KERNDIR := /lib/modules/$(shell uname -r)/build
+KERNDIR := $(HOME)/root-fs-x86/src/linux
+export KERNDIR
+endif
+
+# Default architecture
+ifeq (,$(ARCH))
+#ARCH = $(shell uname -p)
+#ifneq (x86_64,$(ARCH))
+#ARCH = i386
+#endif
+ARCH = x86
+endif
+
+# Noisy kernel build
+KBUILD_VERBOSE = 1
+
+export ARCH KBUILD_VERBOSE KERNDIR
+
+# Default Linux include directory
+ifeq (,$(LINUX_INCLUDE))
+LINUX_INCLUDE := $(KERNDIR)/include/linux
+endif
+
+# autoconf.h was moved in later kernels
+AUTOCONF = $(KERNDIR)/include/generated/autoconf.h
+ifeq (,$(shell ls $(AUTOCONF) 2>/dev/null))
+AUTOCONF = $(KERNDIR)/include/linux/autoconf.h
+endif
+
+AUTOCONF = $(KERNDIR)/include/generated/autoconf.h
+# gcc system include path
+SYSINC = $(shell gcc -print-search-dirs | grep install | cut -c 10-)include

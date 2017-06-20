@@ -1,0 +1,111 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+             IEEE 802.3 Table 28B-3 Flow Control Resolution
+                 Curt McDowell, Broadcom Corp. 04-14-04
+                         Last Updated: 04-14-04
+------------------------------------------------------------------------------
+
+In their local and remote advertisement registers, IEEE PHYs denote the
+enabling of transmission and reception of pause frames in terms of a
+PAUSE bit and an ASM_DIR bit.
+
+
+                            IEEE 802.3-2000
+                              Table 28B-2
+                             Pause Encoding
+
+                PAUSE   ASM_DIR         TX      RX
+                -----   -----           --      --
+                  0       0             0       0
+                  0       1             1       0
+                  1       0             1       1
+                  1       1             0       1
+
+
+                            IEEE 802.3-2000
+                              Table 28B-3
+                            Pause Resolution
+
+      Local           Remote       Local Resolution   Remote Resolution
+  PAUSE  ASM_DIR   PAUSE ASM_DIR      TX    RX          TX    RX
+  
+    0       0        x      x         0     0           0     0
+    0       1        0      x         0     0           0     0
+    0       1        1      0         0     0           0     0
+    0       1        1      1         1     0           0     1
+    1       0        0      x         0     0           0     0
+    1       x        1      x         1     1           1     1
+    1       1        0      0         0     0           0     0
+    1       1        0      1         0     1           1     0
+
+------------------------------------------------------------------------------
+
+The Local Resolution portion of table, expressed as formulae:
+
+Local Advert
+        LP = PAUSE
+        LA = ASM_DIR
+
+Remote Advert
+        RP = PAUSE
+        RA = ASM_DIR
+
+Local Resolution (MAC programming)
+        TX = Enable transmit of pause frames
+        RX = Enable receive of pause frames
+
+(1) RX = LP RP + LP LA RA = LP (RP + LA RA)
+(2) TX = LP RP + RP LA RA = RP (LP + LA RA)
+
+------------------------------------------------------------------------------
+
+Because the Broadcom PHY drivers return the advertisement information in
+terms of TX and RX enable, already converted from PAUSE/ASM_DIR, the
+formulae need to be converted to operate on TX and RX enable.
+
+Local Advert
+        LT = TX pause
+        LR = RX pause
+
+Remote Advert
+        RT = TX pause
+        RR = RX pause
+
+MAC Result
+        TX = TX pause
+        RX = RX pause
+
+                       Pause Resolution Truth Table
+
+            Local           Remote             Local Resolution
+          LT      LR      RT      RR              TX      RX
+
+          0       0       0       0               0       0
+          0       0       0       1               0       0
+          0       0       1       0               0       0
+          0       0       1       1               0       0
+          0       1       0       0               0       0
+          0       1       0       1               1       1
+          0       1       1       0               0       1
+          0       1       1       1               1       1
+          1       0       0       0               0       0
+          1       0       0       1               1       0
+          1       0       1       0               0       0
+          1       0       1       1               0       0
+          1       1       0       0               0       0
+          1       1       0       1               1       1
+          1       1       1       0               0       0
+          1       1       1       1               1       1
+
+(1) TX = LR RR + RR !RT  LT = RR (LR + !RT  LT)
+(2) RX = LR RR + LR  RT !LT = LR (RR +  RT !LT)
+
+These are the formulae used in bcm/esw/port.c:_bcm_port_update() to
+program the MAC TX/RX enables according to autonegotiation results.
+
+------------------------------------------------------------------------------

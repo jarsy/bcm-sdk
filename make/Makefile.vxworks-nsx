@@ -1,0 +1,266 @@
+# -*- Makefile -*-
+# $Id: Makefile.vxworks-nsx,v 1.22 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Makefile for the BCM4702 board(CPCI) running VxWorks
+
+include ${SDK}/make/Makefile.vxworks-common
+
+# WIND_BASE and WIND_HOST_TYPE must be modified according to your
+# installed location.  The environment variables are ignored intentionally.
+
+ifndef VX_VERSION
+VX_VERSION = 55
+endif
+
+ifneq (,$(filter $(VX_VERSION),62 64 65))
+VX_VER_6X = 1
+endif
+
+ifeq ($(VX_VER_6X),1)
+ifeq ($(HOSTTYPE),i386-linux)
+WIND_6X_HOST_DIR = Linux
+else
+WIND_6X_HOST_DIR = SunOS
+endif
+endif
+
+ifeq ($(HOSTTYPE),i386-linux)
+ifeq ($(VX_VER_6X),1)
+WIND_HOST_TYPE ?= x86-linux2
+else
+WIND_HOST_TYPE ?= x86-linux
+endif
+else
+WIND_HOST_TYPE ?= sun4-solaris2
+endif
+
+ifeq ($(HOSTTYPE),Windows2000PC)
+else
+ifeq ($(HOSTTYPE),Windows_Cygnus)
+WIND_BASE ?= //fs-sj1-21/Projects-V2/ntsw-tools/wrs/t2
+WIND_HOST_TYPE ?= x86-win32
+else
+WIND_BASE_54 = /projects/ntsw-tools/wrs/tornado/t2
+WIND_BASE_542 = /projects/ntsw-tools/wrs/tornado/t2.1.1-sb
+WIND_BASE_55 = /projects/ntsw-tools/wrs/tornado/t2.2.1
+WIND_BASE_62 = /tools/windriver/vxworks/6.2/$(WIND_6X_HOST_DIR)/vxworks-6.2
+WIND_BASE_64 = /tools/windriver/vxworks/6.4/$(WIND_6X_HOST_DIR)/vxworks-6.4
+WIND_BASE ?= ${WIND_BASE_${VX_VERSION}}
+endif
+endif
+
+ifeq ($(HOSTTYPE),Windows2000PC)
+CPU=MIPS64
+else
+ifeq ($(VX_VERSION),55)
+CPU=MIPS64
+BSP_DIR?=vxworks5x
+else
+ifeq ($(VX_VERSION),542)
+CPU=MIPS64
+BSP_DIR?=vxworks5x
+else
+ifeq ($(VX_VER_6X),1)
+CPU=MIPS64
+BSP_DIR?=vxworks6x
+WIND_HOME ?= $(WIND_BASE)/..
+endif
+endif
+endif
+endif
+
+TOOL = gnu
+
+ifdef ALT_NSX_BSP_DIR
+VX_SRC = \
+    ${ALT_NSX_BSP_DIR}
+else
+VX_SRC = \
+	${SDK}/systems/vxworks/nsx/$(BSP_DIR)/bcm1125
+endif
+
+VX_SRC_ALL = \
+    $(VX_SRC)/all
+
+BOOTROM_SWAP=no
+
+# Extra libraries for this platform
+#COND_LIB_BSP = $(VX_SRC)/tffs/libTFFS.a
+
+# Configuration Flags
+
+CFGFLAGS += -DBCM_PLATFORM_STRING=\"NSX_BCM1125\"
+
+# Extra flags. Should move to nsx.defs
+CFGFLAGS += -DSAL_SKIP_MEM_CHECK
+
+
+# fast pci access
+#CFGFLAGS+= -DSOC_CM_MEMORY_BASE=0x41000000 -DSOC_CM_MEMORY_OFFSET=0x00010000
+#CFGFLAGS += -DSOC_CM_FUNCTION
+
+ifeq ($(VX_VERSION),62)
+
+WIND_GNU_PATH = $(WIND_HOME)/gnu/3.3.2-vxworks-6.2
+WIND_DIAB_PATH = $(WIND_HOME)/diab/5.3.1.0
+toolbase = $(WIND_GNU_PATH)/$(WIND_HOST_TYPE)/bin
+toolbase_alt = $(WIND_BASE)/../workbench-2.4/$(WIND_HOST_TYPE)/bin
+export GCC_EXEC_PREFIX=$(WIND_GNU_PATH)/$(WIND_HOST_TYPE)/lib/gcc-lib/
+
+else
+ifeq ($(VX_VERSION),64)
+
+WIND_GNU_PATH = $(WIND_HOME)/gnu/3.4.4-vxworks-6.4
+WIND_DIAB_PATH = $(WIND_HOME)/diab/5.5.0.0/
+toolbase = $(WIND_GNU_PATH)/$(WIND_HOST_TYPE)/bin
+toolbase_alt = $(WIND_BASE)/../workbench-2.6/$(WIND_HOST_TYPE)/bin
+export WIND_LIC_PROXY = $(WIND_HOME)/setup/$(WIND_HOST_TYPE)/bin
+
+else
+ifeq ($(VX_VERSION),65)
+WIND_GNU_PATH = $(WIND_HOME)/gnu/3.4.4-vxworks-6.5
+toolbase = $(WIND_GNU_PATH)/$(WIND_HOST_TYPE)/bin/
+toolbase_alt = $(WIND_GNU_PATH)/$(WIND_HOST_TYPE)/bin/
+else
+
+# If hardware learning+aging are permanently turned off, the ARL can
+# actually be treated like any other software-managed sorted table.
+#CFGFLAGS += -DARL_IS_REGULAR_MEMORY
+
+toolbase = $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin
+toolbase_alt = $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin
+
+#
+# Set GCC prefix and PATH to find what it needs, and export them to subshells
+# etc.
+#
+export GCC_EXEC_PREFIX=$(WIND_BASE)/host/$(WIND_HOST_TYPE)/lib/gcc-lib/
+endif
+endif
+endif
+
+CC 	= $(toolbase)/ccmips
+CPP	= $(toolbase)/cppmips
+CXX 	= $(toolbase)/g++mips
+RANLIB 	= $(toolbase)/ranlibmips
+AR 	= $(toolbase)/armips
+LD 	= $(toolbase)/ldmips
+NM 	= $(toolbase_alt)/nmmips
+MUNCH 	= $(toolbase)/munch
+SIZE 	= $(toolbase_alt)/sizemips
+STRIP	= $(toolbase_alt)/stripmips
+
+OPTFLAGS_DEFAULT = -O2
+#MFLAGS = $(OPTFLAGS) -EB -mcpu=r4000 -mips3 -mgp32 -mfp32 -non_shared -G 0 -DCPU=$(CPU)
+
+ifeq ($(WIND_HOST_TYPE),x86-linux)
+HAVE_BRANCH_NOLIKELY=
+else
+HAVE_BRANCH_NOLIKELY=-mno-branch-likely
+endif
+
+ifeq ($(HOSTTYPE),Windows2000PC)
+MFLAGS = -G 0 $(OPTFLAGS) -EB -DMIPSEB -mips4  $(HAVE_BRANCH_NOLIKELY) -DCPU=$(CPU)
+else
+ifeq ($(VX_VERSION),55)
+MFLAGS = -G 0 $(OPTFLAGS) -EB -DMIPSEB -mips4  $(HAVE_BRANCH_NOLIKELY) -DCPU=$(CPU)
+else
+ifeq ($(VX_VERSION),542)
+MFLAGS = -G 0 $(OPTFLAGS) -EB -DMIPSEB -mips4  $(HAVE_BRANCH_NOLIKELY) -DCPU=$(CPU)
+else
+ifeq ($(VX_VER_6X),1)
+MFLAGS = -G 0 $(OPTFLAGS) -EB -DMIPSEB -mips3 -mabi=o64 -mgp64 $(HAVE_BRANCH_NOLIKELY) -DCPU=$(CPU)
+else
+MFLAGS =  -EB $(OPTFLAGS) -mcpu=r4000 -mips2  $(HAVE_BRANCH_NOLIKELY) -mgp32 -msoft-float -G 0 -DCPU=$(CPU)
+endif
+endif
+endif
+endif
+
+#MFLAGS = $(OPTFLAGS) -mcpu=r4000 -mips3 -DCPU=$(CPU)
+#LDFLAGS = -EB -X -N
+ARFLAGS = -rc
+
+# TARGETTYPE Defines: This defines the type of system you are compiling
+# the driver for; there are several values allowed. New values can be created
+# by porting the routines (system.c) to your platform and adding
+# the define in this Makefile.
+
+TARGETTYPE = NSX 
+SUBTGTTYPE = BCM1125
+#SUBTGTTYPE = BCM1250
+
+# OSType Defines: This defines the type of RTOS or microkernel which you
+# are compiling the SAL (and its associated driver) for. New platforms
+# can be created by porting the routines (system.c) to your platform and
+# adding the define in this Makefile.
+
+OSTYPE = VXWORKS
+
+INCS += -I$(WIND_BASE)/target/h -I$(VX_SRC) -I${VX_SRC_ALL}
+ifeq ($(VX_VER_6X),1)
+INCS += -I$(WIND_BASE)/target/h/wrn/coreip
+endif
+LIBS = 
+
+#
+# STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
+# BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
+# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of 
+#			 this Makefile, to define local "Extra" flags.
+#
+# We include -DTRUE=1 to fix a Tornado 1 problem where stdarg macros are
+# defined incorrectly if TRUE is not defined ahead of including stdarg.h.
+# NOTE: Extra -I${INCDIR} puts SDK include before system incs, for assert.h
+#
+ifeq ($(HOSTTYPE),Windows2000PC)
+BCM_CFLAGS  += -DCPU_VAR=RC32364
+STD_CFLAGS = -fno-builtin $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${SUBTGTTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DBE_HOST=1
+else
+ifeq ($(VX_VERSION),55)
+BCM_CFLAGS  += -DCPU_VAR=RC32364
+STD_CFLAGS = -fno-builtin $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${SUBTGTTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DBE_HOST=1
+else
+ifeq ($(VX_VERSION),542)
+BCM_CFLAGS  += -DCPU_VAR=RC32364
+STD_CFLAGS = -fno-builtin $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${SUBTGTTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DBE_HOST=1
+else
+ifeq ($(VX_VER_6X),1)
+BCM_CFLAGS  += -DCPU_VAR=RC32364
+STD_CFLAGS = -fno-builtin -fno-strict-aliasing $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${SUBTGTTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DBE_HOST=1 -DCPU=MIPS64 -DCPU_FAMILY=MIPS
+ifeq ($(VX_VERSION),65)
+STD_CFLAGS += -DVXWORKS_NETWORK_STACK_6_5
+endif
+else
+STD_CFLAGS = -fno-builtin -nostdinc $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${SUBTGTTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DTRUE=1 -DBE_HOST=1
+endif
+endif
+endif
+endif
+
+ifeq ($(DEBUG_PEDANTIC),TRUE)
+STD_CFLAGS += -Wno-long-long
+endif
+
+ifdef ROBODV
+	STD_CFLAGS += -DROBO
+endif
+STD_CPPFLAGS = ${STD_CFLAGS}
+STD_CXXFLAGS = ${STD_CFLAGS}

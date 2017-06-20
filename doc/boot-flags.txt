@@ -1,0 +1,69 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+                          Notes on Boot Flags
+                 Curt McDowell, Broadcom Corp. 01-28-02
+                         Last Updated: 01-28-02
+------------------------------------------------------------------------------
+
+Several Boot Flags are defined in <krn/boot.h>.
+
+In VxWorks, the Boot Flags are a configuration parameter in the form of
+a 32-bit value stored persistently in NVRAM.  The value may be adjusted
+in hexadecimal form using the Configuration (c) command in the boot ROM.
+VxWorks reserves many of the bits in the Boot Flag value, so the
+Broadcom software uses values starting at bit 12 (0x1000).
+
+In Unix, the Boot Flags are derived from a hexadecimal number read from
+the environment variable SOC_BOOT_FLAGS.  If the variable is not set,
+the default value is 0x22000.
+
+The meanings of the Boot Flags currently available are as follows:
+
+0x1000    BOOT_F_NO_RC          Do not load rc.soc automatically
+                                on each StrataSwitch device after
+                                once they are all attached.
+
+0x2000    BOOT_F_NO_PROBE       Do not probe the PCI bus for
+                                StrataSwitch devices (also implies
+                                BOOT_F_NO_ATTACH and BOOT_F_NO_RC).
+
+0x4000    BOOT_F_NO_ATTACH      Do not attach StrataSwitch devices
+                                (also implies BOOT_F_NO_RC).
+
+0x8000    BOOT_F_SHELL_ON_TRAP  For VxWorks, when Control-\ is typed,
+                                do not reboot as normal, but instead fork
+                                a VxWorks shell.  If the main application
+                                process dies, this may be useful in
+                                getting backtraces using VxWorks commands
+                                such as "i" and "tt".
+
+0x10000   BOOT_F_QUICKTURN      Indicates to software that the device is
+                                attached to a chip emulator.  The software
+                                uses this mainly to lengthen the timeout
+                                values on various chip operations.
+
+0x20000   BOOT_F_PLISIM         Indicates to software that the device is
+                                attached to a software chip simulator such
+                                as pcid or a Verilog model.
+
+0x40000   BOOT_F_48PORT_BOARD   Set to indicate that the software is
+                                running on a 48-port integrated design
+                                with two StrataSwitch chips back to back.
+                                This flag will be obsoleted because all
+                                new boards provide a board type and
+                                revision ID.
+
+In addition to the Boot Flags, it is possible to set the Boot Script.
+In VxWorks, this is another NVRAM parameter that is also set via the
+Configuration (c) command.  On Unix, the name of the Boot Script is read
+from the SOC_BOOT_SCRIPT environment variable.
+
+If set, the Boot Script is executed with the BCM image boots, after all
+devices are probed and attached, but before the rc.soc script is run on
+each device.  The Boot Script is only run once regardless of the number
+of devices.  The Boot Script must be a .soc file (BCM shell script).

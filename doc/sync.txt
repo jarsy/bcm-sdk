@@ -1,0 +1,45 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+	 Mutex and Semaphore Synchronization with BCM Libraries
+			Curt McDowell, 02/10/02
+
+------------------------------------------------------------------------------
+
+1. Semaphores
+
+sal_sem_t
+
+1.1. Binary semaphores
+
+1.2. Counting semaphores
+
+2. Mutexes
+
+sal_mutex_t
+
+2.1. Recursive Mutex
+
+The SAL must implement 'recursive' mutexes similar to the ones provided
+by VxWorks.  The same task may take the mutex multiple times and an
+internal count is kept of the number of times the mutex has been taken.
+
+Recursive mutexes permit lower level routines to lock resources without
+worrying if a higher level routine has already locked it.
+
+It is easy to build 'recursive' mutexes on top of non-recursive ones
+such as POSIX mutexes.  See the unix SAL implementation for an example.
+
+2.2. Signal blocking
+
+The SAL mutex implementation should block user aborts (SIGINT or
+Control-C) as long as any mutex is held by the task running on the
+console.  Otherwise, the signal may result in a longjmp somewhere else
+and and the mutex will never be released.
+
+See the VxWorks and unix SAL implementations for examples.
+
+3. Timeouts

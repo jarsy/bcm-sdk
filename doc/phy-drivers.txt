@@ -1,0 +1,76 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+		      Notes on Adding a PHY Driver
+		 Curt McDowell, Broadcom Corp. 08-14-02
+			 Last Updated: 08-14-02
+------------------------------------------------------------------------------
+
+1) Define the PHY Device ID
+
+In $SDK/include/soc/phy.h, add a definition for the PHY ID.
+
+#define PHY_ID1_BCMxxxx		0x<phy-id>
+
+Here, <phy-id> is normally the value of the PHY ID1 register of the part
+(MII address 0x03), after having been ANDed with 0x03f0.
+
+For non-Broadcom PHYs, an appropriate PHY_OUI_xxx would need to be
+defined.
+
+2) Define the PHY Driver ID
+
+In $SDK/include/soc/phy.h, add a definition for the driver ID.
+
+In enum soc_known_phy_t, add _phy_id_BCMxxxx.  This is the actual driver
+ID.  Multiple PHY IDs may map to the same driver ID.
+
+3) Add translation from PHY Device ID to Driver ID
+
+In $SDK/src/soc/phy/phyident.c, there is a switch table in
+_phy_ident_type_get().  A case entry should be added mapping the device
+ID to the driver ID, for example:
+
+        case PHY_ID1_BCM5464:  /* Broadcom 5464 */
+            return _phy_id_BCM5464;
+
+For non-Broadcom PHYs, appropriate extra coding would be required.
+
+4) Add translation from Driver ID to driver function vector
+
+In $SDK/src/soc/phy/phyident.c, there is a table mapping PHY driver ID
+to function vectors, called _standard_phy_table.
+
+The simplest thing to do is add a new entry to this table.
+
+For example:
+
+    {_chk_phy, _phy_id_BCM5464, "BCM5464",     &phy_5464drv_ge, NULL},
+
+It is possible to add a PHY driver without modifying phyident.c by using
+the soc_phy_add_entry() call to add a new driver to the PHY table.
+
+5) Create a PHY driver include and source file
+
+In $SDK/src/phy, there is a header and source file for each PHY driver;
+for example:
+
+	phy54xx.h
+	phy54xx.c
+
+Here, the phy54xx drivers are all so similar that a single driver is
+used and multiple PHY function vectors are defined that point to the
+same actual driver funtions.
+
+To add a totally different PHY, new files should be created; otherwise,
+it may be possible to add functionality to an existing PHY driver in
+this manner.  Even if a new file is created, it is still possible to
+call into the standard driver functions because most PHYs largely adhere
+to IEEE register definitions.
+
+The Makefiles that come with the SDK will automatically compile the new
+PHY source file without having to list it in any of the Makefiles.

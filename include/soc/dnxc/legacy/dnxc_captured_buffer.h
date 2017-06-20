@@ -1,0 +1,24 @@
+/*
+ * $Id$ 
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ *
+ * DNXC CAPTURED BUFFER H
+ */
+ 
+#ifndef _SOC_DNXC_CAPTURED_BUFFER_H_
+#define _SOC_DNXC_CAPTURED_BUFFER_H_
+
+#include <soc/dnxc/legacy/dnxc_fabric_cell.h>
+#include <shared/cyclic_buffer.h>
+
+soc_error_t dnxc_captured_buffer_create(int unit, cyclic_buffer_t* captured_cells_buffer, int max_buffered_cells);
+soc_error_t dnxc_captured_buffer_destroy(int unit, cyclic_buffer_t* captured_cells_buffer);
+soc_error_t dnxc_captured_buffer_add(int unit, cyclic_buffer_t* captured_cells_buffer, const dnxc_captured_cell_t* new_cell);
+soc_error_t dnxc_captured_buffer_get(int unit, cyclic_buffer_t* captured_cells_buffer, dnxc_captured_cell_t* received_cell);
+soc_error_t dnxc_captured_buffer_is_empty(int unit, const cyclic_buffer_t* captured_cells_buffer, int* is_empty);
+soc_error_t dnxc_captured_buffer_is_full(int unit, const cyclic_buffer_t* captured_cells_buffer, int* is_full);
+soc_error_t dnxc_captured_buffer_cells_count(int unit, const cyclic_buffer_t* captured_cells_buffer, int* is_empty);
+
+#endif /*_SOC_DNXC_CAPTURED_BUFFER_H_*/

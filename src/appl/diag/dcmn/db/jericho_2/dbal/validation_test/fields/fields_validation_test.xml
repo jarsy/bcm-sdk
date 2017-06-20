@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+-->
+
+<FieldDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../fields/fields_schema.xsd">
+
+    <Field Name="IPV4" Size="32">
+		<OneLineDescription>blabla</OneLineDescription>
+		<FieldDbInterface Type="IP">
+            <FieldLabels>L3 L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VRF" Size="DNX_DATA.module_testing.dbal.vrf_field_size">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+	        <Encoding EncodeType="HARD_VALUE" Value="-8"/>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IPV6" Size="128">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="ARRAY8">
+            <FieldLabels>L3 MPLS</FieldLabels>
+	        <DefaultValue>15</DefaultValue>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="CORE_ID" Size="1">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+	        <DefaultValue>-1</DefaultValue>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="C_VLAN" Size="4">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="ENUM"> <!-- printing yype -->
+            <FieldLabels>L2</FieldLabels>
+            <EnumValues>   <!-- create the Enum -->
+                <EnumVal Name="DEFAULT" Description="default value of field"/>
+                <EnumVal Name="DROP" Description="drop action description"/>
+                <EnumVal Name="SNOOP" Description="snoop action description"/>
+                <EnumVal Name="REDIRECT" Description="redirect action description"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>  <!-- create the mapping table (function) -->
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="DROP" Value="5"/>
+                <EnumVal Name="REDIRECT" Value="3"/>
+                <EnumVal Name="SNOOP" Value="14"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+</FieldDbCatalog>

@@ -1,0 +1,242 @@
+# $Id: 56825_setup.soc,v 1.4 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+#
+# Connections:
+#  +-------------+               +-------------+         
+#  | 56825   HG0 | <-----------> | HG0  Sirius |
+#  |         HG1 | <-----------> | HG1         |
+#  |         HG2 | <-----------> | HG2         |
+#  |         HG3 | <-----------> | HG3         |
+#  |             |               |             |
+#  |             |               +-------------+
+#  |             |               +-------------+
+#  |         HG4 | <-----------> | HG0  Sirius |
+#  |         HG5 | <-----------> | HG1         |
+#  |         HG6 | <-----------> | HG2         |
+#  |         HG7 | <-----------> | HG3         |
+#  | XE0         |               |             |
+#  +-------------+               +-------------+
+#     ^ 
+#     |
+#     |
+#  Packets
+#
+#
+#  Description:  This script will configure a Scorpion320 (56825) to forward all 
+#                traffic to a Sirius FIC/TM.  Local switching is disabled and
+#                all traffic will be forwarded to a HG trunk consisting of all
+#                HiGig ports.
+#                For the snake portion of the test, untagged traffic should 
+#                ingress on XE0 with MAC_DA=0x000000000002
+
+
+# ****************************************************
+# Perform a reset to bring the system to a known state
+# ****************************************************
+if !$?1 "rc" else "echo 'Bypassing rc.soc'"
+
+# ****************
+# Define the modid
+# ****************
+stkm m=28
+
+# ************************************************
+# Make sure the HiGig ports are using HG2 protocol
+# Also disable AN and set speed to 21G
+# ************************************************
+port hg an=on
+port hg speed=21000
+port hg encap=higig2
+#port hg0-hg3 an=off sp=21000
+#linkscan off
+#phy hg 0x1f 0x8300
+#phy hg 0x18 0x601d
+#delay 50000
+#linkscan on
+
+# ********************************
+# Disable Pause frames on XE ports
+# ********************************
+m mac_rxctrl rxpausen=0
+m mac_txctrl pauseen=0
+
+# ********************************************************
+# Disable Local Switching on XE ports and setup forwarding
+# ********************************************************
+m LOCAL_SW_DISABLE_CTRL.xe SW_MODE=1
+#     Forward XE0 - XE1 to HG0
+m LOCAL_SW_DISABLE_DEFAULT_PBM.xe0-xe1 PORT_BITMAP=0x200
+#     Forward XE2 - XE3 to HG1
+m LOCAL_SW_DISABLE_DEFAULT_PBM.xe2-xe3 PORT_BITMAP=0x400
+#     Forward XE4 - XE5 to HG2
+m LOCAL_SW_DISABLE_DEFAULT_PBM.xe4-xe5 PORT_BITMAP=0x800
+#     Forward XE6 - XE7 to HG3
+m LOCAL_SW_DISABLE_DEFAULT_PBM.xe6-xe7 PORT_BITMAP=0x1000
+#     Forward XE8 - XE9 to HG4
+m LOCAL_SW_DISABLE_DEFAULT_PBM.xe8-xe9 PORT_BITMAP=0x2000
+#     Forward XE10 - XE11 to HG5
+m LOCAL_SW_DISABLE_DEFAULT_PBM.xe10-xe11 PORT_BITMAP=0x4000
+#     Forward XE12 - XE13 to HG6
+m LOCAL_SW_DISABLE_DEFAULT_PBM.xe12-xe13 PORT_BITMAP=0x8000
+#     Forward XE14 - XE15 to HG7
+m LOCAL_SW_DISABLE_DEFAULT_PBM.xe14-xe15 PORT_BITMAP=0x10000
+#     Disable SRC_MODID check so that packets don't get dropped
+mod PORT 9 8 ALLOW_SRC_MOD=1 REMOVE_HG_HDR_SRC_PORT=1
+mod IPORT_TABLE 9 8 ALLOW_SRC_MOD=1 REMOVE_HG_HDR_SRC_PORT=1
+mod LPORT 9 8 ALLOW_SRC_MOD=1 REMOVE_HG_HDR_SRC_PORT=1
+
+# **********************************************
+# Create a trunk group using all of the HG ports
+# **********************************************
+# mod PORT 9 8 HIGIG_TRUNK=1 HIGIG_TRUNK_ID=0
+# mod IPORT_TABLE 9 8 HIGIG_TRUNK=1 HIGIG_TRUNK_ID=0
+# mod LPORT 9 8 HIGIG_TRUNK=1 HIGIG_TRUNK_ID=0
+# m HG_TRUNK_GROUP(0) HIGIG_TRUNK_PORT0=0x9 HIGIG_TRUNK_PORT1=0xa HIGIG_TRUNK_PORT2=0xb HIGIG_TRUNK_PORT3=0xc HIGIG_TRUNK_PORT4=0xd HIGIG_TRUNK_PORT5=0xe HIGIG_TRUNK_PORT6=0xf HIGIG_TRUNK_PORT7=0x10 HIGIG_TRUNK_RTAG=3 HIGIG_TRUNK_SIZE=8
+# m HG_TRUNK_BITMAP(0) HIGIG_TRUNK_BITMAP=0x1fe00
+# mod NONUCAST_TRUNK_BLOCK_MASK 0 2 BLOCK_MASK=0xfe00
+# mod NONUCAST_TRUNK_BLOCK_MASK 2 2 BLOCK_MASK=0x17e00
+# mod NONUCAST_TRUNK_BLOCK_MASK 4 2 BLOCK_MASK=0x1be00
+# mod NONUCAST_TRUNK_BLOCK_MASK 6 2 BLOCK_MASK=0x1de00
+# mod NONUCAST_TRUNK_BLOCK_MASK 8 2 BLOCK_MASK=0x1ce00
+# mod NONUCAST_TRUNK_BLOCK_MASK 10 2 BLOCK_MASK=0x1f600
+# mod NONUCAST_TRUNK_BLOCK_MASK 12 2 BLOCK_MASK=0x1fa00
+# mod NONUCAST_TRUNK_BLOCK_MASK 14 2 BLOCK_MASK=0x1fc00
+# mod NONUCAST_TRUNK_BLOCK_MASK 16 2 BLOCK_MASK=0xfe00
+# mod NONUCAST_TRUNK_BLOCK_MASK 18 2 BLOCK_MASK=0x17e00
+# mod NONUCAST_TRUNK_BLOCK_MASK 20 2 BLOCK_MASK=0x1be00
+# mod NONUCAST_TRUNK_BLOCK_MASK 22 2 BLOCK_MASK=0x1de00
+# mod NONUCAST_TRUNK_BLOCK_MASK 24 2 BLOCK_MASK=0x1ce00
+# mod NONUCAST_TRUNK_BLOCK_MASK 26 2 BLOCK_MASK=0x1f600
+# mod NONUCAST_TRUNK_BLOCK_MASK 28 2 BLOCK_MASK=0x1fa00
+# mod NONUCAST_TRUNK_BLOCK_MASK 30 2 BLOCK_MASK=0x1fc00
+# mod NONUCAST_TRUNK_BLOCK_MASK 32 2 BLOCK_MASK=0xfe00
+# mod NONUCAST_TRUNK_BLOCK_MASK 34 2 BLOCK_MASK=0x17e00
+# mod NONUCAST_TRUNK_BLOCK_MASK 36 2 BLOCK_MASK=0x1be00
+# mod NONUCAST_TRUNK_BLOCK_MASK 38 2 BLOCK_MASK=0x1de00
+# mod NONUCAST_TRUNK_BLOCK_MASK 40 2 BLOCK_MASK=0x1ce00
+# mod NONUCAST_TRUNK_BLOCK_MASK 42 2 BLOCK_MASK=0x1f600
+# mod NONUCAST_TRUNK_BLOCK_MASK 44 2 BLOCK_MASK=0x1fa00
+# mod NONUCAST_TRUNK_BLOCK_MASK 46 2 BLOCK_MASK=0x1fc00
+# mod NONUCAST_TRUNK_BLOCK_MASK 48 2 BLOCK_MASK=0xfe00
+# mod NONUCAST_TRUNK_BLOCK_MASK 50 2 BLOCK_MASK=0x17e00
+# mod NONUCAST_TRUNK_BLOCK_MASK 52 2 BLOCK_MASK=0x1be00
+# mod NONUCAST_TRUNK_BLOCK_MASK 54 2 BLOCK_MASK=0x1de00
+# mod NONUCAST_TRUNK_BLOCK_MASK 56 2 BLOCK_MASK=0x1ce00
+# mod NONUCAST_TRUNK_BLOCK_MASK 58 2 BLOCK_MASK=0x1f600
+# mod NONUCAST_TRUNK_BLOCK_MASK 60 2 BLOCK_MASK=0x1fa00
+# mod NONUCAST_TRUNK_BLOCK_MASK 62 2 BLOCK_MASK=0x1fc00
+
+# temporarily block non-unicast traffic from going to other HG ports
+echo "Adding block masks for multicast traffic..."
+m IBCAST_BLOCK_MASK.hg blk_bitmap=0x1fe00
+m IUNKNOWN_UCAST_BLOCK_MASK.hg blk_bitmap=0x1fe00
+m IUNKNOWN_MCAST_BLOCK_MASK.hg blk_bitmap=0x1fe00
+m IKNOWN_MCAST_BLOCK_MASK.hg blk_bitmap=0x1fe00
+
+# ***************
+# Configure E2ECC
+# ***************
+#     Enable E2ECC Message generation
+m E2E_HOL_EN EN=1
+m XPORT_CONFIG E2E_HOL_EN=1
+m OP_QUEUE_CONFIG Q_E2E_DS_ENABLE=1
+m OP_THR_CONFIG EARLY_E2E_SELECT=1
+#     Specify the port that E2ECC messages will be sent from (HG1,HG5)
+m E2E_HOL_PBM PORT_BITMAP=0x4400
+#     Specify message intervals during congestion
+m E2E_MIN_TX_TIMER LG=0
+m E2E_MIN_TX_TIMER TIMER=37
+#     Specify regular message intervals
+#     Note: Timer=0 does not disable, set to largest value instead
+m E2E_MAX_TX_TIMER LG=1
+m E2E_MAX_TX_TIMER TIMER=0x3ff
+#     Enable receiving E2ECC messages
+m IE2E_CONTROL HOL_ENABLE=1
+m ING_CONFIG DISABLE_E2E_HOL_CHECK=0
+#     Define E2ECC header (VLAN=3645)
+m XHOL_MH0.hg MH_BYTES_0_3=0xfb110000
+m XHOL_MH1.hg MH_BYTES_4_7=0x1c000000
+m XHOL_MH2.hg MH_BYTES_8_11=0
+m XHOL_MH3.hg MH_BYTES_12_15=0xe3d0200
+#     Create a VLAN for E2ECC mesages
+vlan create 3645 pbm=hg1
+#     Define E2ECC MAC address and protocol
+m XHOL_D0.hg DATA_BYTES_0_3=0x00101820
+m XHOL_D1.hg DATA_BYTES_4_7=0x30010048
+m XHOL_D2.hg DATA_BYTES_8_11=0x6f6c5341
+m XHOL_D3.hg D_BYTES_12_15=0x20020220
+#     Define E2ECC receive MAC address and protocol
+m E2E_HOL_RX_DA_MS DA=0x3148
+m E2E_HOL_RX_DA_LS DA=0x6f6c4441
+m E2E_HOL_RX_LENGTH_TYPE LENGTH_TYPE=0x2002
+m E2E_HOL_RX_OPCODE OPCODE=0x0220
+
+# ***************
+# Enable global congestion for QE interop
+# ***************
+s GLOBAL_SHARED_FILL_STATE_CONFIG 1
+
+56825_mmu_settings.soc
+mod modport_map 0 7424 HIGIG_PORT_BITMAP=0x1fe00
+
+echo "Bypassing snake setup..."
+exit
+
+# *************************************
+# Create a 16 port snake to generate BW
+# *************************************
+vlan remove 1 pbm=all
+vlan add 1 pbm=xe0,xe1,hg ubm=xe0,xe1
+vlan create 2 pbm=xe1,xe2,hg ubm=xe1,xe2
+vlan create 3 pbm=xe2,xe3,hg ubm=xe2,xe3
+vlan create 4 pbm=xe3,xe4,hg ubm=xe3,xe4
+vlan create 5 pbm=xe4,xe5,hg ubm=xe4,xe5
+vlan create 6 pbm=xe5,xe6,hg ubm=xe5,xe6
+vlan create 7 pbm=xe6,xe7,hg ubm=xe6,xe7
+vlan create 8 pbm=xe7,xe8,hg ubm=xe7,xe8
+vlan create 9 pbm=xe8,xe9,hg ubm=xe8,xe9
+vlan create 10 pbm=xe9,xe10,hg ubm=xe9,xe10
+vlan create 11 pbm=xe10,xe11,hg ubm=xe10,xe11
+vlan create 12 pbm=xe11,xe12,hg ubm=xe11,xe12
+vlan create 13 pbm=xe12,xe13,hg ubm=xe12,xe13
+vlan create 14 pbm=xe13,xe14,hg ubm=xe13,xe14
+vlan create 15 pbm=xe14,xe15,hg ubm=xe14,xe15
+vlan create 16 pbm=xe15,xe0,hg ubm=xe15,xe0
+
+pvlan set xe0 1
+pvlan set xe1 2
+pvlan set xe2 3
+pvlan set xe3 4
+pvlan set xe4 5
+pvlan set xe5 6
+pvlan set xe6 7
+pvlan set xe7 8
+pvlan set xe8 9
+pvlan set xe9 10
+pvlan set xe10 11
+pvlan set xe11 12
+pvlan set xe12 13
+pvlan set xe13 14
+pvlan set xe14 15
+pvlan set xe15 16
+
+l2 add pbm=xe1 mac=0x2 v=1 module=28
+l2 add pbm=xe2 mac=0x2 v=2 module=28
+l2 add pbm=xe3 mac=0x2 v=3 module=28
+l2 add pbm=xe4 mac=0x2 v=4 module=28
+l2 add pbm=xe5 mac=0x2 v=5 module=28
+l2 add pbm=xe6 mac=0x2 v=6 module=28
+l2 add pbm=xe7 mac=0x2 v=7 module=28
+l2 add pbm=xe8 mac=0x2 v=8 module=28
+l2 add pbm=xe9 mac=0x2 v=9 module=28
+l2 add pbm=xe10 mac=0x2 v=10 module=28
+l2 add pbm=xe11 mac=0x2 v=11 module=28
+l2 add pbm=xe12 mac=0x2 v=12 module=28
+l2 add pbm=xe13 mac=0x2 v=13 module=28
+l2 add pbm=xe14 mac=0x2 v=14 module=28
+l2 add pbm=xe15 mac=0x2 v=15 module=28
+l2 add pbm=xe0 mac=0x2 v=16 module=28
+
+port xe1-xe15 lb=phy

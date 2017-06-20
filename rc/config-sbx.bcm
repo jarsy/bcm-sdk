@@ -1,0 +1,207 @@
+# $Id: config-sbx.bcm,v 1.44 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Example configuration file for SBX systems.
+# config-sbx.bcm
+#
+
+os=unix
+
+# Maximum number of COSes
+bcm_num_cos=8
+
+# By default,set this to match the number of cos levels
+# If >1, logical port shaping is enabled in the qe
+# otherwise, per flow shaping is enabled
+qe_queues_per_ingress_shaper=8
+
+# Maximum number of modules in the system (number of QEs)
+num_modules=4
+
+# Create queues on bcm init
+diag_cosq_init=1
+
+# The maximum number of consecutive timeslots a QE can hold
+# priority for transmitting packets which cross timeslots.
+hold_pri_num_timeslots=1
+
+# Declare the fabric control ports on the BME (Unit 2)
+#
+#               +--- port (one based)
+#               | +--- unit
+#               | | +--- is SCI
+#               | | |
+#               v v v
+# port_is_sci.port1.2=1
+# this happens through sbx.soc
+
+# By default, run in standalone mode
+diag_chassis=0
+
+# Logging can be pointed to a file:
+#diag_log_file=/var/log/bcm.log
+
+
+# These properties determine the number of SPI channels assigned to
+# each bus in the QE.  The QE (fabric) ports are numbered contiguously
+# across SPI 0 then SPI 1
+qe_spi_0=14
+qe_spi_1=14
+
+# This property can be used to constrain the total number of lines
+# allocated to an EI buffer in the QE.  This is occasionally
+# necessary to ensure `balanced' EI allocation for the same port
+# type spread across 2 buses.  For example a 20 x 1G + 1 x 10G
+# configuration where the goal is to provide full bandwidth for
+# either 20 x 1G or 10 x 1G + 1 x 10G requires this (assuming the 1 x
+# 10G is on SPI bus 1):
+# qe_spi_0_ei_lines.0=256
+
+# These properties configure the default high speed channels on each SPI
+qe_spi_0_subport_speed.port13.0=10000
+qe_spi_1_subport_speed.port13.0=10000
+
+# Default microcode is G2P3
+# Note that QE type needs to be set because RX reason codes are 
+# microcode dependent
+#
+# bcm88020_ucode.0=g2p3
+# bcm88020_ucode.1=g2p3
+
+# Default microcode for BCM88025 is c2_g2p3
+# bcm88025_ucode.0=c2_g2p3
+# bcm88025_ucode.1=c2_g2p3
+
+# QE Egress Route header format
+# Used to select the QE EP microcode on QE2K device
+# 0 : C2-QE2K native G2P3 (default)
+# 1 : C2-Sirius header format
+# 2 : C2-QE2K-Sirius interop header format
+qe_erh_type=0
+
+# BCM88025 only:
+# Turns on and off IPv4 capabilities (uni and mc).
+# 0 = V4 off
+# 1 = V4 on (default)
+#l3_enable=1
+#
+# turn optimize on to enable device memory
+# (singleton) optimization on l3 compiler
+#l3_optimize=1
+
+#v4uc_str_sel=1
+#v4mc_str_sel=1
+
+# This property must be present for ucode_port properties to be used
+# Otherwise, a default front panel to ucode to system port mapping is used
+#ucode_num_ports.1=1
+
+# The FE-2000 ucode port property values have the form:
+#       fport:sysport
+# Where ports are of the form:
+#       gex.y      GbE ports, x=0,1, y=0-11
+#       xex.y      XG/HG ports, x=0,1, y=0
+#       spix.y     SPI-4.2 ports, x=0-1, y=0-63
+#       pcix       CPU port, x=0
+#
+# The `fport' is the front-side port, and the `sysport' is the
+# system-side port.
+# Most system configurations use a QE-2000 CPU port,
+# so the PCI port is typically not mapped to a microcode port.
+#
+# Note that an attached QE-2000 SPI port mapping must be
+# `synchronized' with the FE-2000 SPI port mapping to ensure
+# consistent SPI port calendars.  If SPI training fails, this
+# is typically because the FE & QE have different calendar
+# lengths.
+#
+# Here is an example configuration with 4 front-side ports
+#
+#qe_spi_0.0=4
+#qe_spi_1.0=0
+#ucode_num_ports.1=4
+#ucode_port.port1.1=ge0.0:spi0.0
+#ucode_port.port2.1=xe0.0:spi0.1
+#ucode_port.port3.1=spi1.0:spi0.2
+#ucode_port.port4.1=pci0:spi0.3
+
+# To map a microcode port to HG port
+#ucode_port.port5.1=hg0:spi0.13
+
+# Assign a port to an SWS packet buffer (0-1)
+# The default assignment is usually correct unless the port
+# configuration is heterogeneous AND contains ports that are not
+# always used (e.g. a configuration of 1 x 10G + 20 x 1G supporting
+# both 1 x 10G + 10 x 1G and 20 x 1G operating modes).  The bandwidth
+# must be balanced across both SWS packet buffers to achieve 20G for
+# minimum-sized packets.
+#
+#pb_select.port11.1=1
+
+# FE PCI does not deliver an ERH on receive
+rx_parse_erh.1=0
+
+# Set these to indicate the FE-2000 wide memory ports are
+# connected to 2 x18 RAMs.  Otherwise they are assumed to
+# connect to 1 x 36 RAM
+# Broadcom MetroCore FE-2000 reference design uses 2 x18 RAMs
+wide_sram0_x18=1
+wide_sram1_x18=1
+
+# Needed for sbx diags.
+# FE2k reference design uses 4M parts but are only addressable to 2M
+# np, 4Mx18 will look like 2Mx36 (FE reads 36 bits (2x18) in one cycle)
+# wp, 2(4Mx18) will look like 2Mx72 (FE reads 72 (2x36) bits in one cycle)
+wp_addr_width=21
+wp_data_width=36
+np0_data_width=18
+np0_addr_width=21
+np1_data_width=18
+np1_addr_width=21
+
+# To have both XEs as HiGig use
+# remove this line or pbmp_xport_xe 0x0
+pbmp_xport_xe=0x3000000
+
+# This is needed only for 12G HiGig
+#xgxs_lcpll_12gbps=1
+
+#can control which units should come up
+#diag_unit_mask=0x1f
+#qe_tme_mode=0
+#bme_num_esets=128
+
+
+# L2 Aging Cycles
+# Sets the number of cycles in an L2 aging interval
+# Value affects the number of entries to be processed in each
+# L2 aging cycle, as follows:
+#   - An aging interval runs aging at most 'Cycles' number of times
+#   - In each cycle, at most 'N' entries are processed, where
+#         N = L2TableSize / Cycles
+#
+# The default value of '1' indicates only 1 cycle in an L2 age interval, 
+# which results in processing all the L2 table at once.
+#
+#l2_age_cycles=1
+
+# turn on OAM. Turns on PPE rules to detect incoming OAM packets.
+oam_rx_enable=1 
+# Turns on bubble timer to start generating bubbles.
+oam_tx_enable=1
+
+#bcm88020_batch=0
+
+sbx=1
+
+#parameter to alloc resource for vpws vpn - SBX_GU2_USR_RES_LINE_VSI
+sbx_vpws_vpn_low=0x4005
+sbx_vpws_vpn_high=0x4010
+#parameter to alloc resource for vpws vpn - SBX_GU2_USR_RES_FTE_MPLS
+sbx_vpws_pw_gports_low=0x18019010
+sbx_vpws_pw_gports_high=0x18019020
+
+# for ss interop with qe2k without LCM, set to 0x3e.  
+# Our SVKs all use LCMs so set to 0
+qe_grant_delay=0

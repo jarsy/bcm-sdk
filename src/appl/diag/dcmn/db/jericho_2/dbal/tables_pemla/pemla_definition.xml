@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL MDB Logical Tables:
+    This xml contains the MDB logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    Aligned to Arch version: 
+    //depot2/Jericho2/A0/docs/ARCH-specs/Packet-Processing/Datapath_program/Standard_1/JR2.Standard_1.MDB_AppDBs_compiled.xml
+    #48
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="pemla_schema.xsd">
+
+    <AppDB Name="PEMLA_PARSER_TPID">
+        <OneLineDescription>switch tpid pemla table</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="PEMLA_TPID_1"/>
+                <Field Name="PEMLA_TPID_2"/>
+                <Field Name="PEMLA_TPID_3"/>
+                <Field Name="PEMLA_TPID_4"/>
+                <Field Name="PEMLA_TPID_5"/>
+                <Field Name="PEMLA_TPID_6"/>
+                <Field Name="PEMLA_TPID_7"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <DbId>7</DbId>
+            <FieldMapping>
+                <Field Name="PEMLA_TPID_1" HwValue="0"/>
+                <Field Name="PEMLA_TPID_2" HwValue="1"/>
+                <Field Name="PEMLA_TPID_3" HwValue="2"/>
+                <Field Name="PEMLA_TPID_4" HwValue="3"/>
+                <Field Name="PEMLA_TPID_5" HwValue="4"/>
+                <Field Name="PEMLA_TPID_6" HwValue="5"/>
+                <Field Name="PEMLA_TPID_7" HwValue="6"/>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+</AppDbCatalog>

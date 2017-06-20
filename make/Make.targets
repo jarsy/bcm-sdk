@@ -1,0 +1,1889 @@
+# $Id: Make.targets,v 1.336 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Included from Make.config to define build targets, including
+# optional ones requested in CFGFLAGS in the platform Makefile.f
+
+#
+# Driver Libraries
+#
+#   These are the required libraries to use the driver by itself,
+#   without diagnostics or tests, including the SAL core.
+#
+
+ifeq ($(LINUX_MAKE_SHARED_LIB),1)
+libext = so.$(SHAREDLIBVER)
+else
+libext = a
+endif
+
+BCM_LIB = libbcm.$(libext)
+ifneq (,$(findstring -DINCLUDE_PLP_IMACSEC,$(CFGFLAGS)))
+BCM_LIB += lib_plp_secy.$(libext)
+BCM_LIB += lib_imacsec.$(libext)
+endif
+ifneq (,$(findstring -DBCM_RPC_SUPPORT,$(CFGFLAGS)))
+BCM_LIB += libbcm_rpc.$(libext)
+BCM_LIB += libbcm_compat.$(libext)
+endif
+ifneq (,$(findstring -DBCM_ESW_SUPPORT,$(CFGFLAGS)))
+BCM_LIB += libbcm_esw.$(libext)
+endif
+ifneq (,$(findstring -DBCM_SHADOW_SUPPORT,$(CFGFLAGS)))
+BCM_LIB += libbcm_shadow.$(libext)
+endif
+ifneq (,$(findstring -DBCM_ROBO_SUPPORT,$(CFGFLAGS)))
+BCM_LIB += libbcm_robo.$(libext)
+endif
+ifneq (,$(findstring -DBCM_SBX_SUPPORT,$(CFGFLAGS)))
+BCM_LIB += libbcm_sbx.$(libext)
+endif
+ifneq (,$(findstring -DBCM_EA_SUPPORT,$(CFGFLAGS)))
+BCM_LIB += libbcm_ea.$(libext)    
+ifneq (,$(findstring -DBCM_PIONEER_SUPPORT,$(CFGFLAGS)))
+BCM_LIB += libbcm_eapioneer.$(libext)
+endif
+ifneq (,$(findstring -DBCM_TK371X_SUPPORT,$(CFGFLAGS)))   
+BCM_LIB += libbcm_eatk371x.$(libext)
+endif
+endif
+ifneq (,$(findstring -DBCM_PETRA_SUPPORT,$(CFGFLAGS)))
+BCM_LIB += libbcm_dpp.$(libext)
+endif
+ifneq (,$(findstring -DBCM_DFE_SUPPORT,$(CFGFLAGS)))
+BCM_LIB += libbcm_dfe.$(libext)
+endif
+
+ifneq (,$(findstring -DBCM_DNX_SUPPORT,$(CFGFLAGS)))
+BCMDNX_LIB =      \
+    libbcm_dnxlegacy.$(libext) \
+    libbcm_dnxvlan.$(libext) \
+    libbcm_dnxmirror.$(libext) \
+    libbcm_dnxcrps.$(libext) \
+    libbcm_dnxl3.$(libext) \
+    libbcm_dnxinit.$(libext) \
+    libbcm_dnxalgo.$(libext) \
+    libbcm_dnxl2.$(libext) \
+    libbcm_dnxlif.$(libext) \
+    libbcm_dnxport.$(libext) \
+    libbcm_dnxrx.$(libext) \
+    libbcm_dnxtx.$(libext) \
+    libbcm_dnxstg.$(libext) \
+    libbcm_dnxmpls.$(libext) \
+    libbcm_dnxstk.$(libext) \
+    libbcm_dnxqos.$(libext) \
+    libbcm_dnxalgol3.$(libext) \
+    libbcm_dnxalgolif.$(libext) \
+    libbcm_dnxalgores.$(libext) \
+    libbcm_dnxalgotemplate.$(libext) \
+    libbcm_dnxalgomirror.$(libext) \
+    libbcm_dnxswitch.$(libext) \
+    libbcm_dnxvswitch.$(libext)
+endif
+
+ifneq (,$(findstring -DBCM_DNXF_SUPPORT,$(CFGFLAGS)))
+# once sub directories are added to src/bcm/dnxf/ add them here in the same way that they were added to DNX 
+BCMDNXF_LIB =	\
+	libbcm_dnxf.$(libext)
+endif
+
+ifdef BCM_5675_A0
+BCM_LIB_HERC = libherc.$(libext)
+endif
+
+ifdef BCM_56504_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+endif
+
+ifdef BCM_56504_B0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+endif
+
+ifdef BCM_56304_B0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+endif
+
+ifdef BCM_56102_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+endif
+
+ifdef BCM_56314_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+endif
+
+ifdef BCM_56112_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+endif
+
+ifdef BCM_56580_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+endif
+
+ifdef BCM_56700_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_HERC = libherc.$(libext)
+endif
+
+ifdef BCM_56800_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+endif
+
+ifdef BCM_56218_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_RAPTOR = libraptor.$(libext)
+endif
+
+ifdef BCM_56514_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+endif
+
+ifdef BCM_56624_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+endif
+
+ifdef BCM_56680_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+endif
+
+ifdef BCM_56624_B0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+endif
+
+ifdef BCM_56680_B0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+endif
+
+ifdef BCM_56224_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_RAPTOR = libraptor.$(libext)
+endif
+
+ifdef BCM_56224_B0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_RAPTOR = libraptor.$(libext)
+endif
+
+ifdef BCM_53314_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_RAPTOR = libraptor.$(libext)
+endif
+
+ifdef BCM_53324_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_RAPTOR = libraptor.$(libext)
+endif
+
+ifdef BCM_56820_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+endif
+
+ifdef BCM_56725_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_CONQUEROR = libconqueror.$(libext)
+endif
+
+ifdef BCM_56634_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+endif
+
+ifdef BCM_56634_B0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+endif
+
+ifdef BCM_56524_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+endif
+
+ifdef BCM_56524_B0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+endif
+
+ifdef BCM_56685_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+endif
+
+ifdef BCM_56685_B0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+endif
+
+ifdef BCM_56334_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_ENDURO = libenduro.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+endif
+
+ifdef BCM_56334_B0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_ENDURO = libenduro.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+endif
+
+ifdef BCM_56142_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_ENDURO = libenduro.$(libext)
+BCM_LIB_HURRICANE = libhurricane.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+endif
+
+ifdef BCM_56150_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+BCM_LIB_ENDURO = libenduro.$(libext)
+BCM_LIB_HURRICANE = libhurricane.$(libext)
+BCM_LIB_HURRICANE2 = libhurricane2.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+endif
+
+ifdef BCM_53400_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+BCM_LIB_ENDURO = libenduro.$(libext)
+BCM_LIB_HURRICANE = libhurricane.$(libext)
+BCM_LIB_HURRICANE2 = libhurricane2.$(libext)
+BCM_LIB_GREYHOUND = libgreyhound.$(libext)
+SOC_LIB_GREYHOUND = libsoc_greyhound.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+endif
+
+ifdef BCM_56160_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+BCM_LIB_ENDURO = libenduro.$(libext)
+BCM_LIB_HURRICANE = libhurricane.$(libext)
+BCM_LIB_HURRICANE2 = libhurricane2.$(libext)
+BCM_LIB_GREYHOUND = libgreyhound.$(libext)
+BCM_LIB_HURRICANE3 = libhurricane3.$(libext)
+SOC_LIB_GREYHOUND = libsoc_greyhound.$(libext)
+SOC_LIB_HURRICANE3 = libsoc_hurricane3.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_FLOWCNT = libflowcnt.$(libext)
+endif
+
+ifdef BCM_53570_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+BCM_LIB_ENDURO = libenduro.$(libext)
+BCM_LIB_HURRICANE = libhurricane.$(libext)
+BCM_LIB_HURRICANE2 = libhurricane2.$(libext)
+BCM_LIB_GREYHOUND = libgreyhound.$(libext)
+BCM_LIB_HURRICANE3 = libhurricane3.$(libext)
+BCM_LIB_GREYHOUND2 = libgreyhound2.$(libext)
+SOC_LIB_GREYHOUND = libsoc_greyhound.$(libext)
+SOC_LIB_HURRICANE3 = libsoc_hurricane3.$(libext)
+SOC_LIB_GREYHOUND2 = libsoc_greyhound2.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_FLOWCNT = libflowcnt.$(libext)
+endif
+
+ifdef BCM_56840_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56840_B0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56850_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_TRIDENT2 = libtrident2.$(libext)
+BCM_LIB_TITAN2 = libtitan2.$(libext)
+SOC_LIB_TRIDENT2 = libsoc_trident2.$(libext)
+SOC_LIB_TDM = libsoc_tdm.$(libext)
+SOC_LIB_TDM_CORE = libsoc_tdm_core.$(libext)
+SOC_LIB_TDM_TRIDENT2P = libsoc_tdm_td2p.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56960_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_TRIDENT2 = libtrident2.$(libext)
+BCM_LIB_TITAN2 = libtitan2.$(libext)
+SOC_LIB_TRIDENT2 = libsoc_trident2.$(libext)
+BCM_LIB_TOMAHAWK = libtomahawk.$(libext)
+SOC_LIB_TOMAHAWK = libsoc_tomahawk.$(libext)
+SOC_LIB_ALPM = libsoc_alpm.$(libext)
+SOC_LIB_TDM = libsoc_tdm.$(libext)
+SOC_LIB_TDM_CORE = libsoc_tdm_core.$(libext)
+SOC_LIB_TDM_TOMAHAWK = libsoc_tdm_th.$(libext)
+SOC_LIB_TDM_TRIDENT2P = libsoc_tdm_td2p.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56965_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_TRIDENT2 = libtrident2.$(libext)
+BCM_LIB_TITAN2 = libtitan2.$(libext)
+SOC_LIB_TRIDENT2 = libsoc_trident2.$(libext)
+BCM_LIB_TOMAHAWK = libtomahawk.$(libext)
+SOC_LIB_TOMAHAWK = libsoc_tomahawk.$(libext)
+SOC_LIB_ALPM = libsoc_alpm.$(libext)
+SOC_LIB_TDM = libsoc_tdm.$(libext)
+SOC_LIB_TDM_CORE = libsoc_tdm_core.$(libext)
+SOC_LIB_TDM_TOMAHAWK = libsoc_tdm_th.$(libext)
+SOC_LIB_TDM_TRIDENT2P = libsoc_tdm_td2p.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56970_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_TRIDENT2 = libtrident2.$(libext)
+BCM_LIB_TITAN2 = libtitan2.$(libext)
+SOC_LIB_TRIDENT2 = libsoc_trident2.$(libext)
+BCM_LIB_TOMAHAWK = libtomahawk.$(libext)
+SOC_LIB_TOMAHAWK = libsoc_tomahawk.$(libext)
+SOC_LIB_ALPM = libsoc_alpm.$(libext)
+SOC_LIB_TDM = libsoc_tdm.$(libext)
+SOC_LIB_TDM_CORE = libsoc_tdm_core.$(libext)
+SOC_LIB_TDM_TOMAHAWK = libsoc_tdm_th.$(libext)
+SOC_LIB_TDM_TRIDENT2P = libsoc_tdm_td2p.$(libext)
+SOC_LIB_TDM_TOMAHAWK2 = libsoc_tdm_th2.$(libext)
+BCM_LIB_TOMAHAWK2 = libtomahawk2.$(libext)
+SOC_LIB_TOMAHAWK2 = libsoc_tomahawk2.$(libext)
+SOC_LIB_FLEXPORT = libsoc_flexport.$(libext)
+SOC_LIB_TOMAHAWK2_FLEXPORT = libsoc_tomahawk2_flexport.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56860_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_TRIDENT2 = libtrident2.$(libext)
+BCM_LIB_TITAN2 = libtitan2.$(libext)
+SOC_LIB_TRIDENT2 = libsoc_trident2.$(libext)
+SOC_LIB_TRIDENT2P = libsoc_trident2p.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+SOC_LIB_TDM = libsoc_tdm.$(libext)
+SOC_LIB_TDM_CORE = libsoc_tdm_core.$(libext)
+SOC_LIB_TDM_TRIDENT2P = libsoc_tdm_td2p.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+BCM_LIB_TRIDENT2PLUS = libtrident2plus.$(libext)
+BCM_LIB_TITAN2PLUS = libtitan2plus.$(libext)
+endif
+
+ifdef BCM_56560_A0
+BCM_LIB_APACHE = libapache.$(libext)
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_TRIDENT2 = libtrident2.$(libext)
+BCM_LIB_TRIDENT2PLUS = libtrident2plus.$(libext)
+BCM_LIB_TITAN2PLUS = libtitan2plus.$(libext)
+SOC_LIB_TDM = libsoc_tdm.$(libext)
+SOC_LIB_TDM_CORE = libsoc_tdm_core.$(libext)
+SOC_LIB_TDM_APACHE = libsoc_tdm_apache.$(libext)
+SOC_LIB_TDM_TRIDENT2P = libsoc_tdm_td2p.$(libext)
+BCM_LIB_TITAN2 = libtitan2.$(libext)
+SOC_LIB_TRIDENT2 = libsoc_trident2.$(libext)
+SOC_LIB_TRIDENT2P = libsoc_trident2p.$(libext)
+SOC_LIB_ALPM = libsoc_alpm.$(libext)
+SOC_LIB_APACHE = libsoc_apache.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+
+
+ifdef BCM_88732_A0
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_CONQUEROR = libconqueror.$(libext)
+BCM_LIB_SHADOW = libbcm_shadow.$(libext)
+endif
+
+ifdef BCM_56640_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+BCM_LIB_REGEX = libbcm_regex.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56440_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_ENDURO  = libenduro.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_KATANA = libkatana.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+BCM_LIB_REGEX = libbcm_regex.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56450_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_ENDURO  = libenduro.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+BCM_LIB_TRIDENT2 = libtrident2.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_KATANA = libkatana.$(libext)
+BCM_LIB_KATANA2 = libkatana2.$(libext)
+SOC_LIB_KATANA2 = libsoc_katana2.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+BCM_LIB_REGEX = libbcm_regex.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56260_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_ENDURO  = libenduro.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_KATANA = libkatana.$(libext)
+BCM_LIB_KATANA2 = libkatana2.$(libext)
+SOC_LIB_KATANA2 = libsoc_katana2.$(libext)
+SOC_LIB_SABER2 = libsoc_saber2.$(libext)
+BCM_LIB_SABER2 = libsaber2.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+BCM_LIB_REGEX = libbcm_regex.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56260_B0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_ENDURO  = libenduro.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_KATANA = libkatana.$(libext)
+BCM_LIB_KATANA2 = libkatana2.$(libext)
+SOC_LIB_KATANA2 = libsoc_katana2.$(libext)
+SOC_LIB_SABER2 = libsoc_saber2.$(libext)
+BCM_LIB_SABER2 = libsaber2.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+BCM_LIB_REGEX = libbcm_regex.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56270_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_ENDURO  = libenduro.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_KATANA = libkatana.$(libext)
+BCM_LIB_KATANA2 = libkatana2.$(libext)
+SOC_LIB_KATANA2 = libsoc_katana2.$(libext)
+SOC_LIB_SABER2 = libsoc_saber2.$(libext)
+BCM_LIB_SABER2 = libsaber2.$(libext)
+SOC_LIB_METROLITE = libsoc_metrolite.$(libext)
+BCM_LIB_METROLITE = libmetrolite.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+BCM_LIB_REGEX = libbcm_regex.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56340_A0
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TRIDENT2 = libtrident2.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_TITAN2 = libtitan2.$(libext)
+BCM_LIB_REGEX = libbcm_regex.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+SOC_LIB_TRIDENT2 = libsoc_trident2.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifdef BCM_56560_B0
+BCM_LIB_APACHE = libapache.$(libext)
+BCM_LIB_HERC = libherc.$(libext)
+BCM_LIB_FIREBOLT = libfirebolt.$(libext)
+BCM_LIB_BRADLEY = libbradley.$(libext)
+BCM_LIB_HUMV = libhumv.$(libext)
+BCM_LIB_SCORPION = libscorpion.$(libext)
+BCM_LIB_TRX     = libtrx.$(libext)
+BCM_LIB_TRIUMPH = libtriumph.$(libext)
+BCM_LIB_TRIUMPH2 = libtriumph2.$(libext)
+BCM_LIB_TRIUMPH3 = libtriumph3.$(libext)
+SOC_LIB_TRIUMPH3 = libsoc_triumph3.$(libext)
+BCM_LIB_TRIDENT = libtrident.$(libext)
+BCM_LIB_TITAN = libtitan.$(libext)
+BCM_LIB_TRIDENT2 = libtrident2.$(libext)
+BCM_LIB_TRIDENT2PLUS = libtrident2plus.$(libext)
+BCM_LIB_TITAN2PLUS = libtitan2plus.$(libext)
+SOC_LIB_TDM = libsoc_tdm.$(libext)
+SOC_LIB_TDM_CORE = libsoc_tdm_core.$(libext)
+SOC_LIB_TDM_APACHE = libsoc_tdm_apache.$(libext)
+SOC_LIB_TDM_TRIDENT2P = libsoc_tdm_td2p.$(libext)
+BCM_LIB_TITAN2 = libtitan2.$(libext)
+SOC_LIB_TRIDENT2 = libsoc_trident2.$(libext)
+SOC_LIB_TRIDENT2P = libsoc_trident2p.$(libext)
+SOC_LIB_ALPM = libsoc_alpm.$(libext)
+SOC_LIB_APACHE = libsoc_apache.$(libext)
+BCM_LIB_FLEXCTR = libflexctr.$(libext)
+BCM_LIB_XGS4 = libxgs4.$(libext)
+BCM_LIB_XGS5 = libxgs5.$(libext)
+endif
+
+ifneq (,$(findstring -DINCLUDE_PTP,$(CFGFLAGS)))
+BCM_LIB_PTP_COMMON = libptp_common.$(libext)
+BCM_LIB_PTP_DPP = libptp_dpp.$(libext)
+BCM_LIB_PTP_ESW = libptp_esw.$(libext)
+endif
+
+ifdef BCM_53242_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_HARRIER = libsocrobo_harrier.$(libext)
+endif
+
+ifdef BCM_53262_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_HARRIER = libsocrobo_harrier.$(libext)
+endif
+
+ifdef BCM_53115_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_VULCAN = libsocrobo_vulcan.$(libext)
+endif
+
+ifdef BCM_53118_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_BLACKBIRD = libsocrobo_bb.$(libext)
+endif
+
+ifdef BCM_53280_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_TBX = libsocrobo_tbx.$(libext)
+BCM_LIB_ROBO_DRV_THUNDERBOLT = libsocrobo_tb.$(libext)
+endif
+
+ifdef BCM_53280_B0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_TBX = libsocrobo_tbx.$(libext)
+BCM_LIB_ROBO_DRV_THUNDERBOLT = libsocrobo_tb.$(libext)
+endif
+
+ifdef BCM_53600_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_TBX = libsocrobo_tbx.$(libext)
+BCM_LIB_ROBO_DRV_VOYAGER = libsocrobo_vo.$(libext)
+endif
+
+ifdef BCM_53101_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_LOTUS = libsocrobo_lotus.$(libext)
+endif
+
+ifdef BCM_53125_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_STARFIGHTER = libsocrobo_sf.$(libext)
+endif
+
+ifdef BCM_53134_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_STARFIGHTER3 = libsocrobo_sf3.$(libext)
+endif
+
+ifdef BCM_53134_B0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_STARFIGHTER3 = libsocrobo_sf3.$(libext)
+endif
+
+ifdef BCM_53128_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_BLACKBIRD2 = libsocrobo_bb2.$(libext)
+endif
+
+ifdef BCM_89500_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_POLAR = libsocrobo_polar.$(libext)
+endif
+
+ifdef BCM_53010_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_NORTHSTAR = libsocrobo_northstar.$(libext)
+endif
+
+ifdef BCM_5389_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_DINO8 = libsocrobo_dino8.$(libext)
+endif
+
+ifdef BCM_53020_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_NORTHSTARPLUS = libsocrobo_northstarplus.$(libext)
+endif
+
+ifdef BCM_5396_A0
+BCM_LIB_ROBO_DRV = libsocrobo.$(libext)
+BCM_LIB_ROBO_DRV_COMMON = libsocrobo_common.$(libext)
+BCM_LIB_ROBO_DRV_GEX = libsocrobo_gex.$(libext)
+BCM_LIB_ROBO_DRV_DINO16 = libsocrobo_dino16.$(libext)
+endif
+
+
+ifdef BCM_88030_A0
+# libcaladan3 - should be generated from src/bcm/ area
+BCM_LIB_CALADAN3 = libsoc_sbx_caladan3.$(libext) \
+		   libtest_sbx_caladan3.$(libext) \
+                   libsoc_sbx_caladan3_sws.$(libext) \
+                   libsoc_sbx_caladan3_tmu.$(libext) \
+                   libsoc_sbx_caladan3_tmu_taps.$(libext) \
+                   libsoc_sbx_caladan3_etu.$(libext) \
+                   libsoc_sbx_caladan3_asm3.$(libext) \
+                   libcaladan3.$(libext) \
+                   libcaladan3oam.$(libext) \
+                   libcaladan3g3p1.$(libext)
+
+#ifdef BCM_CALADAN3_G3P1_SUPPORT
+BCM_LIB_CALADAN3 += libsoc_sbx_g3p1.$(libext) 
+#endif
+#ifdef BCM_CALADAN3_T3P1_SUPPORT
+BCM_LIB_CALADAN3 += libsoc_sbx_t3p1.$(libext) 
+#endif
+BCM_LIB_CALADAN3 += libsoc_sbx_caladan3_sim.$(libext)
+BCM_LIB_CALADAN3 += libsoc_sbx_caladan3_asm3.$(libext)
+endif
+
+ifdef BCM_88030_A1
+# libcaladan3 - should be generated from src/bcm/ area
+BCM_LIB_CALADAN3 = libsoc_sbx_caladan3.$(libext) \
+		   libtest_sbx_caladan3.$(libext) \
+                   libsoc_sbx_caladan3_sws.$(libext) \
+                   libsoc_sbx_caladan3_tmu.$(libext) \
+                   libsoc_sbx_caladan3_tmu_taps.$(libext) \
+                   libsoc_sbx_caladan3_etu.$(libext) \
+                   libsoc_sbx_caladan3_asm3.$(libext) \
+                   libcaladan3.$(libext) \
+                   libcaladan3oam.$(libext) \
+                   libcaladan3g3p1.$(libext)
+
+#ifdef BCM_CALADAN3_G3P1_SUPPORT
+BCM_LIB_CALADAN3 += libsoc_sbx_g3p1.$(libext) 
+#endif
+#ifdef BCM_CALADAN3_T3P1_SUPPORT
+BCM_LIB_CALADAN3 += libsoc_sbx_t3p1.$(libext) 
+#endif
+BCM_LIB_CALADAN3 += libsoc_sbx_caladan3_sim.$(libext)
+BCM_LIB_CALADAN3 += libsoc_sbx_caladan3_asm3.$(libext)
+endif
+
+ifdef BCM_88030_B0
+# libcaladan3 - should be generated from src/bcm/ area
+BCM_LIB_CALADAN3 = libsoc_sbx_caladan3.$(libext) \
+		   libtest_sbx_caladan3.$(libext) \
+                   libsoc_sbx_caladan3_sws.$(libext) \
+                   libsoc_sbx_caladan3_tmu.$(libext) \
+                   libsoc_sbx_caladan3_tmu_taps.$(libext) \
+                   libsoc_sbx_caladan3_etu.$(libext) \
+                   libsoc_sbx_caladan3_asm3.$(libext) \
+                   libcaladan3.$(libext) \
+                   libcaladan3oam.$(libext) \
+                   libcaladan3g3p1.$(libext)
+
+#ifdef BCM_CALADAN3_G3P1_SUPPORT
+BCM_LIB_CALADAN3 += libsoc_sbx_g3p1.$(libext) 
+#endif
+#ifdef BCM_CALADAN3_T3P1_SUPPORT
+BCM_LIB_CALADAN3 += libsoc_sbx_t3p1.$(libext) 
+#endif
+BCM_LIB_CALADAN3 += libsoc_sbx_caladan3_sim.$(libext)
+BCM_LIB_CALADAN3 += libsoc_sbx_caladan3_asm3.$(libext)
+endif
+
+ifdef BCM_QE2000_A0
+BCM_LIB_QE2000 = libqe2000.$(libext)         \
+		libsoc_g2eplib_sbx.$(libext) \
+		libsoc_sbx_qe2k.$(libext)    \
+		libsoc_sbx_qe2kep.$(libext)
+endif
+
+ifdef BCM_BME3200_A0
+BCM_LIB_BME3200 = libbme3200.$(libext) \
+		lib_sbx_fabric.$(libext) 
+endif
+
+ifdef BCM_BME3200_B0
+BCM_LIB_BME3200 = libbme3200.$(libext) \
+		lib_sbx_fabric.$(libext) 
+endif
+
+ifdef BCM_BM9600_A0
+BCM_LIB_BM9600 = libbm9600.$(libext) \
+		lib_sbx_fabric.$(libext)
+endif
+
+ifdef BCM_88230_A0
+BCM_LIB_SIRIUS = libsirius.$(libext) \
+		lib_sbx_fabric.$(libext) 
+endif
+
+ifdef BCM_88230_B0
+BCM_LIB_SIRIUS = libsirius.$(libext) \
+		lib_sbx_fabric.$(libext) 
+endif
+
+ifdef BCM_88230_C0
+BCM_LIB_SIRIUS = libsirius.$(libext) \
+		lib_sbx_fabric.$(libext) 
+endif
+
+ifdef BCM_56931_A0
+BCM_LIB_SIRIUS = libsirius.$(libext) \
+		lib_sbx_fabric.$(libext) 
+endif
+
+ifdef BCM_56936_A0
+BCM_LIB_SIRIUS = libsirius.$(libext) \
+		lib_sbx_fabric.$(libext) 
+endif
+
+ifdef BCM_88650_A0
+BCM_LIB_ARAD = libsoc_dpp_arad_nif.$(libext)
+BCM_LIB_ARAD += libsoc_dpp_port.$(libext)
+BCM_LIB_ARAD += libsoc_dpp_arad.$(libext)
+BCM_LIB_ARAD += libbcm_dpp_arad_pp.$(libext)
+BCM_LIB_ARAD += libsoc_dpp_drc.$(libext)
+
+endif
+
+#ifdef BCM_88675_A0
+BCM_LIB_JERICHO = libsoc_dpp_jer.$(libext) libsoc_dpp_jer_pp.$(libext)
+#endif
+
+ifdef BCM_88750_A0
+BCM_LIB_88750 = libsoc_dfe.$(libext)
+BCM_LIB_88750 += libsoc_dfe_cmn.$(libext)
+BCM_LIB_88750 += libsoc_dfe_fe1600.$(libext)
+endif
+
+ifdef BCM_88950_A0
+BCM_LIB_88950 = libsoc_dfe.$(libext)
+BCM_LIB_88950 += libsoc_dfe_cmn.$(libext)
+BCM_LIB_88950 += libsoc_dfe_fe1600.$(libext)
+BCM_LIB_88950 += libsoc_dfe_fe3200.$(libext)
+endif
+
+ifdef BUILD_MACSEC
+ifndef MACSEC_BLDDIR
+ifdef BLDCONFIG
+MACSEC_BLDDIR = ${SDK}/${SDKBUILD}/macsec/${BLDCONFIG}
+else
+MACSEC_BLDDIR = $(MACSEC_HOME)/$(SDKBUILD)
+endif
+endif
+
+BCM_CMN_MACSEC = ${MACSEC_BLDDIR}/${targetbase}/${targetplat}/${platform}/libblmi.$(libext) \
+                 ${MACSEC_BLDDIR}/${targetbase}/${targetplat}/${platform}/libphy84756.$(libext) \
+                 ${MACSEC_BLDDIR}/${targetbase}/${targetplat}/${platform}/libdummyphy.$(libext) \
+                 ${MACSEC_BLDDIR}/${targetbase}/${targetplat}/${platform}/libmac.$(libext)
+
+MACSEC_LIBUTIL ?= libutil
+BCM_LIB_MACSEC = ${MACSEC_BLDDIR}/${targetbase}/${targetplat}/${platform}/$(MACSEC_LIBUTIL).$(libext)
+ifdef FEATURE_MACSEC
+BCM_LIB_MACSEC += ${MACSEC_BLDDIR}/${targetbase}/${targetplat}/${platform}/libbmacsec.$(libext)
+BCM_LIB_MACSEC += ${MACSEC_BLDDIR}/${targetbase}/${targetplat}/${platform}/libcli.$(libext)
+BCM_LIB_MACSEC += ${MACSEC_BLDDIR}/${targetbase}/${targetplat}/${platform}/libphy543xx.$(libext)
+BCM_LIB_MACSEC += ${MACSEC_BLDDIR}/${targetbase}/${targetplat}/${platform}/libphy8729.$(libext) 
+BCM_LIB_MACSEC += ${MACSEC_BLDDIR}/${targetbase}/${targetplat}/${platform}/libphy84334.$(libext) 
+BCM_LIB_MACSEC += ${MACSEC_BLDDIR}/${targetbase}/${targetplat}/${platform}/libphy84749.$(libext)
+endif
+
+DIAG_LIB_MACSEC  = ${BCM_LIB_MACSEC}
+
+BCM_LIB_MACSEC  += ${BCM_CMN_MACSEC}
+CORE_LIB_MACSEC  = ${BCM_LIB_MACSEC}
+endif
+
+ifdef PHYMOD_EPIL_LIB_PATH 
+BCM_LIB_PHYMOD_EPIL = $(PHYMOD_EPIL_LIB_PATH)/build/${targetbase}/${targetplat}/${platform}/libphymodepil.a
+BCM_LIB_PHYMOD_EPIL += $(addprefix ${LIBDIR}/, libepil.a) 
+endif
+
+
+ifdef BUILD_PHYMOD
+BCM_LIB_PHYMOD = libphymod.$(libext)
+BCM_LIB_PHYMOD_BLD=$(addprefix ${LIBDIR}/,${BCM_LIB_PHYMOD})
+endif
+
+ifeq (1,$(PORTMOD_SUPPORT))
+PORTMOD_LIBS = \
+    libsoc_portmod_pms.$(libext) \
+    libsoc_portmod.$(libext)
+endif
+
+ifdef ROBO_CHIPS
+ROBO_DRV_LIBS = \
+    ${BCM_LIB_PTP_COMMON} \
+    libsoccommon.$(libext) ${BCM_LIB_ROBO_DRV} libsocrobo_mcm.$(libext) \
+    ${BCM_LIB_ROBO_DRV_COMMON} ${BCM_LIB_ROBO_DRV_HARRIER}\
+    ${BCM_LIB_ROBO_DRV_GEX} ${BCM_LIB_ROBO_DRV_TBX} ${BCM_LIB_ROBO_DRV_VULCAN} \
+    ${BCM_LIB_ROBO_DRV_BLACKBIRD} ${BCM_LIB_ROBO_DRV_THUNDERBOLT} \
+    ${BCM_LIB_ROBO_DRV_LOTUS} ${BCM_LIB_ROBO_DRV_STARFIGHTER} ${BCM_LIB_ROBO_DRV_STARFIGHTER3} \
+    ${BCM_LIB_ROBO_DRV_BLACKBIRD2} ${BCM_LIB_ROBO_DRV_VOYAGER} \
+    $(BCM_LIB_PHYMOD) \
+    ${BCM_LIB_ROBO_DRV_POLAR} ${BCM_LIB_ROBO_DRV_NORTHSTAR} ${BCM_LIB_ROBO_DRV_DINO8} \
+    ${BCM_LIB_ROBO_DRV_NORTHSTARPLUS} ${BCM_LIB_ROBO_DRV_DINO16} ${BCM_LIB_ROBO_DRV} \
+    libsoc_phy.$(libext) libsoccommon.$(libext)
+ifdef FEATURE_FCMAP
+ROBO_DRV_LIBS += libsoc_fcmap.$(libext)
+endif
+ROBO_DRV_LIBS += libsoc_koi.$(libext)
+ROBO_DRV_LIBS += libsoc_orca.$(libext)    
+endif
+
+ifdef ESW_CHIPS
+ESW_DRV_LIBS = \
+    ${BCM_LIB_PTP_COMMON} \
+    ${BCM_LIB_PTP_ESW} \
+    ${BCM_LIB_FIREBOLT} ${BCM_LIB_RAPTOR} \
+    ${BCM_LIB_TITAN} ${BCM_LIB_TRIDENT} \
+    ${BCM_LIB_TITAN2} ${BCM_LIB_TRIDENT2} \
+    ${BCM_LIB_HUMV} ${BCM_LIB_BRADLEY} \
+    ${BCM_LIB_HERC} ${BCM_LIB_RAVEN} \
+    ${BCM_LIB_SCORPION} ${BCM_LIB_CONQUEROR} ${BCM_LIB_TRIUMPH} \
+    ${BCM_LIB_TRX} ${BCM_LIB_TRIUMPH2} ${BCM_LIB_ENDURO} \
+    ${BCM_LIB_HURRICANE} ${BCM_LIB_KATANA} ${BCM_LIB_FLEXCTR} \
+    ${BCM_LIB_TRIUMPH3} $(BCM_LIB_KATANA2) \
+    ${BCM_LIB_HURRICANE2} ${BCM_LIB_GREYHOUND} \
+    $(BCM_LIB_TOMAHAWK) ${BCM_LIB_HURRICANE3} ${BCM_LIB_GREYHOUND2} \
+	${BCM_LIB_FLOWCNT}\
+    $(BCM_LIB_SABER2) \
+    $(BCM_LIB_METROLITE) \
+    ${BCM_LIB_TITAN2PLUS}  ${BCM_LIB_TRIDENT2PLUS} \
+    $(BCM_LIB_TOMAHAWK2) \
+    ${BCM_LIB_APACHE} \
+    libbcm_esw.$(libext) $(BCM_LIB_SHADOW)\
+    libsoc_esw.$(libext) libsoc.$(libext) \
+    libsoc_phy.$(libext) libsoc_wcmod.$(libext) libsoc_tscmod.$(libext) \
+    libsoc_phy8806x.$(libext) \
+    libsoc_mcm.$(libext) ${BCM_LIB_REGEX} \
+    ${PORTMOD_LIBS} \
+    $(BCM_LIB_PHYMOD) \
+    ${SOC_LIB_TRIUMPH3} ${SOC_LIB_TRIDENT2} ${SOC_LIB_TOMAHAWK} ${SOC_LIB_TRIDENT2P} \
+    ${SOC_LIB_TDM} ${SOC_LIB_ALPM} ${SOC_LIB_TDM_CORE} ${SOC_LIB_TDM_TRIDENT2P} ${SOC_LIB_TDM_TOMAHAWK} ${SOC_LIB_TDM_APACHE} \
+    ${SOC_LIB_APACHE} ${SOC_LIB_TOMAHAWK2} ${SOC_LIB_TDM_TOMAHAWK2}\
+    ${SOC_LIB_FLEXPORT} ${SOC_LIB_TOMAHAWK2_FLEXPORT}\
+    ${SOC_LIB_SABER2} \
+    ${SOC_LIB_METROLITE} \
+    ${SOC_LIB_KATANA2} ${SOC_LIB_GREYHOUND} ${SOC_LIB_HURRICANE3} \
+    ${SOC_LIB_GREYHOUND2} \
+    ${BCM_LIB_XGS4} ${BCM_LIB_XGS5}
+
+ifdef FEATURE_FCMAP
+ESW_DRV_LIBS += libsoc_fcmap.$(libext)
+endif
+ESW_DRV_LIBS += libsoc_koi.$(libext)
+ESW_DRV_LIBS += libsoc_orca.$(libext)
+
+#ifneq (,$(findstring -DINCLUDE_CES,$(CFGFLAGS)))
+#ifdef INCLUDE_CES
+#ESW_DRV_LIBS += \
+#        libsoc_nemo.$(libext) libsoc_clsbuilder.$(libext) libsoc_sal.$(libext)
+#endif
+endif
+
+ifdef SBX_CHIPS
+SBX_DRV_LIBS = \
+	libsoc_sbx.$(libext) \
+	libsbxcommon.$(libext) \
+    $(BCM_LIB_CALADAN3) \
+	$(BCM_LIB_QE2000) \
+	$(BCM_LIB_BME3200) \
+	$(BCM_LIB_BM9600) \
+	$(BCM_LIB_SIRIUS) \
+	libbcm_common.$(libext) \
+	libsoc.$(libext) \
+	$(BCM_LIB_PHYMOD) \
+	libsoc_phy.$(libext) \
+	libsbxcommon.$(libext) \
+	libsoc_sbx.$(libext) \
+	libsoc_wcmod.$(libext)
+
+ifdef FEATURE_FCMAP
+SBX_DRV_LIBS += libsoc_fcmap.$(libext)
+endif
+SBX_DRV_LIBS += libsoc_koi.$(libext)
+SBX_DRV_LIBS += libsoc_orca.$(libext)
+
+ifdef BCM_88230_A0
+SBX_DRV_LIBS += \
+	libsoc_mcm.$(libext)
+else
+ifdef BCM_88230_B0
+SBX_DRV_LIBS += \
+	libsoc_mcm.$(libext)
+else
+ifdef BCM_88230_C0
+SBX_DRV_LIBS += \
+	libsoc_mcm.$(libext)
+else 
+ifdef BCM_88030_A0
+SBX_DRV_LIBS += \
+	libsoc_mcm.$(libext)
+endif
+endif
+endif
+endif
+
+endif
+
+ifdef BCM_EA_SUPPORT     
+EA_DRV_LIBS += \
+	libbcm_ea.$(libext) 
+	
+ifdef BCM_TK371X_SUPPORT
+EA_TK371X_DRV_LIBS += \
+    libbcm_eatk371x.$(libext) \
+    libbcm_eacommon.$(libext) \
+    libsoceatk371x.$(libext) \
+    libsoceatk371x_utils.$(libext)
+endif                     
+
+ifdef BCM_PIONEER_SUPPORT 
+EA_PIONEER_DRV_LIBS += \
+    libbcm_eapioneer.$(libext) \
+    libsoceacommon.$(libext) \
+    libsoceapioneer.$(libext)
+endif 
+  
+EA_DRV_LIBS += \
+	${EA_TK371X_DRV_LIBS} \
+	${EA_PIONEER_DRV_LIBS} \
+	libsoc_phy.$(libext) 
+endif
+
+ifdef SAND_CHIPS
+# { Put here all libraries common for all Dune families
+SAND_DRV_LIBS = \
+    $(BCM_LIB_PHYMOD)     \
+    libsoc_phy.$(libext)  \
+    libsoc_mcm.$(libext)   \
+    libsoc_dcmn.$(libext)  \
+    libsoc_koi.$(libext)  \
+    libsoc_orca.$(libext)  \
+    libsoc_wcmod.$(libext) \
+    libshared_utilex.$(libext)    \
+    libshared_shrextend.$(libext) \
+    libshared_dbx.$(libext)
+ifndef LINUX_MAKE_KERNEL
+SAND_DRV_LIBS += \
+    libxml.$(libext)
+endif
+# }
+endif
+
+ifdef SAND_CHIPS
+# {
+DNXC_DRV_LIBS = \
+        libsoc_dnxc.$(libext)  \
+        libsoc_dnxclegacy.$(libext)
+# }
+endif
+
+
+ifdef DPP_CHIPS
+# {
+DPP_DRV_LIBS = \
+    $(SAND_DRV_LIBS)      \
+    ${BCM_LIB_PTP_COMMON} \
+    ${BCM_LIB_PTP_DPP}    \
+    libshared_swstate.$(libext)   \
+    libshared_swstate_access.$(libext) \
+    libshared_swstate_layout.$(libext) \
+    libshared_swstate_diagnostic.$(libext) \
+    libsoc_dpp.$(libext)   \
+    libsoc_hwstate.$(libext) \
+    libbcm_dpp_ppd.$(libext) \
+    libbcm_dpp_ppc.$(libext) \
+    libbcm_dpp_sand_fm.$(libext)    \
+    libbcm_dpp_sand_mgmt.$(libext)  \
+    libbcm_dpp_sand_utils.$(libext) \
+    libbcm_dpp_tmc.$(libext)\
+    libappl_dpp_FecAllocaiton.$(libext)\
+	libappl_dpp_FecPerformance.$(libext)
+# }
+endif
+
+ifdef DNX_CHIPS
+# {
+  DNX_DRV_LIBS =        \
+        $(DNXC_DRV_LIBS)
+ifndef DPP_CHIPS
+# {
+  DNX_DRV_LIBS += \
+        $(SAND_DRV_LIBS)      \
+        ${BCM_LIB_PTP_COMMON} \
+        ${PORTMOD_LIBS}      \
+        libshared_swstate.$(libext)   \
+        libshared_swstate_access.$(libext) \
+        libshared_swstate_layout.$(libext) \
+        libshared_swstate_diagnostic.$(libext)
+# }  
+endif
+# }  
+endif     
+
+
+ifdef BCM_88650_A0
+# {
+#
+# This compilation is specific for ARAD (DPP)
+#
+DPP_DRV_LIBS += \
+	$(BCM_LIB_ARAD) 
+ifneq (,$(findstring -DCMODEL_SERVER_MODE,$(CFGFLAGS)))
+# {
+#
+# Enter if this is compilation for CMODEL for ARAD:
+# Do NOT include the 'interrupt' library but do include 'rx_los' since
+# interrupt are not covered by CMODEL for now while 'rx_los' is required (in KBP?).
+# See src/appl/dcmn/Makefile
+#
+DPP_DRV_LIBS += libappl_dcmn_rx_los.$(libext)
+#
+# }  
+else
+# {
+#
+# Enter if this is NOT compilation for CMODEL. Do include the 'interrupt' libraries
+#
+ifeq (INTR,$(findstring INTR,$(FEATURE_LIST)))
+# {
+DPP_DRV_LIBS += \
+	libappl_dcmn_rx_los.$(libext) libappl_dpp_interrupts.$(libext) libappl_dcmn_interrupts.$(libext)
+# }  
+endif
+# }
+endif     
+# }
+endif     
+
+ifdef BCM_88675_A0
+DPP_DRV_LIBS += \
+    $(PORTMOD_LIBS) \
+	$(BCM_LIB_JERICHO) 
+ifeq (INTR,$(findstring INTR,$(FEATURE_LIST)))
+DPP_DRV_LIBS += \
+	libappl_dcmn_rx_los.$(libext) libappl_dcmn_interrupts.$(libext)
+endif
+endif
+
+ifdef BCM_88470_A0
+DPP_DRV_LIBS += libsoc_dpp_qax.$(libext) libsoc_dpp_qax_pp.$(libext)
+endif
+
+ifdef BCM_88680_A0
+DPP_DRV_LIBS += libsoc_dpp_jerp.$(libext) libsoc_dpp_jerp_pp.$(libext)
+endif
+
+ifdef DNX_CHIPS
+#
+#  05MAY16
+#    libsocdnx should also be included here after drv.c issue is fixed
+#
+DNX_DRV_LIBS += libsoc_dnxdbal.$(libext)
+DNX_DRV_LIBS += libsoc_dnxmdb.$(libext)
+DNX_DRV_LIBS += libsoc_dnxpemladrv.$(libext)
+DNX_DRV_LIBS += libsoc_dnxdrv.$(libext)
+DNX_DRV_LIBS += libsoc_swstate.$(libext)
+DNX_DRV_LIBS += libsoc_dnxcmodel.$(libext)
+DNX_DRV_LIBS += libsoc_dnxdnxdata.$(libext)
+DNX_DRV_LIBS += libsoc_dnxdnxdatajer2a0.$(libext)
+DNX_DRV_LIBS += libsoc_dnxlegacy.$(libext)
+DNX_DRV_LIBS += libsoc_dnxlegacysandmanagement.$(libext)
+DNX_DRV_LIBS += libsoc_dnxlegacysandutils.$(libext)
+DNX_DRV_LIBS += libsoc_dnxlegacysandsandfm.$(libext)
+DNX_DRV_LIBS += libsoc_dnxlegacyarad.$(libext)
+DNX_DRV_LIBS += libsoc_dnxlegacyjer.$(libext)
+DNX_DRV_LIBS += libsoc_dnxlegacyqax.$(libext)
+DNX_DRV_LIBS += libsoc_dnxlegacytmc.$(libext)
+DNX_DRV_LIBS += libsoc_dnxlegacyjer2.$(libext)
+endif
+ifdef BCM_88690_A0
+#
+#  Temporary, until the drv.c issue is fixed
+#
+DNX_DRV_LIBS += libsoc_dnx.$(libext)
+endif
+
+ifdef BCM_88270_A0
+DPP_DRV_LIBS += libsoc_dpp_qux.$(libext)
+endif
+
+ifdef BCM_8206_A0
+#DPP_DRV_LIBS += libsoc_dpp_flair.$(libext) libsoc_dpp_flair_pp.$(libext)
+endif
+
+ifdef DPP_CHIPS
+ifeq (DUNE_UI,$(findstring DUNE_UI,$(FEATURE_LIST)))
+DPP_DRV_LIBS += \
+	libappl_dpp_ui.$(libext) \
+	libappl_dpp_ui_ppd.$(libext) 
+endif
+endif
+
+
+ifdef DFE_CHIPS
+DFE_DRV_LIBS = \
+    $(SAND_DRV_LIBS)      \
+	libsoc_hwstate.$(libext) \
+    libsoc_dfe.$(libext)
+endif
+
+ifdef DNXF_CHIPS
+# {
+DNXF_DRV_LIBS =                     \
+        $(SAND_DRV_LIBS)                \
+        $(DNXC_DRV_LIBS)                \
+        libsoc_dnxf.$(libext)           \
+        libsoc_dnxfcmn.$(libext)        \
+        libsoc_dnxframon.$(libext)      \
+        libsoc_dnxframon_fe1600.$(libext)
+
+ifndef DFE_CHIPS
+# {
+DNXF_DRV_LIBS +=                        \
+        libsoc_hwstate.$(libext)
+# }
+endif
+
+# }  
+endif   
+
+ifdef BCM_88750_A0
+DFE_DRV_LIBS += \
+	$(BCM_LIB_88750) 
+ifeq (INTR,$(findstring INTR,$(FEATURE_LIST)))
+DFE_DRV_LIBS += \
+    libappl_dcmn_rx_los.$(libext) libappl_dfe_interrupts.$(libext) libappl_dcmn_interrupts.$(libext)
+endif
+endif
+
+ifdef BCM_88950_A0
+DFE_DRV_LIBS += \
+    $(PORTMOD_LIBS) \
+	$(BCM_LIB_88950) 
+ifeq (INTR,$(findstring INTR,$(FEATURE_LIST)))
+DFE_DRV_LIBS += \
+    libappl_dcmn_rx_los.$(libext) libappl_dfe_interrupts.$(libext) libappl_dcmn_interrupts.$(libext)
+endif
+endif
+
+ifeq (KBP,$(findstring KBP,$(FEATURE_LIST)))
+# {
+ifneq (,$(findstring KBP_11K, $(KBP_DEVICE)))
+# {
+KBP_LIB_PATH=${SDK}/src/soc/kbp/nlm2/lib/${targetbase}-${targetplat}/${platform}
+KBP_DRV_LIBS += \
+    libsoc_kbp_nlm2_dm.$(libext) \
+    libsoc_kbp_nlm2_gtm.$(libext) \
+    libsoc_kbp_nlm2_rngm.$(libext) \
+    libsoc_kbp_nlm2_xpt.$(libext) 
+KBP_REFAPP_LIBS += \
+    libsoc_kbp_nlm2_gtm_refapp.$(libext) \
+    libsoc_kbp_nlm2_diag.$(libext)       \
+    libsoc_kbp_nlm2_dm_refapp.$(libext)       \
+    libsoc_kbp_nlm2_diag.$(libext)       \
+    libsoc_kbp_nlm2_rngm_refapp.$(libext)  \
+    libsoc_kbp_nlm2_rngmgr_refapp2.$(libext) \
+    libsoc_kbp_nlm2_rngmgr_refapp3.$(libext) \
+    libsoc_kbp_nlm2_gtmftm_refapp.$(libext) \
+    libsoc_kbp_nlm2_ftm_refapp.$(libext)       
+KBP_LIBS += \
+    ${KBP_LIB_PATH}/libsoc_kbp_nlm2_ftm.$(libext) \
+    ${KBP_LIB_PATH}/libsoc_kbp_nlm2_ftm_cmn.$(libext) \
+    ${KBP_LIB_PATH}/libsoc_kbp_nlm2_ftm_trie.$(libext) \
+    ${KBP_LIB_PATH}/libsoc_kbp_nlm2_model.$(libext)
+# }
+endif
+
+ifneq (,$(findstring KBP_12K, $(KBP_DEVICE)))
+# {
+KBP_LIB_PATH=${SDK}/src/soc/kbp/nlm3/lib/${targetbase}-${targetplat}/${platform}
+KBP_DRV_LIBS += \
+    libsoc_kbp_nlm3_blackholexpt.$(libext) \
+    libsoc_kbp_nlm3_dm.$(libext) \
+    libsoc_kbp_nlm3_gtm.$(libext) \
+    libsoc_kbp_nlm3_rm.$(libext) \
+    libsoc_kbp_nlm3_xpt.$(libext)
+# }
+endif
+
+ifneq (KBP_ALG,$(findstring KBP_ALG, $(KBP_DEVICE)))
+# {
+KBP_DRV_LIBS += \
+    libsoc_kbp_cmn.$(libext) 
+
+KBP_DRV_LIBS += ${KBP_REFAPP_LIBS}
+# }
+else
+# {
+ifeq (1,$(WRX_64BIT))
+# {
+    KBP_LIB_PATH=${SDK}/src/soc/kbp/alg_kbp/lib/${targetbase}-${targetplat}-64/${platform}
+# }
+else
+# {
+    KBP_LIB_PATH=${SDK}/src/soc/kbp/alg_kbp/lib/${targetbase}-${targetplat}/${platform}
+# }
+endif
+KBP_LIBS += \
+    ${KBP_LIB_PATH}/libsoc_alg_kbp.$(libext)
+ifneq (,$(findstring -DUSE_MODEL,$(CFGFLAGS)))
+# {
+KBP_LIBS += \
+    ${KBP_LIB_PATH}/libkbpmodel.$(libext)
+# }
+endif
+KBP_DRV_LIBS += \
+    libsoc_alg_kbp_portable.$(libext)
+# }
+endif
+# }
+endif
+
+ifneq (,$(findstring -DBCM_DNX_SUPPORT,$(CFGFLAGS)))
+BCM_LIB +=  ${BCMDNX_LIB}
+endif  
+
+ifneq (,$(findstring -DBCM_DNXF_SUPPORT,$(CFGFLAGS)))
+BCM_LIB +=  ${BCMDNXF_LIB}
+endif  
+
+DRV_LIBS = \
+	${COND_LIB_BCMX} ${COND_LIB_BOARD} ${BCM_LIB} \
+	libsoccommon.$(libext)  \
+	${ESW_DRV_LIBS} ${ROBO_DRV_LIBS} ${SBX_DRV_LIBS} ${EA_DRV_LIBS}\
+	${DPP_DRV_LIBS}         \
+	${DNX_DRV_LIBS}         \
+	${DFE_DRV_LIBS}         \
+	${DNXF_DRV_LIBS}        \
+	libbcm_common.$(libext) \
+	libsoc_shared.$(libext) \
+	libshared.$(libext)     \
+	${COND_LIB_SOC_I2C} libsal_core.$(libext) libsal_core_plat.$(libext) \
+	${COND_LIB_CUSTOMER}  ${COND_LIB_EXAMPLES}  ${COND_LIB_CES} \
+        ${KBP_DRV_LIBS}
+
+
+
+DRV_LIBS_BLD=$(addprefix ${LIBDIR}/,${DRV_LIBS})
+
+
+PORTMOD_STAND_ALONE_LIBS += \
+    libdiag.$(libext) \
+    libsoccommon.$(libext) \
+    libsoc_mcm.$(libext) \
+    libsoc.$(libext) \
+    libsoc_phy.$(libext) \
+    libsoc_shared.$(libext) \
+    libshared.$(libext) \
+    libsoc_portmod_pms.$(libext) \
+    libsoc_portmod.$(libext) \
+    $(COND_LIB_SAL_APPL) \
+    $(COND_LIB_SAL_APPL_PLATFORM) \
+    ${COND_LIB_EDITLINE} \
+    $(BCM_LIB_PHYMOD) \
+    libsal_core.$(libext) \
+    libsal_core_plat.$(libext) \
+    lib_portmod_appl.$(libext) \
+    libsoc_orca.$(libext)  \
+    libsoc_koi.$(libext)
+
+#EXTERNAL_LIBS = ${BCM_LIB_MACSEC}
+EXTERNAL_LIBS = ${BCM_LIB_MACSEC} ${KBP_LIBS} ${BCM_LIB_PHYMOD_EPIL}
+DIAG_EXT_LIBS = ${DIAG_LIB_MACSEC}
+CORE_EXT_LIBS = ${CORE_LIB_MACSEC}
+
+
+DRV_LIBS_BLD += ${EXTERNAL_LIBS}
+
+#
+# Diagnostic Libraries
+#
+#   These are the rest of the diagnostics including the shell and
+#   all the tests, Tcl, BDE, and Appl SAL.  Currently only used for Unix.
+#
+
+ifdef ESW_CHIPS
+ESW_DIAG_LIBS = \
+        libplibde.$(libext) \
+        libdiag_esw.$(libext) \
+        libtsl3uc.$(libext) \
+        libtsl3mc.$(libext) \
+        libtsmpls.$(libext) \
+        libtsmmu.$(libext) \
+        libtsoam.$(libext) \
+        libtsniv.$(libext) \
+        libtsriot.$(libext) \
+        libtsvlan.$(libext) \
+        libtsvxlan.$(libext) \
+        libtsbasic.$(libext) \
+        libtsifp.$(libext) \
+        libtsvfp.$(libext) \
+        libtsefp.$(libext) \
+        libtscos.$(libext) \
+        libtsloadbalance.$(libext) \
+        libtsdgm.$(libext) \
+        libtstcb.$(libext) \
+        libtspstat.$(libext) \
+        libtechsupport.$(libext)
+endif
+
+ifdef ROBO_CHIPS
+ROBO_DIAG_LIBS += \
+	libdiagrobo.$(libext)
+endif
+
+ifdef EA_CHIPS
+EA_DIAG_LIBS += \
+	libdiag_ea.$(libext)
+endif
+
+ifdef SBX_CHIPS
+SBX_DIAG_LIBS = \
+	libdiag_sbx.$(libext)
+endif
+
+ifdef BUILD_PHYMOD
+COND_LIB_PHYMOD_DIAG = libdiag_phymod.$(libext)
+COND_LIB_PHYMOD_DIAG_BLD=${LIBDIR}/${COND_LIB_PHYMOD_DIAG}
+endif
+
+ifdef BUILD_PORTMOD
+COND_LIB_PORTMOD_DIAG = libdiag_portmod.$(libext)
+COND_LIB_PORTMOD_DIAG_BLD=${LIBDIR}/${COND_LIB_PORTMOD_DIAG}
+endif
+
+ifdef SAND_CHIPS
+SAND_DIAG_LIBS = libdiag_sand.$(libext)
+endif
+
+ifdef DPP_CHIPS
+DPP_DIAG_LIBS = \
+	libdiag_dpp.$(libext)
+endif
+
+ifdef DFE_CHIPS
+DFE_DIAG_LIBS = libdiag_dfe.$(libext) libdiag_dcmn.$(libext)
+else
+ifdef DPP_CHIPS
+DPP_DIAG_LIBS += libdiag_dcmn.$(libext)
+endif
+endif
+
+ifdef DNX_CHIPS
+DNX_DIAG_LIBS = libdiag_dnx.$(libext)
+DNX_DIAG_LIBS += libdiag_dnxinit.$(libext)
+DNX_DIAG_LIBS += libdiag_dnxdbal.$(libext)
+DNX_DIAG_LIBS += libdiag_dnxmdb.$(libext)
+DNX_DIAG_LIBS += libdiag_dnxtx.$(libext)
+endif
+
+ifdef DNXF_CHIPS
+DNXF_DIAG_LIBS = libdiag_dnxf.$(libext)
+DNXF_DIAG_LIBS += libdiag_dnxdbal.$(libext)
+DNXF_DIAG_LIBS += libdiag_dnxmdb.$(libext)
+DNXF_DIAG_LIBS += libdiag_dnxtx.$(libext)
+endif
+
+
+ifndef NO_SAL_APPL
+COND_LIB_SAL_APPL=libsal_appl.$(libext)
+COND_LIB_SAL_APPL_PLATFORM=libsal_appl_plat.$(libext)
+endif
+
+# SAND_DIAG_LIBS collects all Dune related diag shell libraries
+ifdef SAND_CHIPS
+SAND_DIAG_LIBS += ${DPP_DIAG_LIBS} ${DFE_DIAG_LIBS} ${DNX_DIAG_LIBS} ${DNXF_DIAG_LIBS}
+else
+SAND_DIAG_LIBS = ${DPP_DIAG_LIBS} ${DFE_DIAG_LIBS} ${DNX_DIAG_LIBS} ${DNXF_DIAG_LIBS}
+endif
+#
+# Currently, DNX-only setup is not supported by DIAG.
+# This is TEMPORARY. When DIAG is modified to incorporate DNX-only,
+# the logic below should be removed.
+#
+ifdef DNX_DNXF_CHIPS
+# {
+ifndef DPP_DFE_CHIPS
+# {
+SAND_DIAG_LIBS = 
+# }
+endif
+# }
+endif
+
+DIAG_LIBS = \
+	${COND_LIB_EDITLINE} \
+	libdiag.$(libext) \
+	${ROBO_DIAG_LIBS} \
+	${EA_DIAG_LIBS} \
+	${ESW_DIAG_LIBS} \
+	${SBX_DIAG_LIBS} \
+	${SAND_DIAG_LIBS} \
+	${COND_LIB_PHYMOD_DIAG} \
+	${COND_LIB_PORTMOD_DIAG} \
+	${COND_LIB_BCMX_DIAG} \
+	${COND_LIB_TEST} \
+	${COND_LIB_TCL} ${COND_LIB_EAV_APPL} \
+        $(COND_LIB_SAL_APPL) \
+        $(COND_LIB_SAL_APPL_PLATFORM) \
+	libplibde.$(libext)
+
+DIAG_LIBS_BLD=$(addprefix ${LIBDIR}/,${DIAG_LIBS})
+
+#
+# Conditional Libraries
+#
+#   These libraries are based on which build flags are selected
+#   in Makefile.<target> or Make.local if personalized.
+#
+
+ifneq (,$(findstring -DINCLUDE_I2C,$(CFGFLAGS)))
+ifneq (,$(findstring -DBCM_ESW_SUPPORT,$(CFGFLAGS)))
+COND_LIB_SOC_I2C += libsoc_i2c.$(libext)
+else
+ifneq (,$(findstring -DBCM_SBX_SUPPORT,$(CFGFLAGS)))
+COND_LIB_SOC_I2C += libsoc_i2c.$(libext)
+else
+ifneq (,$(findstring -DBCM_PETRA_SUPPORT,$(CFGFLAGS)))
+COND_LIB_SOC_I2C += libsoc_i2c.$(libext)
+endif
+ifneq (,$(findstring -DBCM_DFE_SUPPORT,$(CFGFLAGS)))
+COND_LIB_SOC_I2C += libsoc_i2c.$(libext)
+endif
+ifneq (,$(findstring -DBCM_DNX_SUPPORT,$(CFGFLAGS)))
+COND_LIB_SOC_I2C += libsoc_i2c.$(libext)
+endif
+ifneq (,$(findstring -DBCM_DNXF_SUPPORT,$(CFGFLAGS)))
+COND_LIB_SOC_I2C += libsoc_i2c.$(libext)
+endif
+endif
+endif
+COND_LIB_SOC_I2C_BLD=${LIBDIR}/${COND_LIB_SOC_I2C}
+endif
+
+ifneq (,$(findstring -DINCLUDE_DRIVERS,$(CFGFLAGS)))
+COND_LIB_DRIVERS=libdrivers.$(libext)
+COND_LIB_DRIVERS_BLD=${LIBDIR}/${COND_LIB_DRIVERS}
+endif
+
+ifneq (,$(findstring -DINCLUDE_BCMX,$(CFGFLAGS)))
+COND_LIB_BCMX=libbcmx.$(libext)
+COND_LIB_BCMX_BLD=$(addprefix ${LIBDIR}/,${COND_LIB_BCMX})
+endif
+
+ifneq (,$(findstring -DINCLUDE_BCMX_DIAG,$(CFGFLAGS)))
+COND_LIB_BCMX_DIAG=libdiag_bcmx.$(libext)
+COND_LIB_BCMX_DIAG_BLD=$(addprefix ${LIBDIR}/,${COND_LIB_BCMX_DIAG})
+endif
+
+ifneq (,$(findstring -DINCLUDE_CUSTOMER,$(CFGFLAGS)))
+COND_LIB_CUSTOMER=libcustomer.$(libext)
+endif
+
+ifneq (,$(findstring -DINCLUDE_EXAMPLES,$(CFGFLAGS)))
+COND_LIB_EXAMPLES=libexamples.$(libext)
+endif
+
+ifneq (,$(findstring -DINCLUDE_TCL,$(CFGFLAGS)))
+COND_LIB_TCL=libtcl_unix.$(libext) libtcl_generic.$(libext) libtcl_broadcom.$(libext) \
+    libtcl_unix.$(libext) libtcl_generic.$(libext) libtcl_mpexpr.$(libext)
+COND_LIB_TCL_BLD=$(addprefix ${LIBDIR}/,${COND_LIB_TCL})
+COND_INC_TCL=-I${SDK}/src/appl/tcl8.3.3
+endif
+
+# EAV APPL in diag is intended to be built
+#ifneq (,$(findstring -DINCLUDE_EAV_APPL,$(CFGFLAGS)))
+#COND_LIB_EAV_APPL=libdiageav.$(libext)
+#COND_LIB_EAV_APPL_BLD=${LIBDIR}/${COND_LIB_EAV_APPL}
+#endif
+
+ifneq (,$(findstring -DINCLUDE_APS_DIAG_LIBS,$(CFGFLAGS)))
+COND_LIB_DIAG_APS=libdiag_aps.$(libext)
+COND_LIB_DIAG_APS_BLD=${LIBDIR}/${COND_LIB_DIAG_APS}
+endif
+
+ifneq (,$(findstring -DINCLUDE_EDITLINE,$(CFGFLAGS)))
+COND_LIB_EDITLINE=libsal_appl_editline.$(libext)
+COND_LIB_EDITLINE_BLD=${LIBDIR}/${COND_LIB_EDITLINE}
+endif
+
+ifneq (,$(findstring -DINCLUDE_OOB_RCPU,$(CFGFLAGS)))
+COND_LIB_ETH_DRV=libeth.$(libext)
+COND_LIB_ETH_DRV_BLD=${LIBDIR}/libeth.$(libext)
+endif
+
+ifneq (,$(findstring -DINCLUDE_BCM570X,$(CFGFLAGS)))
+COND_LIB_BCM570X=libbcm570x.$(libext)
+COND_LIB_BCM570X_BLD=${BLDDIR}/libbcm570x.$(libext)
+COND_INC_BCM570X=-I${SDK}/systems/drv/bcm570x
+endif
+
+ifneq (,$(findstring -DINCLUDE_TEST,$(CFGFLAGS)))
+COND_LIB_TEST=libtest.$(libext)
+COND_LIB_TEST_BLD=${LIBDIR}/${COND_LIB_TEST}
+endif
+
+# Board support
+
+ifneq (,$(findstring -DINCLUDE_BOARD,$(CFGFLAGS)))
+COND_LIB_BOARD=libboard_mgr.$(libext)
+COND_LIB_BOARD+=libboard_dvr.$(libext)
+COND_LIB_BOARD+=libboard_stk.$(libext)
+COND_LIB_BOARD+=libboard_spt.$(libext)
+endif
+
+#
+# Telekinesis suite applications for CPU to CPU communication and discovery
+#     CPUDB:         Simple CPU data base manager
+#     CPUTRANS:      CPU to CPU communication mechanisms
+#     DISCOVER:      Simple discovery; will also include CPUTRANS
+#     STKTASK:       Stack manager application
+#
+
+# CPU data base manager
+ifneq (,$(findstring -DINCLUDE_LIB_CPUDB,$(CFGFLAGS)))
+COND_LIB_CPUDB = libcpudb.$(libext)
+COND_LIB_CPUDB_BLD=${LIBDIR}/${COND_LIB_CPUDB}
+endif
+
+# CPU transport protocols
+ifneq (,$(findstring -DINCLUDE_LIB_CPUTRANS,$(CFGFLAGS)))
+COND_LIB_CPUTRANS = libcputrans.$(libext)
+COND_LIB_CPUTRANS_BLD=${LIBDIR}/${COND_LIB_CPUTRANS}
+endif
+
+# Discovery algorithm; requires transport protocols.
+ifneq (,$(findstring -DINCLUDE_LIB_DISCOVER,$(CFGFLAGS)))
+COND_LIB_DISCOVER = libdiscover.$(libext)
+COND_LIB_DISCOVER_BLD=${LIBDIR}/${COND_LIB_DISCOVER}
+COND_LIB_CPUTRANS = libcputrans.$(libext)
+COND_LIB_CPUTRANS_BLD=${LIBDIR}/${COND_LIB_CPUTRANS}
+endif
+
+# Stack task manager
+ifneq (,$(findstring -DINCLUDE_LIB_STKTASK,$(CFGFLAGS)))
+COND_LIB_STKTASK = libstktask.$(libext)
+COND_LIB_STKTASK_BLD=${LIBDIR}/${COND_LIB_STKTASK}
+endif
+
+# AEDEV 
+ifneq (,$(findstring -DINCLUDE_LIB_AEDEV,$(CFGFLAGS)))
+COND_LIB_AEDEV = libaedev.$(libext) 
+COND_LIB_AEDEV_BLD = ${LIBDIR}/${COND_LIB_AEDEV}
+endif
+
+
+# CINT interpreter
+ifneq (,$(findstring -DINCLUDE_LIB_CINT,$(CFGFLAGS)))
+COND_LIB_CINT = libcint.$(libext) 
+COND_LIB_CINT_DIAG = libdiagcint.$(libext) 
+COND_LIB_CINT_BLD = ${LIBDIR}/${COND_LIB_CINT}
+COND_LIB_CINT_DIAG_BLD = ${LIBDIR}/${COND_LIB_CINT_DIAG}
+
+ifneq (,$(findstring -DINCLUDE_APIMODE,$(CFGFLAGS)))
+COND_LIB_API_DIAG = libdiagapi.$(libext) 
+COND_LIB_API_DIAG_BLD = ${LIBDIR}/${COND_LIB_API_DIAG}
+endif
+
+endif
+
+# C unit test framework
+ifneq (,$(findstring -DINCLUDE_LIB_C_UNIT,$(CFGFLAGS)))
+COND_LIB_C_UNIT = libc_unit.$(libext)
+COND_LIB_C_UNIT_BLD = ${LIBDIR}/${COND_LIB_C_UNIT}
+endif
+
+# Access control
+ifneq (,$(findstring -DINCLUDE_ACL,$(CFGFLAGS)))
+COND_LIB_ACL=libacl.$(libext)
+COND_LIB_ACL_BLD=${LIBDIR}/${COND_LIB_ACL}
+endif
+
+APPL_LIBS = ${COND_LIB_DISCOVER} ${COND_LIB_STKTASK} ${COND_LIB_ACL} \
+    ${COND_LIB_CINT_DIAG} ${COND_LIB_C_UNIT} ${COND_LIB_CINT} \
+    ${COND_LIB_AEDEV} ${COND_LIB_DIAG_APS}  ${COND_LIB_API_DIAG} \
+    ${COND_LIB_PIONEER}
+APPL_LIBS_BLD = ${COND_LIB_DISCOVER_BLD} ${COND_LIB_STKTASK_BLD} \
+    ${COND_LIB_ACL_BLD} ${COND_LIB_CINT_DIAG_BLD} ${COND_LIB_C_UNIT_BLD} \
+    ${COND_LIB_CINT_BLD} ${COND_LIB_AEDEV_BLD} ${COND_LIB_DIAG_APS_BLD} \
+    ${COND_LIB_API_DIAG_BLD} ${COND_LIB_PIONEER_BLD}
+
+# The CPU transport lives below the BCM RPC layer
+BCM_LIB += ${COND_LIB_CPUTRANS} ${COND_LIB_CPUDB}
+

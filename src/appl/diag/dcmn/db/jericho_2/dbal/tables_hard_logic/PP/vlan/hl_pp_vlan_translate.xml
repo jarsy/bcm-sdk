@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+  <AppDB Name="IVEC_MAPPING">
+    <OneLineDescription>Mapping table to an IVEC index</OneLineDescription>
+    <MaturityLevel>2</MaturityLevel>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="VLAN_EDIT_PROFILE" Size="6"/>                               
+        <Field Name="LLVP_INCOMING_TAG_STRUCTURE" Size="5"/>
+      </Key>
+      <Result>
+        <Field Name="VLAN_EDIT_COMMAND_INDEX" Size="7"/>
+      </Result>
+      <TableLabels>VLAN_TRANSLATION</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="VLAN_EDIT_COMMAND_INDEX">
+          <Access>
+            <Memory Name="IPPA_INGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <EntryOffset EncodeType="DIVIDE" Value="8"/>
+              <DataOffset EncodeType="MODULO_FIELD" Value="8"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+  <AppDB Name="EVEC_MAPPING">
+    <OneLineDescription>Mapping table to an EVEC index</OneLineDescription>
+    <MaturityLevel>2</MaturityLevel>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="VLAN_EDIT_PROFILE" Size="6"/>                               
+        <Field Name="LLVP_INCOMING_TAG_STRUCTURE" Size="5"/>
+      </Key>
+      <Result>
+        <Field Name="VLAN_EDIT_COMMAND_INDEX" Size="7"/>
+      </Result>
+      <TableLabels>VLAN_TRANSLATION</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="VLAN_EDIT_COMMAND_INDEX">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDITING_TABLEm">
+              <HwField Name="EGRESS_VLAN_EDIT_COMMANDf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+    <AppDB Name="IVEC">
+    <OneLineDescription>IVE Commands table in the ERPP and ETPP</OneLineDescription>
+    <MaturityLevel>2</MaturityLevel>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="VLAN_EDIT_COMMAND_INDEX" Size="7"/>
+      </Key>
+      <Result>
+        <Field Name="OUTER_TPID_INDEX" Size="3"/>
+        <Field Name="IVE_OUTER_VID_SRC" Size="3"/>
+        <Field Name="IVE_OUTER_PCP_DEI_SRC" Size="3"/>
+        <Field Name="INNER_TPID_INDEX" Size="3"/>
+        <Field Name="IVE_INNER_VID_SRC" Size="3"/>
+        <Field Name="IVE_INNER_PCP_DEI_SRC" Size="3"/>
+        <Field Name="TAGS_TO_REMOVE" Size="2"/>
+      </Result>
+      <TableLabels>VLAN_TRANSLATION</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="OUTER_TPID_INDEX">
+          <Access>
+            <Memory Name="ERPP_IVEC_TABLEm">
+              <HwField Name="OUTER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_OUTER_VID_SRC">
+          <Access>
+            <Memory Name="ERPP_IVEC_TABLEm">
+              <HwField Name="OUTER_VID_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_OUTER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ERPP_IVEC_TABLEm">
+              <HwField Name="OUTER_PCP_DEI_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="INNER_TPID_INDEX">
+          <Access>
+            <Memory Name="ERPP_IVEC_TABLEm">
+              <HwField Name="INNER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_INNER_VID_SRC">
+          <Access>
+            <Memory Name="ERPP_IVEC_TABLEm">
+              <HwField Name="INNER_VID_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_INNER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ERPP_IVEC_TABLEm">
+              <HwField Name="INNER_PCP_DEI_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="TAGS_TO_REMOVE">
+          <Access>
+            <Memory Name="ERPP_IVEC_TABLEm">
+              <HwField Name="TAGS_TO_REMOVEf"/>
+            </Memory>
+          </Access>
+        </Field>
+
+       <Field Name="OUTER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPA_IVEC_TABLEm">
+              <HwField Name="OUTER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_OUTER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPA_IVEC_TABLEm">
+              <HwField Name="OUTER_VID_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_OUTER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPA_IVEC_TABLEm">
+              <HwField Name="OUTER_PCP_DEI_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="INNER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPA_IVEC_TABLEm">
+              <HwField Name="INNER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_INNER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPA_IVEC_TABLEm">
+              <HwField Name="INNER_VID_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_INNER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPA_IVEC_TABLEm">
+              <HwField Name="INNER_PCP_DEI_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="TAGS_TO_REMOVE">
+          <Access>
+            <Memory Name="ETPPA_IVEC_TABLEm">
+              <HwField Name="TAGS_TO_REMOVEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="OUTER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPC_IVEC_TABLEm">
+              <HwField Name="OUTER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_OUTER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPC_IVEC_TABLEm">
+              <HwField Name="OUTER_VID_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_OUTER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPC_IVEC_TABLEm">
+              <HwField Name="OUTER_PCP_DEI_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="INNER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPC_IVEC_TABLEm">
+              <HwField Name="INNER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_INNER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPC_IVEC_TABLEm">
+              <HwField Name="INNER_VID_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="IVE_INNER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPC_IVEC_TABLEm">
+              <HwField Name="INNER_PCP_DEI_SRCf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="TAGS_TO_REMOVE">
+          <Access>
+            <Memory Name="ETPPC_IVEC_TABLEm">
+              <HwField Name="TAGS_TO_REMOVEf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+    <AppDB Name="EVEC_ENCAP_STAGE">
+    <OneLineDescription>EVE Commands table in the ETPP encap stages</OneLineDescription>
+    <MaturityLevel>2</MaturityLevel>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="VLAN_EDIT_PROFILE" Size="6"/>
+      </Key>
+      <Result>
+        <Field Name="OUTER_TPID_INDEX" Size="4"/>
+        <Field Name="EVE_OUTER_VID_SRC" Size="3"/>
+        <Field Name="EVE_OUTER_PCP_DEI_SRC" Size="2"/>
+        <Field Name="INNER_TPID_INDEX" Size="4"/>
+        <Field Name="EVE_INNER_VID_SRC" Size="3"/>
+        <Field Name="EVE_INNER_PCP_DEI_SRC" Size="2"/>
+      </Result>
+      <TableLabels>VLAN_TRANSLATION</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="OUTER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPB_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="OUTER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_OUTER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPB_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="OUTER_VID_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_OUTER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPB_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="OUTER_PCP_DEI_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="INNER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPB_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="INNER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_INNER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPB_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="INNER_VID_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_INNER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPB_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="INNER_PCP_DEI_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+
+        <Field Name="OUTER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPC_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="OUTER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_OUTER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPC_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="OUTER_VID_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_OUTER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPC_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="OUTER_PCP_DEI_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="INNER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPC_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="INNER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_INNER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPC_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="INNER_VID_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_INNER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPC_VLAN_EDIT_PROFILE_MAP_TABLEm">
+              <HwField Name="INNER_PCP_DEI_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+    <AppDB Name="EVEC_FRWRD_STAGE">
+    <OneLineDescription>EVE Commands table in the Egress forwarding stage</OneLineDescription>
+    <MaturityLevel>2</MaturityLevel>
+    <AppDbInterface Type="DIRECT">
+      <Key>
+        <Field Name="VLAN_EDIT_COMMAND_INDEX" Size="7"/>
+      </Key>
+      <Result>
+        <Field Name="OUTER_TPID_INDEX" Size="4"/>
+        <Field Name="EVE_OUTER_VID_SRC" Size="3"/>
+        <Field Name="EVE_OUTER_PCP_DEI_SRC" Size="2"/>
+        <Field Name="INNER_TPID_INDEX" Size="4"/>
+        <Field Name="EVE_INNER_VID_SRC" Size="3"/>
+        <Field Name="EVE_INNER_PCP_DEI_SRC" Size="2"/>
+        <Field Name="TAGS_TO_REMOVE" Size="2"/>
+      </Result>
+      <TableLabels>VLAN_TRANSLATION</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+      <CoreMode Mode="SBC"/>
+      <FieldMapping>
+        <Field Name="OUTER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="OUTER_TPID_INDEXf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_OUTER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="OUTER_VID_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_OUTER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="OUTER_PCP_DEI_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="INNER_TPID_INDEX">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="INNER_TPID_INDEXf"/>
+            </Memory> 
+          </Access>
+        </Field>
+        <Field Name="EVE_INNER_VID_SRC">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="INNER_VID_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="EVE_INNER_PCP_DEI_SRC">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="INNER_PCP_DEI_SOURCEf"/>
+            </Memory>
+          </Access>
+        </Field>
+        <Field Name="TAGS_TO_REMOVE">
+          <Access>
+            <Memory Name="ETPPC_FWD_MAP_EGRESS_VLAN_EDIT_COMMAND_TABLEm">
+              <HwField Name="TAGS_TO_REMOVEf"/>
+            </Memory>
+          </Access>
+        </Field>
+      </FieldMapping>
+    </AppToPhyDbMapping>
+  </AppDB>
+
+</AppDbCatalog>
+

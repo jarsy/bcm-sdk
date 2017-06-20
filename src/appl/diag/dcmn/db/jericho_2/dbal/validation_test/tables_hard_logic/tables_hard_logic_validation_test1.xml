@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../tables_hard_logic/hard_logic_schema.xsd">
+
+    <AppDB Name="INGRESS_VLAN_BMP"> <!-- up to 20 characters -->
+        <OneLineDescription></OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_ID" Size="DNX_DATA.module_testing.dbal.all.vlan_id_in_ingress"/><!-- Name must be as in the fields xml, Size and Offset are optional -->
+                <Field Name="CORE_ID" Size="1"/><!-- Name must be as in the fields xml, Size and Offset are optional -->
+            </Key>
+            <Result>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP" Size="256"/> <!-- Name must be as in the fields xml, Size and Offset are optional -->
+            </Result>
+            <TableLabels>L2 L3 MPLS</TableLabels> <!-- enum values: L2/L3/MPLS/FCOE can have multiple references -->
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/> <!-- enum values: DPC/SBC -->
+            <FieldMapping>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP" Size ="128"> <!-- Name must be as in the fields xml, Size and Offset are optional -->
+                    <Access>
+                        <Memory Name="IPPA_VLAN_MEMBERSHIP_TABLEm"> 
+                            <HwField Name="VLAN_PORT_MEMBER_LINEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VLAN_MEMBER_DOMAIN_BMP" Size ="128" Offset="128"> <!-- Name must be as in the fields xml, Size and Offset are optional -->
+                    <Access>
+                        <Memory Name="IPPA_VLAN_MEMBERSHIP_TABLEm"> 
+                            <ArrayOffset EncodeType="HARD_VALUE" Value="1"/>
+                            <EntryOffset EncodeType="DIVIDE" Field="VLAN_ID" Value="3"/>
+                            <HwField Name="VLAN_PORT_MEMBER_LINEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

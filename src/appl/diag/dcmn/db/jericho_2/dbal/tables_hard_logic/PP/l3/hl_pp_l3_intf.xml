@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+	 <AppDB Name="SOURCE_ADDERSS_ETHERNET">
+        <OneLineDescription>Source address table for ethernet</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="SOURCE_ADDRESS_INDEX" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="SOURCE_ADDRESS" Size="38"/>
+            </Result>
+            <TableLabels>L3 L3_IF_RIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="SOURCE_ADDRESS">
+                    <Access>
+						<KeyCondition Field="SOURCE_ADDRESS_INDEX" Type="IS_ODD"/>
+                        <Memory Name="ETPPB_SOURCE_ADRS_MAPm">
+                            <EntryOffset EncodeType="DIVIDE" Value="2"/>
+                            <HwField Name="SOURCE_ADDRESSf"/>
+                            <DataOffset EncodeType="HARD_VALUE" Value="74"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SOURCE_ADDRESS">
+                    <Access>
+						<KeyCondition Field="SOURCE_ADDRESS_INDEX" Type="IS_EVEN"/>
+                        <Memory Name="ETPPB_SOURCE_ADRS_MAPm">
+                            <EntryOffset EncodeType="DIVIDE" Value="2"/>
+                            <HwField Name="SOURCE_ADDRESSf"/>
+                            <DataOffset EncodeType="HARD_VALUE" Value="10"/>
+                        </Memory>
+                    </Access>
+                </Field>
+
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="MY_MAC_DA_PREFIXES">
+        <OneLineDescription>Holds all the MyMac prefixes (38b).</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MY_MAC_PREFIX" Size="6"/>
+            </Key>
+            <Result>
+                <Field Name="L2_MAC" Size="38"/>
+            </Result>
+            <TableLabels>L3 L3_IF_RIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="L2_MAC">
+                    <Access>
+                        <Memory Name="IPPA_MAP_VSI_MAC_PREFIX_TO_DA_MSBm"> 
+                            <HwField Name="DA_MSB_BITSf"/>
+                        </Memory>
+                    </Access>
+                </Field>              
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ENABLERS_VECTORS">
+        <OneLineDescription>includes enablers vectors for VSI profile</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="ROUTING_ENABLERS_PROFILE" Size="5"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLERS_VECTOR" Size="64"/>
+            </Result>
+            <TableLabels>L3 L3_IF_RIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLERS_VECTOR">
+                    <Access>
+                        <Memory Name="IPPA_MAP_RIF_PROFILE_TO_ROUTING_ENABLEm">
+                            <ArrayOffset EncodeType="HARD_VALUE" Value="0"/>
+                            <HwField Name="ROUTING_ENABLE_VECTORf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ROUTING_ENABLERS_PROFILE">
+        <OneLineDescription>includes Routing Profiles</OneLineDescription>
+        <MaturityLevel>2</MaturityLevel>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RIF_PROFILE" Size="10"/>
+            </Key>
+            <Result>
+                <Field Name="ROUTING_ENABLERS_PROFILE" Size="5"/>
+            </Result>
+            <TableLabels>L3 L3_IF_RIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ROUTING_ENABLERS_PROFILE">
+                    <Access>
+                        <Memory Name="IPPA_ROUTING_PROFILE_TABLEm">
+                            <ArrayOffset EncodeType="HARD_VALUE" Value="0"/>
+                            <EntryOffset EncodeType="DIVIDE" Value="4"/>
+                            <DataOffset EncodeType="MODULO_FIELD" Value="4"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

@@ -1,0 +1,104 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+	    Instructions for NFS mounting onto Broadcom SDKs
+
+			Curt McDowell, 10-08-01
+
+(1) Host table entry
+
+    VxWorks NFS requires a host name be used.  You can't mount an IP
+    address.  The BCM "host" command allows manipulating the VxWorks
+    host table.
+
+    Add a host table entry for your NFS server:
+
+	host add fs-sj1-20 10.16.128.50
+
+(2) NFS authentication
+
+    Use the BCM "nfs" command to set the authorization (numeric user and
+    group ID on the server) that will be used for all server file I/O:
+
+	nfs auth fs-sj1-20 10011 20    
+
+    Although the name of the file server is required, you may not be
+    able to use different authentication parameters on different servers.
+
+    An optional list of Authorized Group IDs may follow the
+    authentication group ID.
+
+(3) NFS mounts
+
+    Use the BCM "nfs" command to mount a specified server directory
+    on a SDK path name, for example:
+
+	nfs mount fs-sj1-20:/vol/vol2/home2/labguy /home/labguy
+
+    There is a corresponding "nfs unmount" command.
+
+    After mounting, you (and .soc or .tcl scripts) can "cd" to
+    /home/labguy and access the labguy account directly.
+
+(4) Using gateways
+
+    In order to mount a filesystem from a server that is not on the
+    same subnet, set the "gateway" boot parameter to point to the default
+    router on the SDK's subnet, for example 192.168.2.1.
+
+    In the Mousse and IDTRP334 BSPs, Broadcom has modified usrNetwork.c
+    to add a default route (0.0.0.0) to the gateway router.
+
+(5) Automatic mounts on system startup
+
+    Create a BCM script on the flash filesystem to perform the desired
+    mount commands.  For example, create "flash:sysinit.soc" with the
+    contents:
+
+	echo Mounting /home/labguy
+	host add fs-sj1-20 10.16.128.50
+	nfs auth fs-sj1-20 10011 20    
+	nfs mount fs-sj1-20:/vol/vol2/home2/labguy /home/labguy
+	# If the following line is used, the default directory for "cd"
+	# will be changed and rc.soc will be loaded from the new directory.
+	cd -sethome /home/labguy/boot/current
+
+    Then in the boot ROM parameters, set the "boot script" parameter
+    to "flash:sysinit.soc".
+
+    The "boot script" is a feature that can be used for general
+    board initialization procedures.  If supplied, this script is run
+    once per boot, before rc.soc.  NOTE: this is independent of rc.soc,
+    which normally runs once per attached device.
+
+    sysinit.soc may mount multiple filesystems.
+
+(6) FTP access
+
+    FTP access is (almost) unaffected.  You can still use
+
+	cd tornado%tornado+\@borg:/home/labguy
+
+    to access labguy from FTP access, and plain
+
+	cd
+
+    will still take you back to the FTP home directory (boot location).
+
+    rc.soc is still loaded using FTP so that it comes from the same
+    directory the image was booted from.
+
+    One difference: the command
+
+	cd /home/labguy
+
+    will now take you to the NFS mounted directory, whereas it used to
+    take you to the FTP directory:
+
+	tornado%tornado+@borg:/home/labguy
+
+    However, for backwards compatibility, this new behavior applies only
+    if anything has been NFS-mounted.  Otherwise it behaves the old way.

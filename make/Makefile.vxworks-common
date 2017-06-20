@@ -1,0 +1,56 @@
+# $Id: Makefile.vxworks-common,v 1.6 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# This file contains the platform-independent portion of the Makefiles
+# for VxWorks compilation.
+#
+
+#
+# ORIGIN is used to Optionally select different CFLAGS. It is used to import
+# source from other vendors. If SOURCE=Broadcom, then the BCM_ flags are added
+# to those passed to the compiler. If SOURCE != Broadcom, BCM_ flags are NOT
+# added.
+#
+# Default specifies Broadcom
+#
+ifndef ORIGIN
+	ORIGIN = Broadcom
+endif
+
+#
+# DEPEND is used as a command to generate the list of dependencies.
+# The format of the output must be 
+#	"file.o : file.c a/b/c.h d/e/f.h ...", 
+# if it is on multiple lines, each line must end in a backslash. 
+# The output MUST be on standard out.
+#
+DEPEND = ${CC} -M $(CFLAGS) $< 
+
+#
+# BCM_{C|CPP|CXX}FLAGS - Extra CFLAGS used for Broadcom source files
+#
+
+ifndef BCM_CSTANDARD
+# c89 standard was chosen to prohibit C++ style comments and to validate 
+# guidelines. If -pedantic is included then 
+# c89 standard will not allow native support for long long so 
+# CFGFLAGS += -DCOMPILER_OVERRIDE_NO_LONGLONG
+# should be added.
+BCM_CSTANDARD = -std=c89
+endif
+
+BCM_CFLAGS   = -Wall -Werror ${BCM_CSTANDARD}
+
+BCM_CPPFLAGS = ${BCM_CFLAGS}
+BCM_CXXFLAGS = ${BCM_CFLAGS}
+
+ifeq (${ORIGIN}, Broadcom)
+	CFLAGS   += ${STD_CFLAGS}   ${BCM_CFLAGS}   ${OPT_CFLAGS}
+	CPPFLAGS += ${STD_CPPFLAGS} ${BCM_CPPFLAGS} ${OPT_CPPFLAGS}
+	CXXFLAGS += ${STD_CXXFLAGS} ${BCM_CXXFLAGS} ${OPT_CXXFLAGS}
+else
+	CFLAGS   += ${STD_CFLAGS}   ${OPT_CFLAGS}
+	CPPFLAGS += ${STD_CPPFLAGS} ${OPT_CPPFLAGS}
+	CXXFLAGS += ${STD_CXXFLAGS} ${OPT_CXXFLAGS}
+endif

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<!-- This document represent all supported DNX devices March 23 2016 -->
+<!-- Chip names are taken from drv.c mapping PCID to name in soc_dpp_chip_type_set -->
+
+<top>
+    <devices>
+        <device chip="arad"         db_name="arad"/>
+        <device chip="arad_plus"    db_name="aradplus"/>
+        <device chip="jericho"      db_name="jericho"/>
+        <device chip="qmx"          db_name="jericho"/>
+        <device chip="qax"          db_name="qax"/>
+        <device chip="BCM88470_B0"  db_name="qax_b0"/>
+        <device chip="kalia"        db_name="qax"/>
+        <device chip="qux"          db_name="qux"/>
+        <device chip="jericho_plus" db_name="jerichoplus"/>
+        <device chip="BCM88690_A0"  db_name="jericho_2"/>
+    </devices>
+</top>

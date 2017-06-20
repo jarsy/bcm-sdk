@@ -1,0 +1,148 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+
+------------------------------------------------------------------------------
+
+
+        #        #####
+        #    #  #     #          #####    ####   #####    #####
+        #    #  #     #          #    #  #    #  #    #     #
+        #    #   #####   #####   #    #  #    #  #    #     #
+        ####### #     #          #####   #    #  #####      #
+             #  #     #          #       #    #  #   #      #
+             #   #####           #        ####   #    #     #
+
+
+                 Curt McDowell, Broadcom Corp. 05-23-01
+                         Last Updated: 02-28-02
+
+
+------------------------------------------------------------------------------
+
+1) Boot Flag
+
+The VxWorks boot flag 0x40000 must always be set for the 48-port board.
+In the future, this will be taken care of by board ID; however some
+early 48-port boards do not have a board ID.
+
+To set the boot flag, reset the system and press RETURN while it is
+counting down.  Then use the 'p' command to display the current setting
+of flags.  If the flags do not include bit 18 (0x40000) then use the 'c'
+command to add 0x40000 to the current value of flags.
+
+Another useful boot flag is 0x1000.  If this flag is set, the rc.soc
+will not be loaded on either unit when the system boots.  rc.soc can
+then be run manually on a single unit using the command "0:rc" or
+"1:rc", or on both units using the command "*:rc".
+
+2) Config Settings
+
+The cross-linked Gig ports are Unit 0 port ge0 and Unit 1 port ge1.
+Persistent configuration variables should be set in the config.bcm file
+telling the driver which ports are cross-linked.  These ports do not
+have a PHY.  The configuration variables tell the driver to select the
+null PHY driver.
+
+Boot the system to the "BCM.0>" prompt and use the "config" command to
+display the current configuration settings.  If the required settings
+are not there, use the following commands to add them:
+
+        BCM.0> config add phy_null_port25.0=1
+        BCM.0> config add phy_null_port26.1=1
+        BCM.0> config save      # Make it permanent (writes flash:config.bcm)
+        BCM.0> *:rc             # Changes can take effect without rebooting
+
+The inter-packet gap parameter for the Turbo port must be lowered so
+that 64-byte untagged packets can be switched at line rate on all ports
+through the Turbo port.  The IPG parameters (GMACC2.IPGT) currently
+cannot differ between the Turbo and non-Turbo GE ports using the 'ifg'
+command, however configuration properties have been added to support
+unique values per port.  Verify that the config parameters are set to 8
+as follows:
+
+        BCM.0> config add ipg_ge_fd_port25.0=8
+        BCM.0> config add ipg_ge_fd_port26.1=8
+        BCM.0> config save      # Make it permanent (writes flash:config.bcm)
+        BCM.0> *:rc             # Changes can take effect without rebooting
+
+3) rc script
+
+When the boot flag 0x40000 is set, the @p48 variable is automatically
+set in the BCM diagnostics.  If the rc.soc detects this variable, it
+performs additional 48-port initialization such as assigning module IDs
+for stacking and enabling turbo mode on the cross links.
+
+The rc.soc in $SDK/rc/rc.soc is set up to perform 48-port initialization
+if running on a 48-port board.  This file should be copied to
+flash:rc.soc if it is not already there.
+
+When booting, the rc.soc is automatically run first on unit 0, and then
+on unit 1.  When loading on unit 0, the variable @unit0 is set, and when
+loading on unit 1, the variable @unit1 is set.  This way rc.soc can
+detect which unit it is running on and perform slightly different
+functions.  Please refer to rc.soc for initialization examples.
+
+4) Software Multiple-Unit Access
+
+When running on the 48-port board, there are two BCM56xx units found.
+These are unit 0 and unit 1.  By default, both units will be attached
+and the default rc.soc will be run on both units.
+
+The current "default" unit shows up in the BCM prompt, e.g.:
+
+        BCM.0> 
+
+There are two ways to run commands on a specified unit.  The first is to
+make it the default unit and simply run the command.  The default unit
+can be set by entering the unit number followed by a colon.  For
+example:
+
+        BCM.0> rc
+        BCM.0> 1:
+        BCM.1> rc
+        BCM.1> 0:
+        BCM.0> 
+
+The second is to precede any command with a unit number and colon
+prefix.  This executes the command on the specified unit without
+changing the default.  For example:
+
+        BCM.0> rc
+        BCM.0> 1:rc
+        BCM.0> 
+
+There is a shortcut to run a command on all attached units, which is to
+prefix a command by an asterisk and colon prefix.  For example:
+
+        BCM.0> *:rc
+        BCM.0> *:getreg config.g0
+        BCM.0> 
+
+5) Turbo-Specific Features
+
+For setting Turbo mode:
+
+        BCM.0> 0:m config2.g0 turbo=1
+        BCM.0> 1:m config2.g1 turbo=1
+
+The BCM5617 is an earlier chip which requires additional configuration.
+For setting DDR and clock driver strengths properly for high speed
+(required only on transmitting side and only on port ge1):
+
+        BCM.0> 1:m config2.g1 phase_ctl=1
+
+Example commands for setting drive strengths for transmitting side:
+
+        BCM.0> 0:m config2.g0 clk_drv=X tds_drv=Y
+        BCM.0> 1:m config2.g1 clk_drv=X tds_drv=Y
+
+For permanently setting Turbo mode
+
+        BCM.0> config add turbo_port25.0=1
+        BCM.0> config add turbo_port26.1=1
+        BCM.0> config save
+        BCM.0> rc.soc

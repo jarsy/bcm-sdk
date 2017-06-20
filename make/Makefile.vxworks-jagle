@@ -1,0 +1,199 @@
+# $Id: Makefile.vxworks-jagle,v 1.12 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Makefile for the BCM4702 board(CPCI) running VxWorks
+
+include ${SDK}/make/Makefile.vxworks-common
+
+# WIND_BASE and WIND_HOST_TYPE must be modified according to your
+# installed location.  The environment variables are ignored intentionally.
+
+ifndef VX_VERSION
+VX_VERSION = 55
+endif
+
+ifeq ($(HOSTTYPE),Windows2000PC)
+else
+ifeq ($(HOSTTYPE),Windows_Cygnus)
+WIND_BASE = //fs-sj1-21/Projects-V2/ntsw-tools/wrs/t2
+WIND_HOST_TYPE = x86-win32
+else
+WIND_BASE_54 = /projects/ntsw-tools/wrs/tornado/t2
+WIND_BASE_542 = /projects/ntsw-tools/wrs/tornado/t2.1.1
+WIND_BASE_55 = /projects/ntsw-tools/wrs/tornado/t2.2.1
+WIND_BASE = ${WIND_BASE_${VX_VERSION}}
+ifeq ($(HOSTTYPE),i386-linux)
+WIND_HOST_TYPE = x86-linux
+else
+WIND_HOST_TYPE = sun4-solaris2
+endif
+endif
+endif
+
+ifeq ($(HOSTTYPE),Windows2000PC)
+CPU=MIPS32
+TOOL=sfgnule
+else
+ifeq ($(VX_VERSION),55)
+CPU=MIPS32
+TOOL=sfgnule
+else
+ifeq ($(VX_VERSION),542)
+CPU=MIPS32
+TOOL=sfgnule
+else
+CPU = R3000
+TOOL = gnu
+endif
+endif
+endif
+
+ifdef ALT_JAG_BSP_DIR
+VX_SRC = \
+    ${ALT_JAG_BSP_DIR}
+else
+VX_SRC = \
+    ${SDK}/systems/vxworks/jag/bcm4704
+endif
+
+VX_SRC_ALL = \
+    $(VX_SRC)/all
+
+BOOTROM_SWAP=yes
+
+# Extra libraries for this platform
+ifeq ($(VX_VERSION),55)
+COND_LIB_BSP = $(VX_SRC)/tffs/libTFFS55le.a
+else
+ifeq ($(VX_VERSION),542)
+COND_LIB_BSP = $(VX_SRC)/tffs/libTFFS54le.a
+else
+COND_LIB_BSP = $(VX_SRC)/tffs/libTFFSle.a
+endif
+endif
+
+# Configuration Flags
+
+CFGFLAGS += -DBCM_PLATFORM_STRING=\"JAG_BCM5836LE\"
+
+# fast pci access
+CFGFLAGS+= -DSOC_CM_MEMORY_BASE=bcm_bde_soc_cm_memory_base \
+-DEXTERN_SOC_CM_MEMORY_BASE=bcm_bde_soc_cm_memory_base \
+-DSOC_CM_MEMORY_OFFSET=0x00010000
+
+# Extra flags. Should move to mbz.defs
+CFGFLAGS += -DOVERRIDE_PCI_BUS_NO_START=1
+
+toolbase = $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin
+
+#
+# Set GCC prefix and PATH to find what it needs, and export them to subshells
+# etc.
+#
+export GCC_EXEC_PREFIX=$(WIND_BASE)/host/$(WIND_HOST_TYPE)/lib/gcc-lib/
+
+CC 	= $(toolbase)/ccmips
+CPP	= $(toolbase)/cppmips
+CXX 	= $(toolbase)/g++mips
+RANLIB 	= $(toolbase)/ranlibmips
+AR 	= $(toolbase)/armips
+LD 	= $(toolbase)/ldmips
+NM 	= $(toolbase)/nmmips
+MUNCH 	= $(toolbase)/munch
+SIZE 	= $(toolbase)/sizemips
+STRIP	= $(toolbase)/stripmips
+
+OPTFLAGS_DEFAULT = -O2
+#MFLAGS = $(OPTFLAGS) -EL -mcpu=r4000 -mips3 -mgp32 -mfp32 -non_shared -G 0 -DCPU=$(CPU)
+
+ifeq ($(WIND_HOST_TYPE),x86-linux)
+HAVE_BRANCH_NOLIKELY=
+OPTFLAGS_DEFAULT = -O1
+else
+HAVE_BRANCH_NOLIKELY=-mno-branch-likely
+endif
+
+ifeq ($(HOSTTYPE),Windows2000PC)
+MFLAGS = -G 0 $(OPTFLAGS) -EL -DMIPSEL -mips2 $(HAVE_BRANCH_NOLIKELY) -msoft-float -DCPU=$(CPU)
+else
+ifeq ($(VX_VERSION),55)
+MFLAGS = -G 0 $(OPTFLAGS) -EL -DMIPSEL -mips2 $(HAVE_BRANCH_NOLIKELY) -msoft-float -DCPU=$(CPU)
+else
+ifeq ($(VX_VERSION),542)
+MFLAGS = -G 0 $(OPTFLAGS) -EL -DMIPSEL -mips2 $(HAVE_BRANCH_NOLIKELY) -msoft-float -DCPU=$(CPU)
+else
+MFLAGS =  -EL $(OPTFLAGS) -mcpu=r4000 -mips2  -mgp32 $(HAVE_BRANCH_NOLIKELY) -msoft-float -G 0 -DCPU=$(CPU)
+endif
+endif
+endif
+
+#MFLAGS = $(OPTFLAGS) -mcpu=r4000 -mips3 -DCPU=$(CPU)
+#LDFLAGS = -EL -X -N
+ARFLAGS = -rc
+
+# TARGETTYPE Defines: This defines the type of system you are compiling
+# the driver for; there are several values allowed. New values can be created
+# by porting the routines (system.c) to your platform and adding
+# the define in this Makefile.
+
+TARGETTYPE = MBZ 
+
+# OSType Defines: This defines the type of RTOS or microkernel which you
+# are compiling the SAL (and its associated driver) for. New platforms
+# can be created by porting the routines (system.c) to your platform and
+# adding the define in this Makefile.
+
+OSTYPE = VXWORKS
+
+INCS += -I$(WIND_BASE)/target/h -I$(VX_SRC) -I${VX_SRC_ALL}
+LIBS = 
+
+#
+# STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
+# BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
+# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of 
+#			 this Makefile, to define local "Extra" flags.
+#
+# We include -DTRUE=1 to fix a Tornado 1 problem where stdarg macros are
+# defined incorrectly if TRUE is not defined ahead of including stdarg.h.
+# NOTE: Extra -I${INCDIR} puts SDK include before system incs, for assert.h
+#
+ifeq ($(HOSTTYPE),Windows2000PC)
+BCM_CFLAGS   += -DCPU_VAR=RC32364
+STD_CFLAGS = -fno-builtin $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DLE_HOST=1
+else
+ifeq ($(VX_VERSION),55)
+BCM_CFLAGS   += -DCPU_VAR=RC32364
+STD_CFLAGS = -fno-builtin $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DLE_HOST=1
+else
+ifeq ($(VX_VERSION),542)
+BCM_CFLAGS   += -DCPU_VAR=RC32364
+STD_CFLAGS = -fno-builtin $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DLE_HOST=1
+else
+STD_CFLAGS = -fno-builtin -nostdinc $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DBROADCOM_BSP \
+	${CFGFLAGS} -DTRUE=1 -DLE_HOST=1
+endif
+endif
+endif
+
+# This should be uncommented to use Disk-On-Chip on JAG card
+# Also see $SDK/systems/vxworks/jag/bcm4704/Makefile
+#STD_CFLAGS += -DDOC_IS_FLASH
+
+ifdef ROBODV
+	STD_CFLAGS += -DROBO
+endif
+STD_CPPFLAGS = ${STD_CFLAGS}
+STD_CXXFLAGS = ${STD_CFLAGS}

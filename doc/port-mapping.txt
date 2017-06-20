@@ -1,0 +1,239 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+-------------------------------------------------------------------------
+                Notes on port mappings in the BCM shell
+                      Broadcom Corp. April 7, 2008
+                     Last Updated: January 13, 2009
+-------------------------------------------------------------------------
+
+
+(1) Background
+
+In most cases the physical port numbers used internally in a switch
+chip are different from the port numbers used in the silk screen on
+the actual switch hardware. The switch software needs to provide some
+kind of abstraction in the user interface that hides the internal port
+numbers and associates each front panel port with a logical port name.
+
+When dealing with port numbers in the SDK it is important to
+understand how a front panel port is referenced depending on the
+context.
+
+Pin Group Port Number
+
+A front panel port is connected to a group of pins on the switch chip,
+and the port number here is called the the pin-group port number.
+Typically these numbers are tied to a port type and are named GE1,
+GE2, XG1, etc. These names can be found in the pin list in the
+datasheet.
+
+Physical Port Number
+
+Within the register programming interface each port is referenced by a
+physical port number.  The physical port number is typically used in
+register address calculations and for indexing memory tables and port
+bitmap fields in registers and memories.  The physical port number is
+always relative to the switch chip ID aka the unit number.
+
+System Port ID
+
+In order to support a stacking environment any port within the stack
+can be identified by a module ID and a module port number.  The module
+ID is assigned to a switch device through the register programming
+interface, whereas the module port number in most cases has a fixed
+relation to the physical port number.  The important thing to
+understand is that the physical port number and the module port number
+may be different for a particular port.  The System port ID is
+typically used when programming the switching tables and trunks.
+
+
+(2) Diag Shell Port Mapping
+
+By default the diag shell (aka the BCM shell) uses a simple port
+number abstraction that divides the ports into classes (fe, ge, hg,
+etc.) and assigns a zero-based sequential number to the ports within
+each class. For example, Fast Ethernet ports are named fe0, fe1,
+etc. and HiGig ports are named hg0, hg1, etc. The symbolic port names
+are translated to physical port numbers before any calls are made to
+the BCM API.
+
+Historically the above port naming convention would assume that the
+internal port numbers are in the same order as the front-panel ports,
+but this is not necessarily the case for some newer XGS chips such as
+the BCM56624 chip. The result is that it has become increasingly
+difficult to associate a port name in the BCM shell with a front-panel
+port number.
+
+The BCM shell has been expanded to use a more flexible port naming
+system based on an individual mapping of each internal port. The
+default port mappings are designed to match the Broadcom reference
+designs, but the port mappings can be changed either through function
+calls or configuration settings.
+
+For the basic user interface the BCM shell uses the following macros:
+
+  DPORT_TO_PORT(unit, dport)
+
+    This macro translates a diag shell  port number to an 
+    internal port number.
+
+  DPORT_FROM_PORT(unit, port)
+
+    This macro translates a diag shell port number to an 
+    internal port number.
+
+  DPORT_PBMP_ITER(unit, pbmp, dport, port)
+
+    This macro iterates over a port bitmap (as used by the
+    BCM API) in dport order, which may be different from
+    the bit order in the port bitmap.
+
+Consider the following example port mapping:
+
+    Shell  Internal
+     1        0
+     2        3
+     3        1
+     4        2
+
+From this we get:
+
+  DPORT_TO_PORT(1) = 0
+  DPORT_TO_PORT(3) = 1
+
+  DPORT_FROM_PORT(1) = 3
+  DPORT_FROM_PORT(3) = 2
+
+  DPORT_PBMP_ITER(unit, 0xe, dport, port)
+    1st iteration: dport = 2, port = 3
+    2nd iteration: dport = 3, port = 1
+    3rd iteration: dport = 4, port = 2
+
+
+The following new configuration parameters (shown with their default
+value) are supported:
+
+  dport_map_enable=1
+
+    Enable diag shell port mapping. Port names will be assigned in 
+    dport order, and the BCM shell will list multiple ports in
+    dport order regardless of the internal port numbering.
+
+  dport_map_indexed=1
+
+    Port names for each port type (fe, ge, etc.) will increment
+    by one starting at zero, e.g. if a switch has four xe ports
+    with dport numbers 24, 25, 26, and 27, they will be named
+    xe0, xe1, xe2, and xe3. In non-indexed mode the ports would
+    be named xe24, xe25, xe26, and xe27.
+
+  dport_map_direct=0
+
+    Traditionally, specifying a raw number instead of a port name
+    in the diag shell will be parsed as if port numbers are counted
+    from 1 up to the number of enabled ports. Typically this would
+    mean that for a gigabit switch, port 1 would correspond to ge0,
+    and so forth. Setting this flag causes raw port numbers to be
+    parsed as internal port numbers.
+
+  dport_map_port_<port>=<dport>
+
+    Map dport number <dport> to internal port number <port>.
+
+
+(3) BCM API Port Mapping
+
+A particular problem arises when a design replaces an older switch
+chip with a newer pin-compatible switch chip.  The register
+abstraction provided by the BCM API combined with pin-compatibility
+should ideally make the application migration from the old to the new
+device straight-forward, however, if the API port maps are different
+between the old and the new device, many application functions will
+break.
+
+In order to address such differences in the API port maps, the BCM API
+supports port remapping within the API itself.  As an example it is
+possible to make the port map of a BCM56620 device look like the port
+map of a BCM56504 device.
+
+By default BCM API port mapping is not compiled into the SDK
+libraries.  To enable this feature, the following setting must be
+added to Make.local:
+
+CFGFLAGS += -DINCLUDE_BCM_API_XLATE_PORT
+
+Several pre-configured port translation maps are provided for
+convenience, otherwise a translation map must be built from scratch.
+In both cases the configuration is done through config variables.
+
+To use a pre-configured translation map, e.g. BCM56620 to BCM56504,
+the following configuration variable must be added:
+
+bcm_xlate_port_map=bcm56620_to_bcm56504
+
+The example below shows a custom mapping that maps physical port 2 to
+BCM API port 0:
+
+bcm_xlate_port_2=0
+
+To manually map BCM56620 to BCM56504, the following config variables
+must be added:
+
+bcm_xlate_port_2=0
+bcm_xlate_port_3=1
+bcm_xlate_port_4=2
+bcm_xlate_port_5=3
+bcm_xlate_port_6=4
+bcm_xlate_port_7=5
+bcm_xlate_port_18=6
+bcm_xlate_port_19=7
+bcm_xlate_port_14=8
+bcm_xlate_port_15=9
+bcm_xlate_port_16=10
+bcm_xlate_port_17=11
+bcm_xlate_port_26=12
+bcm_xlate_port_32=13
+bcm_xlate_port_33=14
+bcm_xlate_port_34=15
+bcm_xlate_port_35=16
+bcm_xlate_port_36=17
+bcm_xlate_port_46=18
+bcm_xlate_port_47=19
+bcm_xlate_port_27=20
+bcm_xlate_port_43=21
+bcm_xlate_port_44=22
+bcm_xlate_port_45=23
+bcm_xlate_port_28=24
+bcm_xlate_port_29=25
+bcm_xlate_port_30=26
+bcm_xlate_port_31=27
+bcm_xlate_port_0=28
+
+The new port namespace created by this mapping applies to physical
+port numbers only, and it is normally called the API port number
+space.
+
+When BCM port mapping is active it is essential that an application
+always uses the bcm_port_gport_get API for translating an API port
+number into a system port ID (e.g. when adding an L2 address to the
+ARL table), even if the switch is not a member of a stack.
+
+
+(4) Additional Information
+
+The commands in the BCM shell will translate the logical port names
+(ge0, etc.) into either a physical port number or an API port number
+depending on the context.  For example any direct register access
+(getreg, etc.) will always use physical port numbers whereas BCM
+commands (vlan, etc.) will use API port numbers.
+
+Use the pbmp command to see how a logical port name is translated into
+a physical port and API port number respectively:
+
+  pbmp ge0
+  pbmp bcm ge0
+

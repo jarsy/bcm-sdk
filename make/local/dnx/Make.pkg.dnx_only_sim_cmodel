@@ -1,0 +1,41 @@
+#
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Original:
+#  FEATURE_LIST := CINT TCL BSAFE ATPTRANS_SOCKET L3 I2C MEM_SCAN EDITLINE TELNET DRIVERS CHASSIS TEST BCM_SAL_PROFILE RCPU DUNE_UI INTR APIMODE PTP KBP
+# For CMODEL, interrupts are not implemented so take INTR out
+#
+FEATURE_LIST := CINT TCL BSAFE ATPTRANS_SOCKET L3 I2C MEM_SCAN EDITLINE TELNET DRIVERS CHASSIS TEST BCM_SAL_PROFILE RCPU DUNE_UI APIMODE PTP KBP
+
+#DEBUG_OPTIMIZE=FALSE
+
+DEBUG_CFLAGS=-Wdeclaration-after-statement
+
+BCM_PTL_SPT=1
+
+#
+# This is for 'DNX only' compilation. Take DPP and DFE out.
+#
+# ALL_DPP_CHIPS = 1
+# ALL_DFE_CHIPS = 1
+ALL_DNX_CHIPS = 1
+
+CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT
+CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT_SW_DUMP
+CFGFLAGS += -DBCM_EASY_RELOAD_WB_COMPAT_SUPPORT
+CFGFLAGS += -DBCM_CONTROL_API_TRACKING
+CFGFLAGS += -DSCACHE_CRC_CHECK
+CFGFLAGS += -DCMODEL_SERVER_MODE
+
+KBP_DEVICE := KBP_ALG
+
+#Assaf - 2/4/14, commneted out - this Makefile is used at many regression tests ant can not be changed
+#        in case we want to add vendor flags a new Makefile should be created.
+#VENDOR_LIST=BROADCOM CUSTOMER52
+
+override SBX_CHIPS=
+
+export GCCVER=4.2.1
+HCC=/tools/bin/gcc
+$(info $(shell GCCVER=$(GCCVER) $(HCC) --version))

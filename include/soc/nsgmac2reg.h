@@ -1,0 +1,1153 @@
+/*
+ * $Id: nsgmac2reg.h,v 1.1.2.1 Broadcom SDK $
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$ 
+ *
+ * Broadcom Gigabit Ethernet MAC (Unimac) core registers.
+ *
+ */
+
+
+#ifndef _nsgmac2_core_h_
+#define _nsgmac2_core_h_
+
+
+
+
+#ifndef PAD
+#define     _PADLINE(line)    pad ## line
+#define     _XSTR(line)     _PADLINE(line)
+#define     PAD     XSTR(__LINE__)
+#endif
+
+
+typedef volatile struct _nsgmac2regs {
+    uint32 	gmac2_devcontrol;
+    uint32 	gmac2_devstatus;
+    uint32 	PAD[1];
+    uint32 	gmac2_biststatus;
+    uint32 	PAD[4];
+    uint32 	gmac2_intstatus;
+    uint32 	gmac2_intmask;
+    uint32 	gmac2_gptimer;
+    uint32 	PAD[53];
+    uint32 	gmac2_intrcvlazy;
+    uint32 	gmac2_flowcntl_th;
+    uint32 	gmac2_txarb_wrr_th;
+    uint32 	gmac2_gmacidle_cnt_th;
+    uint32 	PAD[4];
+    uint32 	gmac2_fifoaccessaddr;
+    uint32 	gmac2_fifoaccessbyte;
+    uint32 	gmac2_fifoaccessdata;
+    uint32 	PAD[21];
+    uint32 	gmac2_phyaccess;
+    uint32 	PAD[1];
+    uint32 	gmac2_phycontrol;
+    uint32 	gmac2_txqcontrol;
+    uint32 	gmac2_rxqcontrol;
+    uint32 	gmac2_gpioselect;
+    uint32 	gmac2_gpiooutputen;
+    uint32 	PAD[1];
+    uint32 	gmac2_txqrxqmemorycontrol;
+    uint32 	gmac2_memoryeccstatus;
+    uint32 	PAD[14];
+    uint32 	gmac2_clockcontrolstatus;
+    uint32 	PAD[1];
+    uint32 	gmac2_powercontrol;
+    uint32 	PAD[5];
+    uint32 	gmac2_xmtcontrol_0;
+    uint32 	gmac2_xmtptr_0;
+    uint32 	gmac2_xmtaddr_low_0;
+    uint32 	gmac2_xmtaddr_high_0;
+    uint32 	gmac2_xmtstatus0_0;
+    uint32 	gmac2_xmtstatus1_0;
+    uint32 	PAD[2];
+    uint32 	gmac2_rcvcontrol;
+    uint32 	gmac2_rcvptr;
+    uint32 	gmac2_rcvaddr_low;
+    uint32 	gmac2_rcvaddr_high;
+    uint32 	gmac2_rcvstatus0;
+    uint32 	gmac2_rcvstatus1;
+    uint32 	PAD[50];
+    uint32 	gmac2_tx_gd_octets_lo;
+    uint32 	gmac2_tx_gd_octets_hi;
+    uint32 	gmac2_tx_gd_pkts;
+    uint32 	gmac2_tx_all_octets_lo;
+    uint32 	gmac2_tx_all_octets_hi;
+    uint32 	gmac2_tx_all_pkts;
+    uint32 	gmac2_tx_brdcast;
+    uint32 	gmac2_tx_mult;
+    uint32 	gmac2_tx_64;
+    uint32 	gmac2_tx_65_127;
+    uint32 	gmac2_tx_128_255;
+    uint32 	gmac2_tx_256_511;
+    uint32 	gmac2_tx_512_1023;
+    uint32 	gmac2_tx_1024_1522;
+    uint32 	gmac2_tx_1523_2047;
+    uint32 	gmac2_tx_2048_4095;
+    uint32 	gmac2_tx_4096_8191;
+    uint32 	gmac2_tx_8192_max;
+    uint32 	gmac2_tx_jab;
+    uint32 	gmac2_tx_over;
+    uint32 	gmac2_tx_frag;
+    uint32 	gmac2_tx_underrun;
+    uint32 	gmac2_tx_col;
+    uint32 	gmac2_tx_1_col;
+    uint32 	gmac2_tx_m_col;
+    uint32 	gmac2_tx_ex_col;
+    uint32 	gmac2_tx_late;
+    uint32 	gmac2_tx_def;
+    uint32 	gmac2_tx_crs;
+    uint32 	gmac2_tx_paus;
+    uint32 	gmac2_txunicastpkt;
+    uint32 	gmac2_txqosq0pkt;
+    uint32 	gmac2_txqosq0octet_lo;
+    uint32 	gmac2_txqosq0octet_hi;
+    uint32 	gmac2_txqosq1pkt;
+    uint32 	gmac2_txqosq1octet_lo;
+    uint32 	gmac2_txqosq1octet_hi;
+    uint32 	gmac2_txqosq2pkt;
+    uint32 	gmac2_txqosq2octet_lo;
+    uint32 	gmac2_txqosq2octet_hi;
+    uint32 	gmac2_txqosq3pkt;
+    uint32 	gmac2_txqosq3octet_lo;
+    uint32 	gmac2_txqosq3octet_hi;
+    uint32 	PAD[1];
+    uint32 	gmac2_rx_gd_octets_lo;
+    uint32 	gmac2_rx_gd_octets_hi;
+    uint32 	gmac2_rx_gd_pkts;
+    uint32 	gmac2_rx_all_octets_lo;
+    uint32 	gmac2_rx_all_octets_hi;
+    uint32 	gmac2_rx_all_pkts;
+    uint32 	gmac2_rx_brdcast;
+    uint32 	gmac2_rx_mult;
+    uint32 	gmac2_rx_64;
+    uint32 	gmac2_rx_65_127;
+    uint32 	gmac2_rx_128_255;
+    uint32 	gmac2_rx_256_511;
+    uint32 	gmac2_rx_512_1023;
+    uint32 	gmac2_rx_1024_1522;
+    uint32 	gmac2_rx_1523_2047;
+    uint32 	gmac2_rx_2048_4095;
+    uint32 	gmac2_rx_4096_8191;
+    uint32 	gmac2_rx_8192_max;
+    uint32 	gmac2_rx_jab;
+    uint32 	gmac2_rx_ovr;
+    uint32 	gmac2_rx_frag;
+    uint32 	gmac2_rx_drop;
+    uint32 	gmac2_rx_crc_align;
+    uint32 	gmac2_rx_und;
+    uint32 	gmac2_rx_crc;
+    uint32 	gmac2_rx_align;
+    uint32 	gmac2_rx_sym;
+    uint32 	gmac2_rx_paus;
+    uint32 	gmac2_rx_cntrl;
+    uint32 	gmac2_rxsachanges;
+    uint32 	gmac2_rxunicastpkts;
+    uint32 	PAD[246];
+    uint32 	unimac2_ipg_hd_bkp_cntl;
+    uint32 	unimac2_command_config;
+    uint32 	unimac2_mac_0;
+    uint32 	unimac2_mac_1;
+    uint32 	unimac2_frm_length;
+    uint32 	unimac2_pause_quant;
+    uint32 	PAD[8];
+    uint32 	unimac2_tx_ts_seq_id;
+    uint32 	PAD[1];
+    uint32 	unimac2_mac_mode;
+    uint32 	unimac2_tag_0;
+    uint32 	unimac2_tag_1;
+    uint32 	unimac2_rx_pause_quanta_scale;
+    uint32 	unimac2_tx_preamble;
+    uint32 	PAD[1];
+    uint32 	unimac2_tx_ipg_length;
+    uint32 	unimac2_pfc_xoff_timer;
+    uint32 	unimac2_umac_eee_ctrl;
+    uint32 	unimac2_mii_eee_delay_entry_timer;
+    uint32 	unimac2_gmii_eee_delay_entry_timer;
+    uint32 	unimac2_umac_eee_ref_count;
+    uint32 	PAD[1];
+    uint32 	unimac2_umac_rx_pkt_drop_status;
+    uint32 	unimac2_umac_symmetric_idle_threshold;
+    uint32 	unimac2_mii_eee_wake_timer;
+    uint32 	unimac2_gmii_eee_wake_timer;
+    uint32 	unimac2_umac_rev_id;
+    uint32 	PAD[157];
+    uint32 	unimac2_mac_pfc_type;
+    uint32 	unimac2_mac_pfc_opcode;
+    uint32 	unimac2_mac_pfc_da_0;
+    uint32 	unimac2_mac_pfc_da_1;
+    uint32 	PAD[1];
+    uint32 	unimac2_macsec_cntrl;
+    uint32 	unimac2_ts_status_cntrl;
+    uint32 	unimac2_tx_ts_data;
+    uint32 	PAD[4];
+    uint32 	unimac2_pause_control;
+    uint32 	unimac2_flush_control;
+    uint32 	unimac2_rxfifo_stat;
+    uint32 	unimac2_txfifo_stat;
+    uint32 	unimac2_mac_pfc_ctrl;
+    uint32 	unimac2_mac_pfc_refresh_ctrl;
+} nsgmac2regs_t;
+
+/*  gmac2_devcontrol offset0x0  */
+#define 	GMAC2_DEVCONTROL_TXARB_STRICT_MODE_SHIFT	0
+#define 	GMAC2_DEVCONTROL_TXARB_STRICT_MODE_MASK	0x1       
+#define 	GMAC2_DEVCONTROL_RXQ_OVERFLOW_CTRL_SEL_SHIFT	1
+#define 	GMAC2_DEVCONTROL_RXQ_OVERFLOW_CTRL_SEL_MASK	0x2       
+#define 	GMAC2_DEVCONTROL_CPU_FLOW_CNTL_ON_SHIFT	2
+#define 	GMAC2_DEVCONTROL_CPU_FLOW_CNTL_ON_MASK	0x4       
+#define 	GMAC2_DEVCONTROL_RGMII_LINK_STATUS_SEL_SHIFT	3
+#define 	GMAC2_DEVCONTROL_RGMII_LINK_STATUS_SEL_MASK	0x8       
+#define 	GMAC2_DEVCONTROL_MIB_RD_RESET_EN_SHIFT	4
+#define 	GMAC2_DEVCONTROL_MIB_RD_RESET_EN_MASK	0x10      
+#define 	GMAC2_DEVCONTROL_FLOW_CNTL_MODE_SHIFT	5
+#define 	GMAC2_DEVCONTROL_FLOW_CNTL_MODE_MASK	0x60      
+#define 	GMAC2_DEVCONTROL_NWAY_AUTO_POLLING_EN_SHIFT	7
+#define 	GMAC2_DEVCONTROL_NWAY_AUTO_POLLING_EN_MASK	0x80      
+#define 	GMAC2_DEVCONTROL_TXQ_FLUSH_SHIFT	8
+#define 	GMAC2_DEVCONTROL_TXQ_FLUSH_MASK	0x100     
+#define 	GMAC2_DEVCONTROL_RXC_DRNG_SHIFT	16
+#define 	GMAC2_DEVCONTROL_RXC_DRNG_MASK	0x30000   
+#define 	GMAC2_DEVCONTROL_TXC_DRNG_SHIFT	18
+#define 	GMAC2_DEVCONTROL_TXC_DRNG_MASK	0xc0000   
+#define 	GMAC2_DEVCONTROL_ENABLE_DEL_G_RXC_SHIFT	20
+#define 	GMAC2_DEVCONTROL_ENABLE_DEL_G_RXC_MASK	0x100000  
+#define 	GMAC2_DEVCONTROL_ENABLE_DEL_G_TXC_SHIFT	21
+#define 	GMAC2_DEVCONTROL_ENABLE_DEL_G_TXC_MASK	0x200000  
+
+/*  gmac2_devstatus offset0x4  */
+#define 	GMAC2_DEVSTATUS_RXQ_BURST_FIFO_FULL_SHIFT	0
+#define 	GMAC2_DEVSTATUS_RXQ_BURST_FIFO_FULL_MASK	0x1       
+#define 	GMAC2_DEVSTATUS_RXQ_DATA_BUF_FULL_SHIFT	1
+#define 	GMAC2_DEVSTATUS_RXQ_DATA_BUF_FULL_MASK	0x2       
+#define 	GMAC2_DEVSTATUS_RXQ_INFO_BUF_FULL_SHIFT	2
+#define 	GMAC2_DEVSTATUS_RXQ_INFO_BUF_FULL_MASK	0x4       
+#define 	GMAC2_DEVSTATUS_TXQ_BURST_FIFO_FULL_SHIFT	3
+#define 	GMAC2_DEVSTATUS_TXQ_BURST_FIFO_FULL_MASK	0x8       
+#define 	GMAC2_DEVSTATUS_TXQ_DATA_BUF_FULL_SHIFT	4
+#define 	GMAC2_DEVSTATUS_TXQ_DATA_BUF_FULL_MASK	0x10      
+#define 	GMAC2_DEVSTATUS_TXQ_INFO_BUF_FULL_SHIFT	5
+#define 	GMAC2_DEVSTATUS_TXQ_INFO_BUF_FULL_MASK	0x20      
+#define 	GMAC2_DEVSTATUS_PAUSE_ON_SHIFT	6
+#define 	GMAC2_DEVSTATUS_PAUSE_ON_MASK	0x40      
+#define 	GMAC2_DEVSTATUS_INTERFACE_MODE_SHIFT	8
+#define 	GMAC2_DEVSTATUS_INTERFACE_MODE_MASK	0x1f00    
+#define 	GMAC2_DEVSTATUS_RXQ_QUEUE_SIZE_SHIFT	16
+#define 	GMAC2_DEVSTATUS_RXQ_QUEUE_SIZE_MASK	0xf0000   
+#define 	GMAC2_DEVSTATUS_TXQ_QUEUE_SIZE_SHIFT	20
+#define 	GMAC2_DEVSTATUS_TXQ_QUEUE_SIZE_MASK	0xf00000  
+
+/*  gmac2_biststatus offset0xc  */
+#define 	GMAC2_BISTSTATUS_MIB_TX_FIFO_SHIFT	0
+#define 	GMAC2_BISTSTATUS_MIB_TX_FIFO_MASK	0x1       
+#define 	GMAC2_BISTSTATUS_MIB_RX_FIFO_SHIFT	1
+#define 	GMAC2_BISTSTATUS_MIB_RX_FIFO_MASK	0x2       
+#define 	GMAC2_BISTSTATUS_TXQ_DATA_BUFFER_SHIFT	2
+#define 	GMAC2_BISTSTATUS_TXQ_DATA_BUFFER_MASK	0x4       
+#define 	GMAC2_BISTSTATUS_TXQ_INFO_BUFFER_SHIFT	3
+#define 	GMAC2_BISTSTATUS_TXQ_INFO_BUFFER_MASK	0x8       
+#define 	GMAC2_BISTSTATUS_TXQ_BURST_FIFO_SHIFT	4
+#define 	GMAC2_BISTSTATUS_TXQ_BURST_FIFO_MASK	0x10      
+#define 	GMAC2_BISTSTATUS_RXQ_DATA_BUFFER_SHIFT	5
+#define 	GMAC2_BISTSTATUS_RXQ_DATA_BUFFER_MASK	0x20      
+#define 	GMAC2_BISTSTATUS_RXQ_INFO_BUFFER_SHIFT	6
+#define 	GMAC2_BISTSTATUS_RXQ_INFO_BUFFER_MASK	0x40      
+#define 	GMAC2_BISTSTATUS_RXQ_BURST_FIFO_SHIFT	7
+#define 	GMAC2_BISTSTATUS_RXQ_BURST_FIFO_MASK	0x80      
+#define 	GMAC2_BISTSTATUS_RSVD_SHIFT	8
+#define 	GMAC2_BISTSTATUS_RSVD_MASK	0x700     
+#define 	GMAC2_BISTSTATUS_SWITCHFAIL_SHIFT	11
+#define 	GMAC2_BISTSTATUS_SWITCHFAIL_MASK	0x800     
+
+/*  gmac2_intstatus offset0x20  */
+#define 	GMAC2_INTSTATUS_MIB_RX_OVERFLOWINT_SHIFT	0
+#define 	GMAC2_INTSTATUS_MIB_RX_OVERFLOWINT_MASK	0x1       
+#define 	GMAC2_INTSTATUS_MIB_TX_OVERFLOWINT_SHIFT	1
+#define 	GMAC2_INTSTATUS_MIB_TX_OVERFLOWINT_MASK	0x2       
+#define 	GMAC2_INTSTATUS_TXQ_FLUSH_DONEINT_SHIFT	2
+#define 	GMAC2_INTSTATUS_TXQ_FLUSH_DONEINT_MASK	0x4       
+#define 	GMAC2_INTSTATUS_NWAYLINKSTATUSINT_SHIFT	3
+#define 	GMAC2_INTSTATUS_NWAYLINKSTATUSINT_MASK	0x8       
+#define 	GMAC2_INTSTATUS_MDIOINT_SHIFT	4
+#define 	GMAC2_INTSTATUS_MDIOINT_MASK	0x10      
+#define 	GMAC2_INTSTATUS_MIB_RX_INT_SHIFT	5
+#define 	GMAC2_INTSTATUS_MIB_RX_INT_MASK	0x20      
+#define 	GMAC2_INTSTATUS_MIB_TX_INT_SHIFT	6
+#define 	GMAC2_INTSTATUS_MIB_TX_INT_MASK	0x40      
+#define 	GMAC2_INTSTATUS_INT_TIMEOUT_SHIFT	7
+#define 	GMAC2_INTSTATUS_INT_TIMEOUT_MASK	0x80      
+#define 	GMAC2_INTSTATUS_INT_SW_LINK_ST_CHGEN_SHIFT	8
+#define 	GMAC2_INTSTATUS_INT_SW_LINK_ST_CHGEN_MASK	0x100     
+#define 	GMAC2_INTSTATUS_DESCRERR_SHIFT	10
+#define 	GMAC2_INTSTATUS_DESCRERR_MASK	0x400     
+#define 	GMAC2_INTSTATUS_DATAERR_SHIFT	11
+#define 	GMAC2_INTSTATUS_DATAERR_MASK	0x800     
+#define 	GMAC2_INTSTATUS_DESCPROTOERR_SHIFT	12
+#define 	GMAC2_INTSTATUS_DESCPROTOERR_MASK	0x1000    
+#define 	GMAC2_INTSTATUS_RCVDESCUF_SHIFT	13
+#define 	GMAC2_INTSTATUS_RCVDESCUF_MASK	0x2000    
+#define 	GMAC2_INTSTATUS_RCVFIFOOF_SHIFT	14
+#define 	GMAC2_INTSTATUS_RCVFIFOOF_MASK	0x4000    
+#define 	GMAC2_INTSTATUS_XMTFIFOUF_SHIFT	15
+#define 	GMAC2_INTSTATUS_XMTFIFOUF_MASK	0x8000    
+#define 	GMAC2_INTSTATUS_RCVINT_SHIFT	16
+#define 	GMAC2_INTSTATUS_RCVINT_MASK	0x10000   
+#define 	GMAC2_INTSTATUS_XMTINT_0_SHIFT	24
+#define 	GMAC2_INTSTATUS_XMTINT_0_MASK	0x1000000 
+#define 	GMAC2_INTSTATUS_XMTINT_1_SHIFT	25
+#define 	GMAC2_INTSTATUS_XMTINT_1_MASK	0x2000000 
+#define 	GMAC2_INTSTATUS_XMTINT_2_SHIFT	26
+#define 	GMAC2_INTSTATUS_XMTINT_2_MASK	0x4000000 
+#define 	GMAC2_INTSTATUS_XMTINT_3_SHIFT	27
+#define 	GMAC2_INTSTATUS_XMTINT_3_MASK	0x8000000 
+#define 	GMAC2_INTSTATUS_RXQECCCORRECTED_SHIFT	28
+#define 	GMAC2_INTSTATUS_RXQECCCORRECTED_MASK	0x10000000
+#define 	GMAC2_INTSTATUS_RXQECCUNCORRECTED_SHIFT	29
+#define 	GMAC2_INTSTATUS_RXQECCUNCORRECTED_MASK	0x20000000
+#define 	GMAC2_INTSTATUS_TXQECCCORRECTED_SHIFT	30
+#define 	GMAC2_INTSTATUS_TXQECCCORRECTED_MASK	0x40000000
+#define 	GMAC2_INTSTATUS_TXQECCUNCORRECTED_SHIFT	31
+#define 	GMAC2_INTSTATUS_TXQECCUNCORRECTED_MASK	0x80000000
+
+/*  gmac2_intmask offset0x24  */
+#define 	GMAC2_INTMASK_MIB_RX_OVERFLOWINTEN_SHIFT	0
+#define 	GMAC2_INTMASK_MIB_RX_OVERFLOWINTEN_MASK	0x1       
+#define 	GMAC2_INTMASK_MIB_TX_OVERFLOWINTEN_SHIFT	1
+#define 	GMAC2_INTMASK_MIB_TX_OVERFLOWINTEN_MASK	0x2       
+#define 	GMAC2_INTMASK_TXQ_FLUSH_DONEINTEN_SHIFT	2
+#define 	GMAC2_INTMASK_TXQ_FLUSH_DONEINTEN_MASK	0x4       
+#define 	GMAC2_INTMASK_NWAYLINKSTATUSINTEN_SHIFT	3
+#define 	GMAC2_INTMASK_NWAYLINKSTATUSINTEN_MASK	0x8       
+#define 	GMAC2_INTMASK_MDIOINTEN_SHIFT	4
+#define 	GMAC2_INTMASK_MDIOINTEN_MASK	0x10      
+#define 	GMAC2_INTMASK_MIB_RX_INTEN_SHIFT	5
+#define 	GMAC2_INTMASK_MIB_RX_INTEN_MASK	0x20      
+#define 	GMAC2_INTMASK_MIB_TX_INTEN_SHIFT	6
+#define 	GMAC2_INTMASK_MIB_TX_INTEN_MASK	0x40      
+#define 	GMAC2_INTMASK_INT_TIMEOUTEN_SHIFT	7
+#define 	GMAC2_INTMASK_INT_TIMEOUTEN_MASK	0x80      
+#define 	GMAC2_INTMASK_DESCRERREN_SHIFT	10
+#define 	GMAC2_INTMASK_DESCRERREN_MASK	0x400     
+#define 	GMAC2_INTMASK_DATAERREN_SHIFT	11
+#define 	GMAC2_INTMASK_DATAERREN_MASK	0x800     
+#define 	GMAC2_INTMASK_DESCPROTOERREN_SHIFT	12
+#define 	GMAC2_INTMASK_DESCPROTOERREN_MASK	0x1000    
+#define 	GMAC2_INTMASK_RCVDESCUFEN_SHIFT	13
+#define 	GMAC2_INTMASK_RCVDESCUFEN_MASK	0x2000    
+#define 	GMAC2_INTMASK_RCVFIFOOFEN_SHIFT	14
+#define 	GMAC2_INTMASK_RCVFIFOOFEN_MASK	0x4000    
+#define 	GMAC2_INTMASK_XMTUFEN_SHIFT	15
+#define 	GMAC2_INTMASK_XMTUFEN_MASK	0x8000    
+#define 	GMAC2_INTMASK_RCVINTEN_SHIFT	16
+#define 	GMAC2_INTMASK_RCVINTEN_MASK	0x10000   
+#define 	GMAC2_INTMASK_XMTINTEN_0_SHIFT	24
+#define 	GMAC2_INTMASK_XMTINTEN_0_MASK	0x1000000 
+#define 	GMAC2_INTMASK_XMTINTEN_1_SHIFT	25
+#define 	GMAC2_INTMASK_XMTINTEN_1_MASK	0x2000000 
+#define 	GMAC2_INTMASK_XMTINTEN_2_SHIFT	26
+#define 	GMAC2_INTMASK_XMTINTEN_2_MASK	0x4000000 
+#define 	GMAC2_INTMASK_XMTINTEN_3_SHIFT	27
+#define 	GMAC2_INTMASK_XMTINTEN_3_MASK	0x8000000 
+#define 	GMAC2_INTMASK_RXQECCCORRECTEDEN_SHIFT	28
+#define 	GMAC2_INTMASK_RXQECCCORRECTEDEN_MASK	0x10000000
+#define 	GMAC2_INTMASK_RXQECCUNCORRECTEDEN_SHIFT	29
+#define 	GMAC2_INTMASK_RXQECCUNCORRECTEDEN_MASK	0x20000000
+#define 	GMAC2_INTMASK_TXQECCCORRECTEDEN_SHIFT	30
+#define 	GMAC2_INTMASK_TXQECCCORRECTEDEN_MASK	0x40000000
+#define 	GMAC2_INTMASK_TXQECCUNCORRECTEDEN_SHIFT	31
+#define 	GMAC2_INTMASK_TXQECCUNCORRECTEDEN_MASK	0x80000000
+
+/*  gmac2_gptimer offset0x28  */
+#define 	GMAC2_GPTIMER_GPTIMER_SHIFT	0
+#define 	GMAC2_GPTIMER_GPTIMER_MASK	0xffffffff
+
+/*  gmac2_intrcvlazy offset0x100  */
+#define 	GMAC2_INTRCVLAZY_TIMEOUT_SHIFT	0
+#define 	GMAC2_INTRCVLAZY_TIMEOUT_MASK	0xffffff  
+#define 	GMAC2_INTRCVLAZY_FRAMECOUNT_SHIFT	24
+#define 	GMAC2_INTRCVLAZY_FRAMECOUNT_MASK	0xff000000
+
+/*  gmac2_flowcntl_th offset0x104  */
+#define 	GMAC2_FLOWCNTL_TH_REGTORXQ_FLOW_CNTL_ON_TH_SHIFT	0
+#define 	GMAC2_FLOWCNTL_TH_REGTORXQ_FLOW_CNTL_ON_TH_MASK	0xffff    
+#define 	GMAC2_FLOWCNTL_TH_REGTORXQ_FLOW_CNTL_OFF_TH_SHIFT	16
+#define 	GMAC2_FLOWCNTL_TH_REGTORXQ_FLOW_CNTL_OFF_TH_MASK	0xffff0000
+
+/*  gmac2_txarb_wrr_th offset0x108  */
+#define 	GMAC2_TXARB_WRR_TH_REGTOTXARB_WRR_TH_0_SHIFT	0
+#define 	GMAC2_TXARB_WRR_TH_REGTOTXARB_WRR_TH_0_MASK	0xff      
+#define 	GMAC2_TXARB_WRR_TH_REGTOTXARB_WRR_TH_1_SHIFT	8
+#define 	GMAC2_TXARB_WRR_TH_REGTOTXARB_WRR_TH_1_MASK	0xff00    
+#define 	GMAC2_TXARB_WRR_TH_REGTOTXARB_WRR_TH_2_SHIFT	16
+#define 	GMAC2_TXARB_WRR_TH_REGTOTXARB_WRR_TH_2_MASK	0xff0000  
+#define 	GMAC2_TXARB_WRR_TH_REGTOTXARB_WRR_TH_3_SHIFT	24
+#define 	GMAC2_TXARB_WRR_TH_REGTOTXARB_WRR_TH_3_MASK	0xff000000
+
+/*  gmac2_gmacidle_cnt_th offset0x10c  */
+#define 	GMAC2_GMACIDLE_CNT_TH_GMAC_RX_IDLE_CNT_TH_SHIFT	0
+#define 	GMAC2_GMACIDLE_CNT_TH_GMAC_RX_IDLE_CNT_TH_MASK	0xff      
+#define 	GMAC2_GMACIDLE_CNT_TH_GMAC_TX_IDLE_CNT_TH_SHIFT	8
+#define 	GMAC2_GMACIDLE_CNT_TH_GMAC_TX_IDLE_CNT_TH_MASK	0xff00    
+
+/*  gmac2_fifoaccessaddr offset0x120  */
+#define 	GMAC2_FIFOACCESSADDR_OFFSETX_SHIFT	0
+#define 	GMAC2_FIFOACCESSADDR_OFFSETX_MASK	0xffff    
+#define 	GMAC2_FIFOACCESSADDR_SELECT_SHIFT	16
+#define 	GMAC2_FIFOACCESSADDR_SELECT_MASK	0xf0000   
+
+/*  gmac2_fifoaccessbyte offset0x124  */
+#define 	GMAC2_FIFOACCESSBYTE_BYTEENABLE_SHIFT	0
+#define 	GMAC2_FIFOACCESSBYTE_BYTEENABLE_MASK	0xf       
+
+/*  gmac2_fifoaccessdata offset0x128  */
+#define 	GMAC2_FIFOACCESSDATA_FIFODATA_SHIFT	0
+#define 	GMAC2_FIFOACCESSDATA_FIFODATA_MASK	0xffffffff
+
+/*  gmac2_phyaccess offset0x180  */
+#define 	GMAC2_PHYACCESS_ACC_DATA_SHIFT	0
+#define 	GMAC2_PHYACCESS_ACC_DATA_MASK	0xffff    
+#define 	GMAC2_PHYACCESS_CPU_PHY_ADDR_SHIFT	16
+#define 	GMAC2_PHYACCESS_CPU_PHY_ADDR_MASK	0x1f0000  
+#define 	GMAC2_PHYACCESS_CPU_REG_ADDR_SHIFT	24
+#define 	GMAC2_PHYACCESS_CPU_REG_ADDR_MASK	0x1f000000
+#define 	GMAC2_PHYACCESS_WR_CMD_SHIFT	29
+#define 	GMAC2_PHYACCESS_WR_CMD_MASK	0x20000000
+#define 	GMAC2_PHYACCESS_TRIGGER_SHIFT	30
+#define 	GMAC2_PHYACCESS_TRIGGER_MASK	0x40000000
+
+/*  gmac2_phycontrol offset0x188  */
+#define 	GMAC2_PHYCONTROL_EXT_PHY_ADDR_SHIFT	0
+#define 	GMAC2_PHYCONTROL_EXT_PHY_ADDR_MASK	0x1f      
+#define 	GMAC2_PHYCONTROL_MDC_CYCLE_TH_SHIFT	16
+#define 	GMAC2_PHYCONTROL_MDC_CYCLE_TH_MASK	0x7f0000  
+#define 	GMAC2_PHYCONTROL_MDC_TRANSITION_EN_SHIFT	23
+#define 	GMAC2_PHYCONTROL_MDC_TRANSITION_EN_MASK	0x800000  
+
+/*  gmac2_txqcontrol offset0x18c  */
+#define 	GMAC2_TXQCONTROL_TXQ_DATA_BUF_TH_SHIFT	0
+#define 	GMAC2_TXQCONTROL_TXQ_DATA_BUF_TH_MASK	0xffff    
+
+/*  gmac2_rxqcontrol offset0x190  */
+#define 	GMAC2_RXQCONTROL_RXQ_DATA_BUF_TH_SHIFT	0
+#define 	GMAC2_RXQCONTROL_RXQ_DATA_BUF_TH_MASK	0xffff    
+#define 	GMAC2_RXQCONTROL_MAC_DATA_PERIOD_SHIFT	24
+#define 	GMAC2_RXQCONTROL_MAC_DATA_PERIOD_MASK	0x3f000000
+#define 	GMAC2_RXQCONTROL_RXQ_PERF_TEST_EN_SHIFT	30
+#define 	GMAC2_RXQCONTROL_RXQ_PERF_TEST_EN_MASK	0x40000000
+
+/*  gmac2_gpioselect offset0x194  */
+#define 	GMAC2_GPIOSELECT_GPIO_SELECT_SHIFT	0
+#define 	GMAC2_GPIOSELECT_GPIO_SELECT_MASK	0xf       
+
+/*  gmac2_gpiooutputen offset0x198  */
+#define 	GMAC2_GPIOOUTPUTEN_GPIO_OE_SHIFT	0
+#define 	GMAC2_GPIOOUTPUTEN_GPIO_OE_MASK	0xffff    
+
+/*  gmac2_txqrxqmemorycontrol offset0x1a0  */
+#define 	GMAC2_TXQRXQMEMORYCONTROL_RXQ_MEM_TM_REG_SHIFT	0
+#define 	GMAC2_TXQRXQMEMORYCONTROL_RXQ_MEM_TM_REG_MASK	0x1f      
+#define 	GMAC2_TXQRXQMEMORYCONTROL_RXQ_MEM_DISABLE_ECC_SHIFT	5
+#define 	GMAC2_TXQRXQMEMORYCONTROL_RXQ_MEM_DISABLE_ECC_MASK	0x20      
+#define 	GMAC2_TXQRXQMEMORYCONTROL_RXQ_MEM_ECC_CORRUPT_SHIFT	6
+#define 	GMAC2_TXQRXQMEMORYCONTROL_RXQ_MEM_ECC_CORRUPT_MASK	0xc0      
+#define 	GMAC2_TXQRXQMEMORYCONTROL_TXQ_MEM_TM_REG_SHIFT	16
+#define 	GMAC2_TXQRXQMEMORYCONTROL_TXQ_MEM_TM_REG_MASK	0x1f0000  
+#define 	GMAC2_TXQRXQMEMORYCONTROL_TXQ_MEM_DISABLE_ECC_SHIFT	21
+#define 	GMAC2_TXQRXQMEMORYCONTROL_TXQ_MEM_DISABLE_ECC_MASK	0x200000  
+#define 	GMAC2_TXQRXQMEMORYCONTROL_TXQ_MEM_ECC_CORRUPT_SHIFT	22
+#define 	GMAC2_TXQRXQMEMORYCONTROL_TXQ_MEM_ECC_CORRUPT_MASK	0xc00000  
+
+/*  gmac2_memoryeccstatus offset0x1a4  */
+#define 	GMAC2_MEMORYECCSTATUS_RXQ_ECC_ERROR_ADDRESS_SHIFT	0
+#define 	GMAC2_MEMORYECCSTATUS_RXQ_ECC_ERROR_ADDRESS_MASK	0xffff    
+#define 	GMAC2_MEMORYECCSTATUS_TXQ_ECC_ERROR_ADDRESS_SHIFT	16
+#define 	GMAC2_MEMORYECCSTATUS_TXQ_ECC_ERROR_ADDRESS_MASK	0xffff0000
+
+/*  gmac2_clockcontrolstatus offset0x1e0  */
+#define 	GMAC2_CLOCKCONTROLSTATUS_FORCEALPREQUEST_SHIFT	0
+#define 	GMAC2_CLOCKCONTROLSTATUS_FORCEALPREQUEST_MASK	0x1       
+#define 	GMAC2_CLOCKCONTROLSTATUS_FORCEHTREQUEST_SHIFT	1
+#define 	GMAC2_CLOCKCONTROLSTATUS_FORCEHTREQUEST_MASK	0x2       
+#define 	GMAC2_CLOCKCONTROLSTATUS_FORCEILPREQUEST_SHIFT	2
+#define 	GMAC2_CLOCKCONTROLSTATUS_FORCEILPREQUEST_MASK	0x4       
+#define 	GMAC2_CLOCKCONTROLSTATUS_ALPAVAILREQUEST_SHIFT	3
+#define 	GMAC2_CLOCKCONTROLSTATUS_ALPAVAILREQUEST_MASK	0x8       
+#define 	GMAC2_CLOCKCONTROLSTATUS_HTAVAILREQUEST_SHIFT	4
+#define 	GMAC2_CLOCKCONTROLSTATUS_HTAVAILREQUEST_MASK	0x10      
+#define 	GMAC2_CLOCKCONTROLSTATUS_FORCEHWCLOCKREQOFF_SHIFT	5
+#define 	GMAC2_CLOCKCONTROLSTATUS_FORCEHWCLOCKREQOFF_MASK	0x20      
+#define 	GMAC2_CLOCKCONTROLSTATUS_EXTRSRCREQ_SHIFT	8
+#define 	GMAC2_CLOCKCONTROLSTATUS_EXTRSRCREQ_MASK	0x100     
+#define 	GMAC2_CLOCKCONTROLSTATUS_ALPCLOCKAVAILABLE_SHIFT	16
+#define 	GMAC2_CLOCKCONTROLSTATUS_ALPCLOCKAVAILABLE_MASK	0x10000   
+#define 	GMAC2_CLOCKCONTROLSTATUS_HTCLOCKAVAILABLE_SHIFT	17
+#define 	GMAC2_CLOCKCONTROLSTATUS_HTCLOCKAVAILABLE_MASK	0x20000   
+#define 	GMAC2_CLOCKCONTROLSTATUS_BPONALP_SHIFT	18
+#define 	GMAC2_CLOCKCONTROLSTATUS_BPONALP_MASK	0x40000   
+#define 	GMAC2_CLOCKCONTROLSTATUS_BPONHT_SHIFT	19
+#define 	GMAC2_CLOCKCONTROLSTATUS_BPONHT_MASK	0x80000   
+#define 	GMAC2_CLOCKCONTROLSTATUS_EXTRSRCSTATUS_SHIFT	24
+#define 	GMAC2_CLOCKCONTROLSTATUS_EXTRSRCSTATUS_MASK	0x1000000 
+
+/*  gmac2_powercontrol offset0x1e8  */
+#define 	GMAC2_POWERCONTROL_POWER_CNTL_SHIFT	0
+#define 	GMAC2_POWERCONTROL_POWER_CNTL_MASK	0xf       
+
+/*  gmac2_xmtcontrol_0 offset0x200  */
+#define 	GMAC2_XMTCONTROL_0_XMTEN_0_SHIFT	0
+#define 	GMAC2_XMTCONTROL_0_XMTEN_0_MASK	0x1       
+#define 	GMAC2_XMTCONTROL_0_TXSUSPEND_0_SHIFT	1
+#define 	GMAC2_XMTCONTROL_0_TXSUSPEND_0_MASK	0x2       
+#define 	GMAC2_XMTCONTROL_0_DMA_LOOPBACK_MODE_SHIFT	2
+#define 	GMAC2_XMTCONTROL_0_DMA_LOOPBACK_MODE_MASK	0x4       
+#define 	GMAC2_XMTCONTROL_0_BURSTALIGNEN_0_SHIFT	5
+#define 	GMAC2_XMTCONTROL_0_BURSTALIGNEN_0_MASK	0x20      
+#define 	GMAC2_XMTCONTROL_0_MULTIPLEOUTSTANDINGREADS_SHIFT	6
+#define 	GMAC2_XMTCONTROL_0_MULTIPLEOUTSTANDINGREADS_MASK	0xc0      
+#define 	GMAC2_XMTCONTROL_0_TXPARITYCHECKDISABLE_0_SHIFT	11
+#define 	GMAC2_XMTCONTROL_0_TXPARITYCHECKDISABLE_0_MASK	0x800     
+#define 	GMAC2_XMTCONTROL_0_SELECTBUFFERACTIVEINDEX_SHIFT	13
+#define 	GMAC2_XMTCONTROL_0_SELECTBUFFERACTIVEINDEX_MASK	0x2000    
+#define 	GMAC2_XMTCONTROL_0_ADDREXT_0_SHIFT	16
+#define 	GMAC2_XMTCONTROL_0_ADDREXT_0_MASK	0x30000   
+#define 	GMAC2_XMTCONTROL_0_BURSTLEN_0_SHIFT	18
+#define 	GMAC2_XMTCONTROL_0_BURSTLEN_0_MASK	0x1c0000  
+#define 	GMAC2_XMTCONTROL_0_PREFETCHCTL_SHIFT	21
+#define 	GMAC2_XMTCONTROL_0_PREFETCHCTL_MASK	0xe00000  
+#define 	GMAC2_XMTCONTROL_0_PREFETCHTHRESH_SHIFT	24
+#define 	GMAC2_XMTCONTROL_0_PREFETCHTHRESH_MASK	0x3000000 
+
+/*  gmac2_xmtptr_0 offset0x204  */
+#define 	GMAC2_XMTPTR_0_LASTDSCR_0_SHIFT	0
+#define 	GMAC2_XMTPTR_0_LASTDSCR_0_MASK	0x1fff    
+
+/*  gmac2_xmtaddr_low_0 offset0x208  */
+#define 	GMAC2_XMTADDR_LOW_0_RESERVED_SHIFT	0
+#define 	GMAC2_XMTADDR_LOW_0_RESERVED_MASK	0xf       
+#define 	GMAC2_XMTADDR_LOW_0_XMTADDR_LOW_0_SHIFT	4
+#define 	GMAC2_XMTADDR_LOW_0_XMTADDR_LOW_0_MASK	0xfffffff0
+
+/*  gmac2_xmtaddr_high_0 offset0x20c  */
+#define 	GMAC2_XMTADDR_HIGH_0_XMTADDR_HIGH_0_SHIFT	0
+#define 	GMAC2_XMTADDR_HIGH_0_XMTADDR_HIGH_0_MASK	0xffffffff
+
+/*  gmac2_xmtstatus0_0 offset0x210  */
+#define 	GMAC2_XMTSTATUS0_0_CURRDSCR_0_SHIFT	0
+#define 	GMAC2_XMTSTATUS0_0_CURRDSCR_0_MASK	0x1fff    
+#define 	GMAC2_XMTSTATUS0_0_XMTSTATE_0_SHIFT	28
+#define 	GMAC2_XMTSTATUS0_0_XMTSTATE_0_MASK	0xf0000000
+
+/*  gmac2_xmtstatus1_0 offset0x214  */
+#define 	GMAC2_XMTSTATUS1_0_ACTIVEDESCR_0_SHIFT	0
+#define 	GMAC2_XMTSTATUS1_0_ACTIVEDESCR_0_MASK	0x1fff    
+#define 	GMAC2_XMTSTATUS1_0_XMTERR_0_SHIFT	28
+#define 	GMAC2_XMTSTATUS1_0_XMTERR_0_MASK	0xf0000000
+
+/*  gmac2_rcvcontrol offset0x220  */
+#define 	GMAC2_RCVCONTROL_REVEN_SHIFT	0
+#define 	GMAC2_RCVCONTROL_REVEN_MASK	0x1       
+#define 	GMAC2_RCVCONTROL_RCVOFFSET_SHIFT	1
+#define 	GMAC2_RCVCONTROL_RCVOFFSET_MASK	0xfe      
+#define 	GMAC2_RCVCONTROL_SEPRXHDRDESCEN_SHIFT	9
+#define 	GMAC2_RCVCONTROL_SEPRXHDRDESCEN_MASK	0x200     
+#define 	GMAC2_RCVCONTROL_OFLOWCONTINUE_SHIFT	10
+#define 	GMAC2_RCVCONTROL_OFLOWCONTINUE_MASK	0x400     
+#define 	GMAC2_RCVCONTROL_RXPARITYCHECKDISABLE_SHIFT	11
+#define 	GMAC2_RCVCONTROL_RXPARITYCHECKDISABLE_MASK	0x800     
+#define 	GMAC2_RCVCONTROL_WAITFORCOMPLETE_SHIFT	12
+#define 	GMAC2_RCVCONTROL_WAITFORCOMPLETE_MASK	0x1000    
+#define 	GMAC2_RCVCONTROL_SELECTBUFFERACTIVEINDEX_SHIFT	13
+#define 	GMAC2_RCVCONTROL_SELECTBUFFERACTIVEINDEX_MASK	0x2000    
+#define 	GMAC2_RCVCONTROL_ADDREXT_SHIFT	16
+#define 	GMAC2_RCVCONTROL_ADDREXT_MASK	0x30000   
+#define 	GMAC2_RCVCONTROL_BURSTLEN_SHIFT	18
+#define 	GMAC2_RCVCONTROL_BURSTLEN_MASK	0x1c0000  
+#define 	GMAC2_RCVCONTROL_PREFETCHCTL_SHIFT	21
+#define 	GMAC2_RCVCONTROL_PREFETCHCTL_MASK	0xe00000  
+#define 	GMAC2_RCVCONTROL_PREFETCHTHRESH_SHIFT	24
+#define 	GMAC2_RCVCONTROL_PREFETCHTHRESH_MASK	0x3000000 
+
+/*  gmac2_rcvptr offset0x224  */
+#define 	GMAC2_RCVPTR_RCVPTR_SHIFT	0
+#define 	GMAC2_RCVPTR_RCVPTR_MASK	0x1fff    
+
+/*  gmac2_rcvaddr_low offset0x228  */
+#define 	GMAC2_RCVADDR_LOW_RESERVED_SHIFT	0
+#define 	GMAC2_RCVADDR_LOW_RESERVED_MASK	0xf       
+#define 	GMAC2_RCVADDR_LOW_RCVADDR_LOW_SHIFT	4
+#define 	GMAC2_RCVADDR_LOW_RCVADDR_LOW_MASK	0xfffffff0
+
+/*  gmac2_rcvaddr_high offset0x22c  */
+#define 	GMAC2_RCVADDR_HIGH_RCVADDR_HIGH_SHIFT	0
+#define 	GMAC2_RCVADDR_HIGH_RCVADDR_HIGH_MASK	0xffffffff
+
+/*  gmac2_rcvstatus0 offset0x230  */
+#define 	GMAC2_RCVSTATUS0_CURRDSCR_SHIFT	0
+#define 	GMAC2_RCVSTATUS0_CURRDSCR_MASK	0x1fff    
+#define 	GMAC2_RCVSTATUS0_RCVSTATE_SHIFT	28
+#define 	GMAC2_RCVSTATUS0_RCVSTATE_MASK	0xf0000000
+
+/*  gmac2_rcvstatus1 offset0x234  */
+#define 	GMAC2_RCVSTATUS1_ACTIVEDESCR_SHIFT	0
+#define 	GMAC2_RCVSTATUS1_ACTIVEDESCR_MASK	0x1fff    
+#define 	GMAC2_RCVSTATUS1_RCVERR_SHIFT	28
+#define 	GMAC2_RCVSTATUS1_RCVERR_MASK	0xf0000000
+
+/*  gmac2_tx_gd_octets_lo offset0x300  */
+#define 	GMAC2_TX_GD_OCTETS_LO_TX_GD_OCTETS_LO_SHIFT	0
+#define 	GMAC2_TX_GD_OCTETS_LO_TX_GD_OCTETS_LO_MASK	0xffffffff
+
+/*  gmac2_tx_gd_octets_hi offset0x304  */
+#define 	GMAC2_TX_GD_OCTETS_HI_TX_GD_OCTETS_HI_SHIFT	0
+#define 	GMAC2_TX_GD_OCTETS_HI_TX_GD_OCTETS_HI_MASK	0xffffffff
+
+/*  gmac2_tx_gd_pkts offset0x308  */
+#define 	GMAC2_TX_GD_PKTS_TX_GD_PKTS_SHIFT	0
+#define 	GMAC2_TX_GD_PKTS_TX_GD_PKTS_MASK	0xffffffff
+
+/*  gmac2_tx_all_octets_lo offset0x30c  */
+#define 	GMAC2_TX_ALL_OCTETS_LO_TX_ALL_OCTETS_LO_SHIFT	0
+#define 	GMAC2_TX_ALL_OCTETS_LO_TX_ALL_OCTETS_LO_MASK	0xffffffff
+
+/*  gmac2_tx_all_octets_hi offset0x310  */
+#define 	GMAC2_TX_ALL_OCTETS_HI_TX_ALL_OCTETS_HI_SHIFT	0
+#define 	GMAC2_TX_ALL_OCTETS_HI_TX_ALL_OCTETS_HI_MASK	0xffffffff
+
+/*  gmac2_tx_all_pkts offset0x314  */
+#define 	GMAC2_TX_ALL_PKTS_TX_ALL_PKTS_SHIFT	0
+#define 	GMAC2_TX_ALL_PKTS_TX_ALL_PKTS_MASK	0xffffffff
+
+/*  gmac2_tx_brdcast offset0x318  */
+#define 	GMAC2_TX_BRDCAST_TX_BRDCAST_SHIFT	0
+#define 	GMAC2_TX_BRDCAST_TX_BRDCAST_MASK	0xffffffff
+
+/*  gmac2_tx_mult offset0x31c  */
+#define 	GMAC2_TX_MULT_TX_MULT_SHIFT	0
+#define 	GMAC2_TX_MULT_TX_MULT_MASK	0xffffffff
+
+/*  gmac2_tx_64 offset0x320  */
+#define 	GMAC2_TX_64_TX_64_SHIFT	0
+#define 	GMAC2_TX_64_TX_64_MASK	0xffffffff
+
+/*  gmac2_tx_65_127 offset0x324  */
+#define 	GMAC2_TX_65_127_TX_65_127_SHIFT	0
+#define 	GMAC2_TX_65_127_TX_65_127_MASK	0xffffffff
+
+/*  gmac2_tx_128_255 offset0x328  */
+#define 	GMAC2_TX_128_255_TX_128_255_SHIFT	0
+#define 	GMAC2_TX_128_255_TX_128_255_MASK	0xffffffff
+
+/*  gmac2_tx_256_511 offset0x32c  */
+#define 	GMAC2_TX_256_511_TX_256_511_SHIFT	0
+#define 	GMAC2_TX_256_511_TX_256_511_MASK	0xffffffff
+
+/*  gmac2_tx_512_1023 offset0x330  */
+#define 	GMAC2_TX_512_1023_TX_512_1023_SHIFT	0
+#define 	GMAC2_TX_512_1023_TX_512_1023_MASK	0xffffffff
+
+/*  gmac2_tx_1024_1522 offset0x334  */
+#define 	GMAC2_TX_1024_1522_TX_1024_1522_SHIFT	0
+#define 	GMAC2_TX_1024_1522_TX_1024_1522_MASK	0xffffffff
+
+/*  gmac2_tx_1523_2047 offset0x338  */
+#define 	GMAC2_TX_1523_2047_TX_1523_2047_SHIFT	0
+#define 	GMAC2_TX_1523_2047_TX_1523_2047_MASK	0xffffffff
+
+/*  gmac2_tx_2048_4095 offset0x33c  */
+#define 	GMAC2_TX_2048_4095_TX_2048_4095_SHIFT	0
+#define 	GMAC2_TX_2048_4095_TX_2048_4095_MASK	0xffffffff
+
+/*  gmac2_tx_4096_8191 offset0x340  */
+#define 	GMAC2_TX_4096_8191_TX_4096_8191_SHIFT	0
+#define 	GMAC2_TX_4096_8191_TX_4096_8191_MASK	0xffffffff
+
+/*  gmac2_tx_8192_max offset0x344  */
+#define 	GMAC2_TX_8192_MAX_TX_8192_MAX_SHIFT	0
+#define 	GMAC2_TX_8192_MAX_TX_8192_MAX_MASK	0xffffffff
+
+/*  gmac2_tx_jab offset0x348  */
+#define 	GMAC2_TX_JAB_TX_JAB_SHIFT	0
+#define 	GMAC2_TX_JAB_TX_JAB_MASK	0xffffffff
+
+/*  gmac2_tx_over offset0x34c  */
+#define 	GMAC2_TX_OVER_TX_OVER_SHIFT	0
+#define 	GMAC2_TX_OVER_TX_OVER_MASK	0xffffffff
+
+/*  gmac2_tx_frag offset0x350  */
+#define 	GMAC2_TX_FRAG_TX_FRAG_SHIFT	0
+#define 	GMAC2_TX_FRAG_TX_FRAG_MASK	0xffffffff
+
+/*  gmac2_tx_underrun offset0x354  */
+#define 	GMAC2_TX_UNDERRUN_TX_UNDERRUN_SHIFT	0
+#define 	GMAC2_TX_UNDERRUN_TX_UNDERRUN_MASK	0xffffffff
+
+/*  gmac2_tx_col offset0x358  */
+#define 	GMAC2_TX_COL_TX_COL_SHIFT	0
+#define 	GMAC2_TX_COL_TX_COL_MASK	0xffffffff
+
+/*  gmac2_tx_1_col offset0x35c  */
+#define 	GMAC2_TX_1_COL_TX_1_COL_SHIFT	0
+#define 	GMAC2_TX_1_COL_TX_1_COL_MASK	0xffffffff
+
+/*  gmac2_tx_m_col offset0x360  */
+#define 	GMAC2_TX_M_COL_TX_M_COL_SHIFT	0
+#define 	GMAC2_TX_M_COL_TX_M_COL_MASK	0xffffffff
+
+/*  gmac2_tx_ex_col offset0x364  */
+#define 	GMAC2_TX_EX_COL_TX_EX_COL_SHIFT	0
+#define 	GMAC2_TX_EX_COL_TX_EX_COL_MASK	0xffffffff
+
+/*  gmac2_tx_late offset0x368  */
+#define 	GMAC2_TX_LATE_TX_LATE_SHIFT	0
+#define 	GMAC2_TX_LATE_TX_LATE_MASK	0xffffffff
+
+/*  gmac2_tx_def offset0x36c  */
+#define 	GMAC2_TX_DEF_TX_DEF_SHIFT	0
+#define 	GMAC2_TX_DEF_TX_DEF_MASK	0xffffffff
+
+/*  gmac2_tx_crs offset0x370  */
+#define 	GMAC2_TX_CRS_TX_CRS_SHIFT	0
+#define 	GMAC2_TX_CRS_TX_CRS_MASK	0xffffffff
+
+/*  gmac2_tx_paus offset0x374  */
+#define 	GMAC2_TX_PAUS_TX_PAUS_SHIFT	0
+#define 	GMAC2_TX_PAUS_TX_PAUS_MASK	0xffffffff
+
+/*  gmac2_txunicastpkt offset0x378  */
+#define 	GMAC2_TXUNICASTPKT_TXUNICASTPKT_SHIFT	0
+#define 	GMAC2_TXUNICASTPKT_TXUNICASTPKT_MASK	0xffffffff
+
+/*  gmac2_txqosq0pkt offset0x37c  */
+#define 	GMAC2_TXQOSQ0PKT_TXQOSQ0PKT_SHIFT	0
+#define 	GMAC2_TXQOSQ0PKT_TXQOSQ0PKT_MASK	0xffffffff
+
+/*  gmac2_txqosq0octet_lo offset0x380  */
+#define 	GMAC2_TXQOSQ0OCTET_LO_TXQOSQ0OCTET_LO_SHIFT	0
+#define 	GMAC2_TXQOSQ0OCTET_LO_TXQOSQ0OCTET_LO_MASK	0xffffffff
+
+/*  gmac2_txqosq0octet_hi offset0x384  */
+#define 	GMAC2_TXQOSQ0OCTET_HI_TXQOSQ0OCTET_HI_SHIFT	0
+#define 	GMAC2_TXQOSQ0OCTET_HI_TXQOSQ0OCTET_HI_MASK	0xffffffff
+
+/*  gmac2_txqosq1pkt offset0x388  */
+#define 	GMAC2_TXQOSQ1PKT_TXQOSQ1PKT_SHIFT	0
+#define 	GMAC2_TXQOSQ1PKT_TXQOSQ1PKT_MASK	0xffffffff
+
+/*  gmac2_txqosq1octet_lo offset0x38c  */
+#define 	GMAC2_TXQOSQ1OCTET_LO_TXQOSQ1OCTET_LO_SHIFT	0
+#define 	GMAC2_TXQOSQ1OCTET_LO_TXQOSQ1OCTET_LO_MASK	0xffffffff
+
+/*  gmac2_txqosq1octet_hi offset0x390  */
+#define 	GMAC2_TXQOSQ1OCTET_HI_TXQOSQ1OCTET_HI_SHIFT	0
+#define 	GMAC2_TXQOSQ1OCTET_HI_TXQOSQ1OCTET_HI_MASK	0xffffffff
+
+/*  gmac2_txqosq2pkt offset0x394  */
+#define 	GMAC2_TXQOSQ2PKT_TXQOSQ2PKT_SHIFT	0
+#define 	GMAC2_TXQOSQ2PKT_TXQOSQ2PKT_MASK	0xffffffff
+
+/*  gmac2_txqosq2octet_lo offset0x398  */
+#define 	GMAC2_TXQOSQ2OCTET_LO_TXQOSQ2OCTET_LO_SHIFT	0
+#define 	GMAC2_TXQOSQ2OCTET_LO_TXQOSQ2OCTET_LO_MASK	0xffffffff
+
+/*  gmac2_txqosq2octet_hi offset0x39c  */
+#define 	GMAC2_TXQOSQ2OCTET_HI_TXQOSQ2OCTET_HI_SHIFT	0
+#define 	GMAC2_TXQOSQ2OCTET_HI_TXQOSQ2OCTET_HI_MASK	0xffffffff
+
+/*  gmac2_txqosq3pkt offset0x3a0  */
+#define 	GMAC2_TXQOSQ3PKT_TXQOSQ3PKT_SHIFT	0
+#define 	GMAC2_TXQOSQ3PKT_TXQOSQ3PKT_MASK	0xffffffff
+
+/*  gmac2_txqosq3octet_lo offset0x3a4  */
+#define 	GMAC2_TXQOSQ3OCTET_LO_TXQOSQ3OCTET_LO_SHIFT	0
+#define 	GMAC2_TXQOSQ3OCTET_LO_TXQOSQ3OCTET_LO_MASK	0xffffffff
+
+/*  gmac2_txqosq3octet_hi offset0x3a8  */
+#define 	GMAC2_TXQOSQ3OCTET_HI_TXQOSQ3OCTET_HI_SHIFT	0
+#define 	GMAC2_TXQOSQ3OCTET_HI_TXQOSQ3OCTET_HI_MASK	0xffffffff
+
+/*  gmac2_rx_gd_octets_lo offset0x3b0  */
+#define 	GMAC2_RX_GD_OCTETS_LO_RX_GD_OCTETS_LO_SHIFT	0
+#define 	GMAC2_RX_GD_OCTETS_LO_RX_GD_OCTETS_LO_MASK	0xffffffff
+
+/*  gmac2_rx_gd_octets_hi offset0x3b4  */
+#define 	GMAC2_RX_GD_OCTETS_HI_RX_GD_OCTETS_HI_SHIFT	0
+#define 	GMAC2_RX_GD_OCTETS_HI_RX_GD_OCTETS_HI_MASK	0xffffffff
+
+/*  gmac2_rx_gd_pkts offset0x3b8  */
+#define 	GMAC2_RX_GD_PKTS_RX_GD_PKTS_SHIFT	0
+#define 	GMAC2_RX_GD_PKTS_RX_GD_PKTS_MASK	0xffffffff
+
+/*  gmac2_rx_all_octets_lo offset0x3bc  */
+#define 	GMAC2_RX_ALL_OCTETS_LO_RX_ALL_OCTETS_LO_SHIFT	0
+#define 	GMAC2_RX_ALL_OCTETS_LO_RX_ALL_OCTETS_LO_MASK	0xffffffff
+
+/*  gmac2_rx_all_octets_hi offset0x3c0  */
+#define 	GMAC2_RX_ALL_OCTETS_HI_RX_ALL_OCTETS_HI_SHIFT	0
+#define 	GMAC2_RX_ALL_OCTETS_HI_RX_ALL_OCTETS_HI_MASK	0xffffffff
+
+/*  gmac2_rx_all_pkts offset0x3c4  */
+#define 	GMAC2_RX_ALL_PKTS_RX_ALL_PKTS_SHIFT	0
+#define 	GMAC2_RX_ALL_PKTS_RX_ALL_PKTS_MASK	0xffffffff
+
+/*  gmac2_rx_brdcast offset0x3c8  */
+#define 	GMAC2_RX_BRDCAST_RX_BRDCAST_SHIFT	0
+#define 	GMAC2_RX_BRDCAST_RX_BRDCAST_MASK	0xffffffff
+
+/*  gmac2_rx_mult offset0x3cc  */
+#define 	GMAC2_RX_MULT_RX_MULT_SHIFT	0
+#define 	GMAC2_RX_MULT_RX_MULT_MASK	0xffffffff
+
+/*  gmac2_rx_64 offset0x3d0  */
+#define 	GMAC2_RX_64_RX_64_SHIFT	0
+#define 	GMAC2_RX_64_RX_64_MASK	0xffffffff
+
+/*  gmac2_rx_65_127 offset0x3d4  */
+#define 	GMAC2_RX_65_127_RX_65_127_SHIFT	0
+#define 	GMAC2_RX_65_127_RX_65_127_MASK	0xffffffff
+
+/*  gmac2_rx_128_255 offset0x3d8  */
+#define 	GMAC2_RX_128_255_RX_128_255_SHIFT	0
+#define 	GMAC2_RX_128_255_RX_128_255_MASK	0xffffffff
+
+/*  gmac2_rx_256_511 offset0x3dc  */
+#define 	GMAC2_RX_256_511_RX_256_511_SHIFT	0
+#define 	GMAC2_RX_256_511_RX_256_511_MASK	0xffffffff
+
+/*  gmac2_rx_512_1023 offset0x3e0  */
+#define 	GMAC2_RX_512_1023_RX_512_1023_SHIFT	0
+#define 	GMAC2_RX_512_1023_RX_512_1023_MASK	0xffffffff
+
+/*  gmac2_rx_1024_1522 offset0x3e4  */
+#define 	GMAC2_RX_1024_1522_RX_1024_1522_SHIFT	0
+#define 	GMAC2_RX_1024_1522_RX_1024_1522_MASK	0xffffffff
+
+/*  gmac2_rx_1523_2047 offset0x3e8  */
+#define 	GMAC2_RX_1523_2047_RX_1523_2047_SHIFT	0
+#define 	GMAC2_RX_1523_2047_RX_1523_2047_MASK	0xffffffff
+
+/*  gmac2_rx_2048_4095 offset0x3ec  */
+#define 	GMAC2_RX_2048_4095_RX_2048_4095_SHIFT	0
+#define 	GMAC2_RX_2048_4095_RX_2048_4095_MASK	0xffffffff
+
+/*  gmac2_rx_4096_8191 offset0x3f0  */
+#define 	GMAC2_RX_4096_8191_RX_4096_8191_SHIFT	0
+#define 	GMAC2_RX_4096_8191_RX_4096_8191_MASK	0xffffffff
+
+/*  gmac2_rx_8192_max offset0x3f4  */
+#define 	GMAC2_RX_8192_MAX_RX_8192_MAX_SHIFT	0
+#define 	GMAC2_RX_8192_MAX_RX_8192_MAX_MASK	0xffffffff
+
+/*  gmac2_rx_jab offset0x3f8  */
+#define 	GMAC2_RX_JAB_RX_JAB_SHIFT	0
+#define 	GMAC2_RX_JAB_RX_JAB_MASK	0xffffffff
+
+/*  gmac2_rx_ovr offset0x3fc  */
+#define 	GMAC2_RX_OVR_RX_OVR_SHIFT	0
+#define 	GMAC2_RX_OVR_RX_OVR_MASK	0xffffffff
+
+/*  gmac2_rx_frag offset0x400  */
+#define 	GMAC2_RX_FRAG_RX_FRAG_SHIFT	0
+#define 	GMAC2_RX_FRAG_RX_FRAG_MASK	0xffffffff
+
+/*  gmac2_rx_drop offset0x404  */
+#define 	GMAC2_RX_DROP_RX_DROP_SHIFT	0
+#define 	GMAC2_RX_DROP_RX_DROP_MASK	0xffffffff
+
+/*  gmac2_rx_crc_align offset0x408  */
+#define 	GMAC2_RX_CRC_ALIGN_RX_CRC_ALIGN_SHIFT	0
+#define 	GMAC2_RX_CRC_ALIGN_RX_CRC_ALIGN_MASK	0xffffffff
+
+/*  gmac2_rx_und offset0x40c  */
+#define 	GMAC2_RX_UND_RX_UND_SHIFT	0
+#define 	GMAC2_RX_UND_RX_UND_MASK	0xffffffff
+
+/*  gmac2_rx_crc offset0x410  */
+#define 	GMAC2_RX_CRC_RX_CRC_SHIFT	0
+#define 	GMAC2_RX_CRC_RX_CRC_MASK	0xffffffff
+
+/*  gmac2_rx_align offset0x414  */
+#define 	GMAC2_RX_ALIGN_RX_ALIGN_SHIFT	0
+#define 	GMAC2_RX_ALIGN_RX_ALIGN_MASK	0xffffffff
+
+/*  gmac2_rx_sym offset0x418  */
+#define 	GMAC2_RX_SYM_RX_SYM_SHIFT	0
+#define 	GMAC2_RX_SYM_RX_SYM_MASK	0xffffffff
+
+/*  gmac2_rx_paus offset0x41c  */
+#define 	GMAC2_RX_PAUS_RX_PAUS_SHIFT	0
+#define 	GMAC2_RX_PAUS_RX_PAUS_MASK	0xffffffff
+
+/*  gmac2_rx_cntrl offset0x420  */
+#define 	GMAC2_RX_CNTRL_RX_CNTRL_SHIFT	0
+#define 	GMAC2_RX_CNTRL_RX_CNTRL_MASK	0xffffffff
+
+/*  gmac2_rxsachanges offset0x424  */
+#define 	GMAC2_RXSACHANGES_RXSACHANGES_SHIFT	0
+#define 	GMAC2_RXSACHANGES_RXSACHANGES_MASK	0xffffffff
+
+/*  gmac2_rxunicastpkts offset0x428  */
+#define 	GMAC2_RXUNICASTPKTS_RXUNICASTPKTS_SHIFT	0
+#define 	GMAC2_RXUNICASTPKTS_RXUNICASTPKTS_MASK	0xffffffff
+
+/*  unimac2_ipg_hd_bkp_cntl offset0x804  */
+#define 	UNIMAC2_IPG_HD_BKP_CNTL_HD_FC_ENA_SHIFT	0
+#define 	UNIMAC2_IPG_HD_BKP_CNTL_HD_FC_ENA_MASK	0x1       
+#define 	UNIMAC2_IPG_HD_BKP_CNTL_HD_FC_BKOFF_OK_SHIFT	1
+#define 	UNIMAC2_IPG_HD_BKP_CNTL_HD_FC_BKOFF_OK_MASK	0x2       
+#define 	UNIMAC2_IPG_HD_BKP_CNTL_IPG_CONFIG_RX_SHIFT	2
+#define 	UNIMAC2_IPG_HD_BKP_CNTL_IPG_CONFIG_RX_MASK	0x7c      
+
+/*  unimac2_command_config offset0x808  */
+#define 	UNIMAC2_COMMAND_CONFIG_TX_ENA_SHIFT	0
+#define 	UNIMAC2_COMMAND_CONFIG_TX_ENA_MASK	0x1       
+#define 	UNIMAC2_COMMAND_CONFIG_RX_ENA_SHIFT	1
+#define 	UNIMAC2_COMMAND_CONFIG_RX_ENA_MASK	0x2       
+#define 	UNIMAC2_COMMAND_CONFIG_ETH_SPEED_SHIFT	2
+#define 	UNIMAC2_COMMAND_CONFIG_ETH_SPEED_MASK	0xc       
+#define 	UNIMAC2_COMMAND_CONFIG_PROMIS_EN_SHIFT	4
+#define 	UNIMAC2_COMMAND_CONFIG_PROMIS_EN_MASK	0x10      
+#define 	UNIMAC2_COMMAND_CONFIG_PAD_EN_SHIFT	5
+#define 	UNIMAC2_COMMAND_CONFIG_PAD_EN_MASK	0x20      
+#define 	UNIMAC2_COMMAND_CONFIG_CRC_FWD_SHIFT	6
+#define 	UNIMAC2_COMMAND_CONFIG_CRC_FWD_MASK	0x40      
+#define 	UNIMAC2_COMMAND_CONFIG_PAUSE_FWD_SHIFT	7
+#define 	UNIMAC2_COMMAND_CONFIG_PAUSE_FWD_MASK	0x80      
+#define 	UNIMAC2_COMMAND_CONFIG_PAUSE_IGNORE_SHIFT	8
+#define 	UNIMAC2_COMMAND_CONFIG_PAUSE_IGNORE_MASK	0x100     
+#define 	UNIMAC2_COMMAND_CONFIG_TX_ADDR_INS_SHIFT	9
+#define 	UNIMAC2_COMMAND_CONFIG_TX_ADDR_INS_MASK	0x200     
+#define 	UNIMAC2_COMMAND_CONFIG_HD_ENA_SHIFT	10
+#define 	UNIMAC2_COMMAND_CONFIG_HD_ENA_MASK	0x400     
+#define 	UNIMAC2_COMMAND_CONFIG_RX_LOW_LATENCY_EN_SHIFT	11
+#define 	UNIMAC2_COMMAND_CONFIG_RX_LOW_LATENCY_EN_MASK	0x800     
+#define 	UNIMAC2_COMMAND_CONFIG_OVERFLOW_EN_SHIFT	12
+#define 	UNIMAC2_COMMAND_CONFIG_OVERFLOW_EN_MASK	0x1000    
+#define 	UNIMAC2_COMMAND_CONFIG_SW_RESET_SHIFT	13
+#define 	UNIMAC2_COMMAND_CONFIG_SW_RESET_MASK	0x2000    
+#define 	UNIMAC2_COMMAND_CONFIG_FCS_CORRUPT_URUN_EN_SHIFT	14
+#define 	UNIMAC2_COMMAND_CONFIG_FCS_CORRUPT_URUN_EN_MASK	0x4000    
+#define 	UNIMAC2_COMMAND_CONFIG_LOOP_ENA_SHIFT	15
+#define 	UNIMAC2_COMMAND_CONFIG_LOOP_ENA_MASK	0x8000    
+#define 	UNIMAC2_COMMAND_CONFIG_MAC_LOOP_CON_SHIFT	16
+#define 	UNIMAC2_COMMAND_CONFIG_MAC_LOOP_CON_MASK	0x10000   
+#define 	UNIMAC2_COMMAND_CONFIG_SW_OVERRIDE_TX_SHIFT	17
+#define 	UNIMAC2_COMMAND_CONFIG_SW_OVERRIDE_TX_MASK	0x20000   
+#define 	UNIMAC2_COMMAND_CONFIG_SW_OVERRIDE_RX_SHIFT	18
+#define 	UNIMAC2_COMMAND_CONFIG_SW_OVERRIDE_RX_MASK	0x40000   
+#define 	UNIMAC2_COMMAND_CONFIG_EN_INTERNAL_TX_CRS_SHIFT	21
+#define 	UNIMAC2_COMMAND_CONFIG_EN_INTERNAL_TX_CRS_MASK	0x200000  
+#define 	UNIMAC2_COMMAND_CONFIG_ENA_EXT_CONFIG_SHIFT	22
+#define 	UNIMAC2_COMMAND_CONFIG_ENA_EXT_CONFIG_MASK	0x400000  
+#define 	UNIMAC2_COMMAND_CONFIG_CNTL_FRM_ENA_SHIFT	23
+#define 	UNIMAC2_COMMAND_CONFIG_CNTL_FRM_ENA_MASK	0x800000  
+#define 	UNIMAC2_COMMAND_CONFIG_NO_LGTH_CHECK_SHIFT	24
+#define 	UNIMAC2_COMMAND_CONFIG_NO_LGTH_CHECK_MASK	0x1000000 
+#define 	UNIMAC2_COMMAND_CONFIG_LINE_LOOPBACK_SHIFT	25
+#define 	UNIMAC2_COMMAND_CONFIG_LINE_LOOPBACK_MASK	0x2000000 
+#define 	UNIMAC2_COMMAND_CONFIG_RX_ERR_DISC_SHIFT	26
+#define 	UNIMAC2_COMMAND_CONFIG_RX_ERR_DISC_MASK	0x4000000 
+#define 	UNIMAC2_COMMAND_CONFIG_PRBL_ENA_SHIFT	27
+#define 	UNIMAC2_COMMAND_CONFIG_PRBL_ENA_MASK	0x8000000 
+#define 	UNIMAC2_COMMAND_CONFIG_IGNORE_TX_PAUSE_SHIFT	28
+#define 	UNIMAC2_COMMAND_CONFIG_IGNORE_TX_PAUSE_MASK	0x10000000
+#define 	UNIMAC2_COMMAND_CONFIG_OOB_EFC_EN_SHIFT	29
+#define 	UNIMAC2_COMMAND_CONFIG_OOB_EFC_EN_MASK	0x20000000
+#define 	UNIMAC2_COMMAND_CONFIG_RUNT_FILTER_DIS_SHIFT	30
+#define 	UNIMAC2_COMMAND_CONFIG_RUNT_FILTER_DIS_MASK	0x40000000
+
+/*  unimac2_mac_0 offset0x80c  */
+#define 	UNIMAC2_MAC_0_MAC_ADDR0_SHIFT	0
+#define 	UNIMAC2_MAC_0_MAC_ADDR0_MASK	0xffffffff
+
+/*  unimac2_mac_1 offset0x810  */
+#define 	UNIMAC2_MAC_1_MAC_ADDR1_SHIFT	0
+#define 	UNIMAC2_MAC_1_MAC_ADDR1_MASK	0xffff    
+
+/*  unimac2_frm_length offset0x814  */
+#define 	UNIMAC2_FRM_LENGTH_MAXFR_SHIFT	0
+#define 	UNIMAC2_FRM_LENGTH_MAXFR_MASK	0x3fff    
+
+/*  unimac2_pause_quant offset0x818  */
+#define 	UNIMAC2_PAUSE_QUANT_STAD2_SHIFT	0
+#define 	UNIMAC2_PAUSE_QUANT_STAD2_MASK	0xffff    
+
+/*  unimac2_tx_ts_seq_id offset0x83c  */
+#define 	UNIMAC2_TX_TS_SEQ_ID_TSTS_SEQ_ID_SHIFT	0
+#define 	UNIMAC2_TX_TS_SEQ_ID_TSTS_SEQ_ID_MASK	0xffff    
+#define 	UNIMAC2_TX_TS_SEQ_ID_TSTS_VALID_SHIFT	16
+#define 	UNIMAC2_TX_TS_SEQ_ID_TSTS_VALID_MASK	0x10000   
+
+/*  unimac2_mac_mode offset0x844  */
+#define 	UNIMAC2_MAC_MODE_MAC_SPEED_SHIFT	0
+#define 	UNIMAC2_MAC_MODE_MAC_SPEED_MASK	0x3       
+#define 	UNIMAC2_MAC_MODE_MAC_DUPLEX_SHIFT	2
+#define 	UNIMAC2_MAC_MODE_MAC_DUPLEX_MASK	0x4       
+#define 	UNIMAC2_MAC_MODE_MAC_RX_PAUSE_SHIFT	3
+#define 	UNIMAC2_MAC_MODE_MAC_RX_PAUSE_MASK	0x8       
+#define 	UNIMAC2_MAC_MODE_MAC_TX_PAUSE_SHIFT	4
+#define 	UNIMAC2_MAC_MODE_MAC_TX_PAUSE_MASK	0x10      
+#define 	UNIMAC2_MAC_MODE_LINK_STATUS_SHIFT	5
+#define 	UNIMAC2_MAC_MODE_LINK_STATUS_MASK	0x20      
+
+/*  unimac2_tag_0 offset0x848  */
+#define 	UNIMAC2_TAG_0_FRM_TAG_0_SHIFT	0
+#define 	UNIMAC2_TAG_0_FRM_TAG_0_MASK	0xffff    
+#define 	UNIMAC2_TAG_0_CONFIG_OUTER_TPID_ENABLE_SHIFT	16
+#define 	UNIMAC2_TAG_0_CONFIG_OUTER_TPID_ENABLE_MASK	0x10000   
+
+/*  unimac2_tag_1 offset0x84c  */
+#define 	UNIMAC2_TAG_1_FRM_TAG_1_SHIFT	0
+#define 	UNIMAC2_TAG_1_FRM_TAG_1_MASK	0xffff    
+#define 	UNIMAC2_TAG_1_CONFIG_INNER_TPID_ENABLE_SHIFT	16
+#define 	UNIMAC2_TAG_1_CONFIG_INNER_TPID_ENABLE_MASK	0x10000   
+
+/*  unimac2_rx_pause_quanta_scale offset0x850  */
+#define 	UNIMAC2_RX_PAUSE_QUANTA_SCALE_SCALE_VALUE_SHIFT	0
+#define 	UNIMAC2_RX_PAUSE_QUANTA_SCALE_SCALE_VALUE_MASK	0xffff    
+#define 	UNIMAC2_RX_PAUSE_QUANTA_SCALE_SCALE_CONTROL_SHIFT	16
+#define 	UNIMAC2_RX_PAUSE_QUANTA_SCALE_SCALE_CONTROL_MASK	0x10000   
+#define 	UNIMAC2_RX_PAUSE_QUANTA_SCALE_SCALE_FIX_SHIFT	17
+#define 	UNIMAC2_RX_PAUSE_QUANTA_SCALE_SCALE_FIX_MASK	0x20000   
+
+/*  unimac2_tx_preamble offset0x854  */
+#define 	UNIMAC2_TX_PREAMBLE_TX_PREAMBLE_SHIFT	0
+#define 	UNIMAC2_TX_PREAMBLE_TX_PREAMBLE_MASK	0x7       
+
+/*  unimac2_tx_ipg_length offset0x85c  */
+#define 	UNIMAC2_TX_IPG_LENGTH_TX_IPG_LENGTH_SHIFT	0
+#define 	UNIMAC2_TX_IPG_LENGTH_TX_IPG_LENGTH_MASK	0x7f      
+
+/*  unimac2_pfc_xoff_timer offset0x860  */
+#define 	UNIMAC2_PFC_XOFF_TIMER_PFC_XOFF_TIMER_SHIFT	0
+#define 	UNIMAC2_PFC_XOFF_TIMER_PFC_XOFF_TIMER_MASK	0xffff    
+
+/*  unimac2_umac_eee_ctrl offset0x864  */
+#define 	UNIMAC2_UMAC_EEE_CTRL_EEE_EN_SHIFT	3
+#define 	UNIMAC2_UMAC_EEE_CTRL_EEE_EN_MASK	0x8       
+#define 	UNIMAC2_UMAC_EEE_CTRL_RX_FIFO_CHECK_SHIFT	4
+#define 	UNIMAC2_UMAC_EEE_CTRL_RX_FIFO_CHECK_MASK	0x10      
+#define 	UNIMAC2_UMAC_EEE_CTRL_EEE_TXCLK_DIS_SHIFT	5
+#define 	UNIMAC2_UMAC_EEE_CTRL_EEE_TXCLK_DIS_MASK	0x20      
+#define 	UNIMAC2_UMAC_EEE_CTRL_DIS_EEE_10M_SHIFT	6
+#define 	UNIMAC2_UMAC_EEE_CTRL_DIS_EEE_10M_MASK	0x40      
+#define 	UNIMAC2_UMAC_EEE_CTRL_LP_IDLE_PREDICTION_MODE_SHIFT	7
+#define 	UNIMAC2_UMAC_EEE_CTRL_LP_IDLE_PREDICTION_MODE_MASK	0x80      
+
+/*  unimac2_mii_eee_delay_entry_timer offset0x868  */
+#define 	UNIMAC2_MII_EEE_DELAY_ENTRY_TIMER_MII_EEE_LPI_TIMER_SHIFT	0
+#define 	UNIMAC2_MII_EEE_DELAY_ENTRY_TIMER_MII_EEE_LPI_TIMER_MASK	0xffffffff
+
+/*  unimac2_gmii_eee_delay_entry_timer offset0x86c  */
+#define 	UNIMAC2_GMII_EEE_DELAY_ENTRY_TIMER_GMII_EEE_LPI_TIMER_SHIFT	0
+#define 	UNIMAC2_GMII_EEE_DELAY_ENTRY_TIMER_GMII_EEE_LPI_TIMER_MASK	0xffffffff
+
+/*  unimac2_umac_eee_ref_count offset0x870  */
+#define 	UNIMAC2_UMAC_EEE_REF_COUNT_EEE_REF_COUNT_SHIFT	0
+#define 	UNIMAC2_UMAC_EEE_REF_COUNT_EEE_REF_COUNT_MASK	0xffff    
+
+/*  unimac2_umac_rx_pkt_drop_status offset0x878  */
+#define 	UNIMAC2_UMAC_RX_PKT_DROP_STATUS_RX_IPG_INVAL_SHIFT	0
+#define 	UNIMAC2_UMAC_RX_PKT_DROP_STATUS_RX_IPG_INVAL_MASK	0x1       
+
+/*  unimac2_umac_symmetric_idle_threshold offset0x87c  */
+#define 	UNIMAC2_UMAC_SYMMETRIC_IDLE_THRESHOLD_THRESHOLD_VALUE_SHIFT	0
+#define 	UNIMAC2_UMAC_SYMMETRIC_IDLE_THRESHOLD_THRESHOLD_VALUE_MASK	0xffff    
+
+/*  unimac2_mii_eee_wake_timer offset0x880  */
+#define 	UNIMAC2_MII_EEE_WAKE_TIMER_MII_EEE_WAKE_TIMER_SHIFT	0
+#define 	UNIMAC2_MII_EEE_WAKE_TIMER_MII_EEE_WAKE_TIMER_MASK	0xffff    
+
+/*  unimac2_gmii_eee_wake_timer offset0x884  */
+#define 	UNIMAC2_GMII_EEE_WAKE_TIMER_GMII_EEE_WAKE_TIMER_SHIFT	0
+#define 	UNIMAC2_GMII_EEE_WAKE_TIMER_GMII_EEE_WAKE_TIMER_MASK	0xffff    
+
+/*  unimac2_umac_rev_id offset0x888  */
+#define 	UNIMAC2_UMAC_REV_ID_PATCH_SHIFT	0
+#define 	UNIMAC2_UMAC_REV_ID_PATCH_MASK	0xff      
+#define 	UNIMAC2_UMAC_REV_ID_REVISION_ID_MINOR_SHIFT	8
+#define 	UNIMAC2_UMAC_REV_ID_REVISION_ID_MINOR_MASK	0xff00    
+#define 	UNIMAC2_UMAC_REV_ID_REVISION_ID_MAJOR_SHIFT	16
+#define 	UNIMAC2_UMAC_REV_ID_REVISION_ID_MAJOR_MASK	0xff0000  
+
+/*  unimac2_mac_pfc_type offset0xb00  */
+#define 	UNIMAC2_MAC_PFC_TYPE_PFC_ETH_TYPE_SHIFT	0
+#define 	UNIMAC2_MAC_PFC_TYPE_PFC_ETH_TYPE_MASK	0xffff    
+
+/*  unimac2_mac_pfc_opcode offset0xb04  */
+#define 	UNIMAC2_MAC_PFC_OPCODE_PFC_OPCODE_SHIFT	0
+#define 	UNIMAC2_MAC_PFC_OPCODE_PFC_OPCODE_MASK	0xffff    
+
+/*  unimac2_mac_pfc_da_0 offset0xb08  */
+#define 	UNIMAC2_MAC_PFC_DA_0_PFC_MACDA_0_SHIFT	0
+#define 	UNIMAC2_MAC_PFC_DA_0_PFC_MACDA_0_MASK	0xffffffff
+
+/*  unimac2_mac_pfc_da_1 offset0xb0c  */
+#define 	UNIMAC2_MAC_PFC_DA_1_PFC_MACDA_1_SHIFT	0
+#define 	UNIMAC2_MAC_PFC_DA_1_PFC_MACDA_1_MASK	0xffff    
+
+/*  unimac2_macsec_cntrl offset0xb14  */
+#define 	UNIMAC2_MACSEC_CNTRL_TX_LAUNCH_EN_SHIFT	0
+#define 	UNIMAC2_MACSEC_CNTRL_TX_LAUNCH_EN_MASK	0x1       
+#define 	UNIMAC2_MACSEC_CNTRL_TX_CRC_CORUPT_EN_SHIFT	1
+#define 	UNIMAC2_MACSEC_CNTRL_TX_CRC_CORUPT_EN_MASK	0x2       
+#define 	UNIMAC2_MACSEC_CNTRL_TX_CRC_PROGRAM_SHIFT	2
+#define 	UNIMAC2_MACSEC_CNTRL_TX_CRC_PROGRAM_MASK	0x4       
+#define 	UNIMAC2_MACSEC_CNTRL_DIS_PAUSE_DATA_VAR_IPG_SHIFT	3
+#define 	UNIMAC2_MACSEC_CNTRL_DIS_PAUSE_DATA_VAR_IPG_MASK	0x8       
+
+/*  unimac2_ts_status_cntrl offset0xb18  */
+#define 	UNIMAC2_TS_STATUS_CNTRL_TX_TS_FIFO_FULL_SHIFT	0
+#define 	UNIMAC2_TS_STATUS_CNTRL_TX_TS_FIFO_FULL_MASK	0x1       
+#define 	UNIMAC2_TS_STATUS_CNTRL_TX_TS_FIFO_EMPTY_SHIFT	1
+#define 	UNIMAC2_TS_STATUS_CNTRL_TX_TS_FIFO_EMPTY_MASK	0x2       
+#define 	UNIMAC2_TS_STATUS_CNTRL_WORD_AVAIL_SHIFT	2
+#define 	UNIMAC2_TS_STATUS_CNTRL_WORD_AVAIL_MASK	0x1c      
+
+/*  unimac2_tx_ts_data offset0xb1c  */
+#define 	UNIMAC2_TX_TS_DATA_TX_TS_DATA_SHIFT	0
+#define 	UNIMAC2_TX_TS_DATA_TX_TS_DATA_MASK	0xffffffff
+
+/*  unimac2_pause_control offset0xb30  */
+#define 	UNIMAC2_PAUSE_CONTROL_VALUE_SHIFT	0
+#define 	UNIMAC2_PAUSE_CONTROL_VALUE_MASK	0x1ffff   
+#define 	UNIMAC2_PAUSE_CONTROL_ENABLE_SHIFT	17
+#define 	UNIMAC2_PAUSE_CONTROL_ENABLE_MASK	0x20000   
+
+/*  unimac2_flush_control offset0xb34  */
+#define 	UNIMAC2_FLUSH_CONTROL_FLUSH_SHIFT	0
+#define 	UNIMAC2_FLUSH_CONTROL_FLUSH_MASK	0x1       
+
+/*  unimac2_rxfifo_stat offset0xb38  */
+#define 	UNIMAC2_RXFIFO_STAT_RXFIFO_UNDERRUN_SHIFT	0
+#define 	UNIMAC2_RXFIFO_STAT_RXFIFO_UNDERRUN_MASK	0x1       
+#define 	UNIMAC2_RXFIFO_STAT_RXFIFO_OVERRUN_SHIFT	1
+#define 	UNIMAC2_RXFIFO_STAT_RXFIFO_OVERRUN_MASK	0x2       
+
+/*  unimac2_txfifo_stat offset0xb3c  */
+#define 	UNIMAC2_TXFIFO_STAT_TXFIFO_UNDERRUN_SHIFT	0
+#define 	UNIMAC2_TXFIFO_STAT_TXFIFO_UNDERRUN_MASK	0x1       
+#define 	UNIMAC2_TXFIFO_STAT_TXFIFO_OVERRUN_SHIFT	1
+#define 	UNIMAC2_TXFIFO_STAT_TXFIFO_OVERRUN_MASK	0x2       
+
+/*  unimac2_mac_pfc_ctrl offset0xb40  */
+#define 	UNIMAC2_MAC_PFC_CTRL_PFC_TX_ENBL_SHIFT	0
+#define 	UNIMAC2_MAC_PFC_CTRL_PFC_TX_ENBL_MASK	0x1       
+#define 	UNIMAC2_MAC_PFC_CTRL_PFC_RX_ENBL_SHIFT	1
+#define 	UNIMAC2_MAC_PFC_CTRL_PFC_RX_ENBL_MASK	0x2       
+#define 	UNIMAC2_MAC_PFC_CTRL_FORCE_PFC_XON_SHIFT	2
+#define 	UNIMAC2_MAC_PFC_CTRL_FORCE_PFC_XON_MASK	0x4       
+#define 	UNIMAC2_MAC_PFC_CTRL_RX_PASS_PFC_FRM_SHIFT	4
+#define 	UNIMAC2_MAC_PFC_CTRL_RX_PASS_PFC_FRM_MASK	0x10      
+#define 	UNIMAC2_MAC_PFC_CTRL_PFC_STATS_EN_SHIFT	5
+#define 	UNIMAC2_MAC_PFC_CTRL_PFC_STATS_EN_MASK	0x20      
+
+/*  unimac2_mac_pfc_refresh_ctrl offset0xb44  */
+#define 	UNIMAC2_MAC_PFC_REFRESH_CTRL_PFC_REFRESH_EN_SHIFT	0
+#define 	UNIMAC2_MAC_PFC_REFRESH_CTRL_PFC_REFRESH_EN_MASK	0x1       
+#define 	UNIMAC2_MAC_PFC_REFRESH_CTRL_PFC_REFRESH_TIMER_SHIFT	16
+#define 	UNIMAC2_MAC_PFC_REFRESH_CTRL_PFC_REFRESH_TIMER_MASK	0xffff0000
+
+
+
+#endif /* _nsgmac2_core_h_ */

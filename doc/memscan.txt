@@ -1,0 +1,293 @@
+/*
+ * $Id$
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ */
+------------------------------------------------------------------------------
+
+		     Software Memory Error Scanning
+
+                             Curt McDowell
+                        Broadcom Corp. 08-27-04
+                         Last Updated: 08-30-04
+
+------------------------------------------------------------------------------
+
+1) Introduction
+
+The amount of on-chip memory in a switch or fabric chip is rapidly
+increasing.  Regardless of how good a memory technology is, the chance
+that an alpha particle or similar event causes corruption somewhere in
+the chip memory increases linearly with the amount of memory on the
+chip, and also increases linearly with the number of chips in the system
+(which may contribute more than an order of magnitude in a chassis or
+stacking environment).
+
+One possibility is for software to keep a cached copy of the contents of
+certain on-chip memories, and periodically compare the contents of the
+hardware memory with the cached copy.  If an unexpected mismatch is
+found, software can report it is a memory error and update the on-chip
+memory with good data from the cached copy.  This is the technique
+described in this document.
+
+2) Implementation
+
+A low-level memory caching mechanism already exists in the memory read
+and write routines at the SOC layer.  The primary intent for this
+caching mechanism is to enhance performance by completely eliminating
+memory reads to memories which are eligible for caching.
+
+Our implementation of memory scanning works in conjunction with this
+caching mechanism.  This works well because in general, the same
+memories that are eligible for caching are also the ones amenable to
+software error scanning (see Eligible Memories below), and the memory
+spent on the backing store results in the additional performance
+benefits of caching.
+
+An optional background task called "memscan" has been added, and is
+implemented in soc/memscan.c.  Also, a "memscan" command has been added
+to the BCM Diagnostics CLI to start and stop this task with selectable
+operating parameters.
+
+When the memscan task is running (a separate one per unit), it
+continually scans the contents of any memories for which caches are
+enabled.  If a memory error is detected, a message is displayed on the
+console at the DK_WARN error level, and the problem is fixed by writing
+back good data from the cache.
+
+The configuration parameters are:
+
+* Interval - The period in microseconds between times the scan thread
+  wakes up to scan table entries.
+
+* Rate - The number of table entries to scan each time the scan thread
+  wakes up.
+
+For example, if the interval is set to 100000 (ten times per second) and
+the rate is set to 64, then the task will process a total of 640 entries
+per second (64 entries ten times per second).  The amount of time to
+scan all memories depends on the total number of entries being scanned,
+which in turn depends on which memories have caching enabled.
+
+3) Limitations
+
+There are a number of limitations to this method, some of them severe.
+The overall value of enabling software memory error scan is left to the
+judgement of the application designer.  By default, the SDK does not use
+memory error scanning (or caching).  It should only be used with careful
+consideration to the information in this section.
+
+3.1) Memory Consumption
+
+Enabling the caches on a particular memory causes an amount of memory
+approximately equal to the size of the on-chip memory to be allocated to
+keep the memory backing store.  If there is more than one copy of a
+memory on a chip, each copy is cached independently.  Also, if there is
+more than one chip attached to the same CPU using caching, this can add
+up to a lot of memory.
+
+3.2) CPU Utilization
+
+Performing the scanning consumes CPU cycles.  The amount of CPU
+dedicated to this activity is fully adjustable and is dependent on the
+Interval and Rate parameters.  Also, the scanning consumes a small
+amount of PCI bandwidth.  Also, if there is more than one chip attached
+to the CPU using scanning, this can add up to a lot of CPU cycles.
+
+3.3) Latency to Failure Correction
+
+This method will not prevent errors from occurring.  It can only correct
+the error some time after it has been detected.
+
+If a memory error does occur, the average latency to detect and correct
+it will be one half of the total time required for the scan task to scan
+all memories.
+
+During the time the memory error exists, the switching behavior of the
+chip may be affected if the chip references the bad location.  A wide
+variety of incorrect behaviors could occur during this window.  For
+example, if the trunk table were corrupted, packets might be sent to the
+wrong port until the error was corrected.
+
+3.4) Eligible Memories
+
+Memories of a "dynamic" nature are ineligible for caching, and also
+ineligible for software error correction scanning.
+
+"Dynamic" memories are those that may be updated automatically by the
+hardware.  If the software were to attempt to cache these memories,
+changes by the hardware would not be visible to the application, or
+would be seen as memory errors by the scanning process.
+
+Some examples of dynamic memories include:
+
+* Counter memories, such as those used for Metering
+
+* Memories with hit bits, such as L2, L3, and LPM tables
+
+* Memories with special hardware macro-commands that manipulate the
+  memory; for example, Hash Table Insert/Delete.  It would be complex
+  to emulate the equivalent behavior in the cache for each case.
+
+* Memories with multiple software "views."  As a theoretical example,
+  there might be one physical memory in the hardware, but the same memory
+  can be accessed in three ways either as a "left half entry," "right
+  half entry," or as a "whole entry."
+
+* Memories with automatic recalculate-on-write parity bits.  Although
+  it will work if the parity bits are marked No-Test, most likely such
+  errors should be processed by the parity interrupt mechanism instead.
+
+In general, large dynamic memories demand special hardware to achieve
+some form of protection.  ECC can be used to eliminate errors, but is
+generally too expensive to consider.  Parity allows errors to be
+detected, ensures the bad data does not get used for switching, and
+often also allows corrective action to be taken by software.
+
+3.5) Disease vs. Cure
+
+In the course of memory scanning over a period of weeks or months, the
+CPU could perform trillions of reads and transfer terabytes of data from
+the switch chip across the PCI bus.  If the likelihood of a CPU error,
+PCI error, or other problem exceeds the likelihood of an actual memory
+error occurring, then the cure could be worse than the disease and
+scanning would be inadvisable.
+
+Although the SOC software library performs careful locking on accesses
+to the memories (MEM_LOCK) by the scan task and accesses by the
+switching application, there is a small but non-zero danger a software
+bug or race condition could still exist and cause an infrequent crash of
+unknown origin.
+
+Some users may wish to use memory scanning for diagnostic purposes.  For
+example, it could be enabled on all chips in a chassis during a burn-in
+period.
+
+4) Example
+
+The following tutorial shows how to enable and test memory scanning,
+and assumes a BCM5690 is being used.
+
+All of the visible memories in the chip can be shown using the "listmem"
+command in the diagnostics.  The "C" flag in the Flags column indicates
+that the memory is eligible for caching, and therefore also eligible for
+software error scanning:
+
+BCM.0> listmem
+ Flags   Name                  Entry/Copy Description
+ ----bC  DEF_IP_HI              4097      top-half default IP Router Table
+ ------  DEF_IP_HIT_HI           512      top-half default IP router table h...
+ ------  DEF_IP_HIT_LO           512      bottom-half default IP router tabl...
+ r-----  DEF_IP_HI_ENTRY        4096      top-half default IP Router Table
+ ----bC  DEF_IP_LO              4097      bottom-half default IP Router Table
+ r-----  DEF_IP_LO_ENTRY        4096      bottom-half default IP Router Table
+ -----C  EGRESS_MASK            1024      egress mask table
+ ------  GFFPCOUNTERS             32/12   FFP Counters
+ ------  GFFPPACKETCOUNTERS       64/12   FFP Counters
+ ----bC  GIMASK                   16/12   Inclusive Filter Mask Table
+ --s-bC  GIRULE                  128/12   Inclusive Filter Rules Table
+ ------  GMETERING                64/12   METERING TABLE
+ ------  HASHINPUT                 1      struct used for GetHash function
+ ------  HASHTRAP                  1      trap information when a bucket ove...
+ r-h---  L2_ENTRY              16384      L2 ENTRY
+ ----b-  L2_TABLE              16384      L2 TABLE
+ ------  L2_HIT_BITS            2048      L2 table source hit bits
+ ----bC  L2MC_TABLE              256      L2 multicast table
+ ------  L2_STATIC_BITS         2048      L2 table static bits
+ ------  L2_VALID_BITS          2048      L2 table valid bits
+ r-h---  L3_ENTRY               4096      L3 table
+ ----b-  L3_TABLE               4096      L3 table
+ ------  L3_HIT_BITS             512      L3 table source hit bits
+ ------  L3_VALID_BITS           512      L3 table valid bits
+ ----bC  L3INTF                  512      L3 interface table
+ ----bC  IPMC                    256      IP Multicast Table
+ -----C  PORT_MAC_BLOCK           32      MAC block mask table
+ -d-cb-  CBPDATA0               8192      CBP Data0 RAM
+ -d-cb-  CBPDATA1               8192      CBP Data1 RAM
+ -d-cb-  CBPDATA2               8192      CBP Data2 RAM
+ -d-cb-  CBPDATA3               8192      CBP Data3 RAM
+ -d-cb-  CBPHEADER              8192      CBP Header RAM
+ -d-cb-  CCP                    8192      Copy CountPool RAM
+ -d-cb-  CFAP                   8192      Cell Free Address Pool RAM
+ -d-cb-  XQ0                    8192      XQ0
+ -d-cb-  XQ1                    8192      XQ1
+ -d-cb-  XQ2                    8192      XQ2
+ -d-cb-  XQ3                    8192      XQ3
+ -d-cb-  XQ4                    8192      XQ4
+ -d-cb-  XQ5                    8192      XQ5
+ -d-cb-  XQ6                    8192      XQ6
+ -d-cb-  XQ7                    8192      XQ7
+ -d-cb-  XQ8                    8192      XQ8
+ -d-cb-  XQ9                    8192      XQ9
+ -d-cb-  XQ10                   8192      XQ10
+ -d-cb-  XQ11                   8192      XQ11
+ -d-cb-  XQ12                   8192      XQ12
+ -d-cb-  XQ13                   8192      XQ13
+ -----C  PORT                     12      port table
+ ----bC  VLAN_STG                256      spanning tree group table
+ -----C  TRUNK_BITMAP             32      trunk bitmap table
+ -----C  PORT_TRUNK_EGRESS        32      trunk egress mask table
+ -----C  TRUNK_GROUP              32      trunk group table
+ ----bC  VLAN                   4096      802.1Q vlan table
+Flags: (r)eadonly, (d)ebug, (s)orted, (h)ashed
+       C(A)M, (c)bp, (b)ist-able, (C)achable
+
+The following command enables memory scanning at a rate of 640 entries
+per second.  The actual rate to use is completely up to the application
+designer.
+
+BCM.0> memscan interval=100000 rate=64
+BCM.0> memscan off		(turns it off -- or can use interval=0)
+BCM.0> memscan on		(resumes with previous parameters)
+
+No scanning actually takes place until caching is enabled on the target
+memories.  The memory scan task and memory caching can be enabled and
+disabled independently and at will without fear of repercussions.  The
+following is an example of a randomly chosen set of memories on BCM5690:
+
+BCM.0> cache +egress_mask +gimask +girule +l2mc_table +vlan
+
+Note that only the cached entries are scanned.  On BCM5670, enabling the
+caches does not pre-fetch the memories into the cache, so only the
+individual entries actually written by software after the caches are
+enabled will be scanned.  On BCM5690, enabling the caches uses table DMA
+to pre-fetch the contents of the memories into the cache, so all entries
+will be scanned immediately after the cache is enabled.
+
+BCM.0> debug +tests     (or "-tests" to turn off)
+
+The test debug flag is used to cause the memscan task to display
+debugging information.  Warning: a copious amount of information may be
+displayed if the interval is small.  One piece of information the task
+will display is the total number of entries being scanned (at the
+conclusion of a scan pass).  This may be useful in deciding what
+interval and rate to settle with.
+
+There is a secret "nocache" keyword option to the "write" command.  This
+option allows one to write into a memory without the cache being
+updated.  This can be used to induce a "memory error" for testing
+purposes.  In the following example, an "error" is induced in an STG_TAB
+entry, and some time later the scan task notices and corrects it.
+
+BCM.0> d raw vlan_stg 100 1
+VLAN_STG.arl0[100]: 0x0030d69c 
+BCM.0> w nocache vlan_stg 100 1 0x30d68f
+BCM.0> [bcmMEM_SCAN.1]Memory error detected on unit 1 in STG_TAB.arl0[100]
+[bcmMEM_SCAN.1]    WAS: 0030d69c
+[bcmMEM_SCAN.1]    BAD: 0030d68f
+[bcmMEM_SCAN.1]    Corrected by writing back cached data
+
+The following example can be used to stress-test the memory accesses on
+a Lancelot platform (where unit 0 is BCM5670 and units 1-4 are BCM5690):
+
+BCM.0> *:memscan i=10000 r=256
+MemSCAN: Started on unit 0
+MemSCAN: Started on unit 1
+MemSCAN: Started on unit 2
+MemSCAN: Started on unit 3
+MemSCAN: Started on unit 4
+BCM.0> 0:cache uc mc vid
+BCM.0> 1-4:cache def_ip_hi def_ip_lo egress_mask gimask girule ipmc
+BCM.0> 1-4:cache l2mc_table l3intf port_mac_block port vlan_stg
+BCM.0> 1-4:cache trunk_bitmap port_trunk_egress trunk_group vlan

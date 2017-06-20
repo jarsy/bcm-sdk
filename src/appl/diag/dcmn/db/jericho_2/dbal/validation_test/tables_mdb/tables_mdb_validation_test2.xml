@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../tables_mdb/mdb_schema.xsd">
+
+    <AppDB Name="MACT">
+        <OneLineDescription>Lookup FID X MAC Address in the MACT to detrmine the destination interface ot interface group</OneLineDescription>
+        <MaturityLevel>1</MaturityLevel>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="FID" Size="15" Valid="DNX_DATA.module_testing.dbal.all.fid_in_mact"/>
+                <Field Name="L2_MAC" Size="38" Offset="10"/>
+            </Key>
+            <Result>
+                <Field Name="DESTINATION"/>
+                <Field Name="OUT_LIF" />
+            </Result>
+            <TableLabels>L2 L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb>
+            <MAG>MAG_FWD2LEM_0</MAG>
+            <MAG>MAG_FWD2LEM_1</MAG>
+            <AppDbId>15</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+</AppDbCatalog>

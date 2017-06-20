@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../tables_mdb/mdb_schema.xsd">
+
+    <AppDB Name="ING_VSI_INFO">
+        <OneLineDescription> </OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI"/>
+            </Key>
+            <Result>
+                <Field Name="STP_TOPOLOGY_ID" Size="8"/>
+                <Field Name="MY_MAC" Size="10"/>
+                <Field Name="MY_MAC_PREFIX" Size="6"/>
+            </Result>
+            <TableLabels>MPLS FCOE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>IVSI</PhyDb>
+            <MAG>MAG_VTT2VSI_STG0_0</MAG>
+            <MAG>MAG_VTT2VSI_STG0_1</MAG>
+            <AppDbId>-1</AppDbId> 
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

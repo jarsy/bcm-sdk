@@ -1,0 +1,150 @@
+# $Id: Makefile.vxworks-raptor,v 1.26 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Makefile for the BCM4702 board(CPCI) running VxWorks
+
+include ${SDK}/make/Makefile.vxworks-common
+
+# WIND_BASE and WIND_HOST_TYPE must be modified according to your
+# installed location.  The environment variables are ignored intentionally.
+
+ifndef VX_VERSION
+VX_VERSION = 68
+endif
+
+#ifeq ($(VX_TARGET_BIG_ENDIAN),1)
+#TARGET_EFLAGS = -DLE_HOST=1 -DIL_BIGENDIAN=0 -DMIPSEB
+#TOOL_SUFFIX=
+#else
+#TARGET_EFLAGS = -DLE_HOST=1 -DIL_BIGENDIAN=0 -DMIPSEL
+#TOOL_SUFFIX=le
+#endif
+
+TARGET_EFLAGS = -DLE_HOST=1
+
+WIND_HOME ?= /tools/windriver/vxworks/6.8.3
+WIND_BASE ?= /tools/windriver/vxworks/6.8.3/vxworks-6.8
+WIND_DIAB_PATH ?= /tools/windriver/vxworks/6.8.3/diab/5.8.0.0
+WIND_GNU_PATH ?= /tools/windriver/vxworks/6.8.3/gnu/4.1.2-vxworks-6.8
+WIND_HOST_TYPE = x86-linux2
+WORKBENCH_VERSION = workbench-3.2
+
+export WRVX_COMPBASE=$(WIND_HOME)/components
+export COMP_IPNET2=ip_net2-6.8
+export WIND_TOOLS = $(WIND_HOME)/$(WORKBENCH_VERSION)
+export WIND_LIC_PROXY = $(WIND_HOME)/setup/$(WIND_HOST_TYPE)/bin/
+export WRSD_LICENSE_FILE = $(WIND_HOME)/license/
+export VXWORKS_VERSION = $(VX_VERSION)
+
+CPU  = ARMARCH7
+TOOL = sfgnu
+#TOOL = sfgnu$(TOOL_SUFFIX)
+BSP_DIR = vxworks6x
+VX_SRC = ${SDK}/systems/vxworks/iproc/$(BSP_DIR)/$(VX_BSP_DIR)
+VX_SRC_ALL = $(VX_SRC)/all
+
+BOOTROM_SWAP=yes
+
+# Configuration Flags
+ifeq (${VX_KT2},1)
+CFGFLAGS += -DBCM_PLATFORM_STRING=\"IPROC_BCM56450\"
+CFGFLAGS += -DBCM_KATANA2_ORI_PLL_SUPPORT
+CFGFLAGS += -DVX_KT2
+else
+CFGFLAGS += -DBCM_PLATFORM_STRING=\"IPROC_BCM56150\"
+endif
+
+toolbase = $(WIND_GNU_PATH)/$(WIND_HOST_TYPE)/bin/
+toolbase_alt = $(WIND_HOME)/utilities-1.0/$(WIND_HOST_TYPE)/bin/
+CC 	= $(toolbase)ccarm -w
+CPP	= $(toolbase)cpparm
+CXX 	= $(toolbase)g++arm
+RANLIB 	= $(toolbase)ranlibarm
+AR 	= $(toolbase)ararm
+LD 	= $(toolbase)ldarm
+MUNCH 	= $(toolbase)munch
+NM 	= $(toolbase_alt)nmarm
+SIZE 	= $(toolbase_alt)sizearm
+STRIP	= $(toolbase_alt)striparm
+OBJCOPY = $(toolbase_alt)objcopyarm
+
+
+# GCC version
+#export GCC_EXEC_PREFIX=$(WIND_BASE)/host/$(WIND_HOST_TYPE)/lib/gcc-lib/
+
+
+OPTFLAGS_DEFAULT = -O2
+#MFLAGS = $(OPTFLAGS) -EB -mcpu=r4000 -mips3 -mgp32 -mfp32 -non_shared -G 0 -DCPU=$(CPU)
+
+ifeq ($(WIND_HOST_TYPE),x86-linux)
+HAVE_BRANCH_NOLIKELY=
+OPTFLAGS_DEFAULT = -O1
+else
+HAVE_BRANCH_NOLIKELY=-mno-branch-likely
+endif
+
+#MFLAGS = -G 0 $(OPTFLAGS) $(TARGET_EFLAGS) -mips32r2 -msoft-float -DCPU=$(CPU) -DintUnlock=intUnlockSafe -D_VSB_CONFIG_FILE=\"/tools/windriver/vxworks/6.8.3/vxworks-6.8/target/lib_smp/h/config/vsbConfig.h\"
+
+ifeq (${VX_KT2},1)
+MFLAGS = $(OPTFLAGS) $(TARGET_EFLAGS) -msoft-float -DCPU=$(CPU) -I/tools/windriver/vxworks/6.8.3/vxworks-6.8/target/lib_smp/h/config/ -D_VSB_CONFIG_FILE=\"vsbConfig.h\"
+else
+MFLAGS = $(OPTFLAGS) $(TARGET_EFLAGS) -msoft-float -DCPU=$(CPU) -I$(WIND_BASE)/target/lib/h/config/ -D_VSB_CONFIG_FILE=\"vsbConfig.h\"
+endif
+
+ARFLAGS = -rc
+
+# TARGETTYPE Defines: This defines the type of system you are compiling
+# the driver for; there are several values allowed. New values can be created
+# by porting the routines (system.c) to your platform and adding
+# the define in this Makefile.
+
+TARGETTYPE = IPROC_CMICD
+SUBTGTTYPE = INTERNAL_CPU
+# OSType Defines: This defines the type of RTOS or microkernel which you
+# are compiling the SAL (and its associated driver) for. New platforms
+# can be created by porting the routines (system.c) to your platform and
+# adding the define in this Makefile.
+
+OSTYPE = VXWORKS
+
+INCS += -I$(VX_SRC) -I${VX_SRC_ALL} -I$(WIND_BASE)/target/h
+INCS += -I$(WIND_BASE)/target/h/wrn/coreip 
+INCS += -I$(WIND_BASE)/target/h/wrn/coreip/net 
+#INCS += -I$(WIND_DIAB_PATH)/include/diab
+INCS += -I$(WIND_HOME)/gnu/4.1.2-vxworks-6.8/lib/gcc/arm-wrs-vxworks/4.1.2/include
+
+# Includes path to new network stack component.
+INCS += -I$(WIND_HOME)/components/ip_net2-6.8
+INCS += -I$(WIND_HOME)/components/ip_net2-6.8/ipnet2/src
+INCS += -I$(WIND_HOME)/components/ip_net2-6.8/ipnet2/include
+INCS += -I$(WIND_HOME)/components/ip_net2-6.8/ipnet2/config
+INCS += -I$(WIND_HOME)/components/ip_net2-6.8/ipcom/port/vxworks/include
+INCS += -I$(WIND_HOME)/components/ip_net2-6.8/ipcom/port/vxworks/config
+INCS += -I$(WIND_HOME)/components/ip_net2-6.8/ipcom/include
+INCS += -I$(WIND_HOME)/components/ip_net2-6.8/ipcom/config
+
+LIBS = 
+
+#
+# STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
+# BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
+# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of 
+#			 this Makefile, to define local "Extra" flags.
+#
+# We include -DTRUE=1 to fix a Tornado 1 problem where stdarg macros are
+# defined incorrectly if TRUE is not defined ahead of including stdarg.h.
+# NOTE: Extra -I${INCDIR} puts SDK include before system incs, for assert.h
+#
+STD_CFLAGS = -fno-builtin -fno-strict-aliasing $(MFLAGS) \
+	-I${INCDIR} ${INCS} -DMBZ -D${TARGETTYPE} -D${SUBTGTTYPE} -D${OSTYPE} \
+	-DVX_VERSION=${VX_VERSION} -DVXWORKS_NETWORK_STACK_6_5 -DBROADCOM_BSP \
+	${CFGFLAGS}
+
+STD_CPPFLAGS = ${STD_CFLAGS}
+STD_CXXFLAGS = ${STD_CFLAGS}
+
+#
+# Features which should be explicitly excluded from this configuration:
+#
+FEATURE_EXCLUDE_LIST += DUNE_UI

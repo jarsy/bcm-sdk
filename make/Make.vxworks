@@ -1,0 +1,487 @@
+# $Id: Make.vxworks,v 1.86 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# This file contains the common portion of the Makefiles for the different
+# VxWorks BSPs in ${SDK}/systems/vxworks/*/Makefile
+#
+
+#
+# By default, build vxWorks.st to have the symbol table compiled in.
+# This can be overridden in the systems/vxworks/*/Makefile to vxWorks
+# in order to build a version that loads the symbol table over the
+# network instead.
+#
+
+ifndef VX_VERSION
+$(error VX_VERSION not defined)
+endif
+
+ifndef VX_VERSIONS
+$(error VX_VERSIONS not defined)
+endif
+
+ifeq ($(filter $(VX_VERSIONS),$(VX_VERSION)),)
+$(error VX_VERSION=$(VX_VERSION) invalid, only versions $(VX_VERSIONS) supported)
+endif
+
+export DEST_DIR_SUFFIX :=$(subst $(realpath $(SDK))/systems,,$(realpath $(CURDIR)/$(dir ($(firstword $(MAKEFILE_LIST))))))
+
+
+VX_TARGET = vxWorks.st
+VX_BINARY = bcm.${targetplat}${all_suffix}
+
+ifeq (,$(findstring DELIVER,$(MAKECMDGOALS)))
+
+# Some diag libraries must appear more than once because there are
+# circular references that the linker won't otherwise resolve.
+
+ifdef ROBO_CHIPS
+DIAG += libdiagrobo.a
+endif
+
+ifdef ESW_CHIPS
+DIAG += libdiag_esw.a \
+    libtsl3uc.a \
+    libtsl3mc.a \
+    libtsmpls.a \
+    libtsoam.a \
+    libtsmmu.a \
+    libtsniv.a \
+    libtsriot.a \
+    libtsvlan.a \
+    libtsvxlan.a \
+    libtsbasic.a \
+    libtsifp.a \
+    libtsvfp.a \
+    libtsefp.a \
+    libtscos.a \
+    libtsloadbalance.a \
+    libtsdgm.a \
+    libtstcb.a \
+    libtspstat.a \
+    libtechsupport.a
+endif
+
+ifdef SBX_CHIPS
+DIAG += libdiag_sbx.a
+endif
+
+ifdef PE_SDK
+DIAG += libpelib.a
+DIAG += libpelibsrc.a
+endif
+
+ifdef DPP_CHIPS
+DIAG += libdiag_dpp.a
+endif
+
+ifdef DFE_CHIPS
+DIAG += libdiag_dfe.a libdiag_dcmn.a libdiag_sand.a
+else
+ifdef DPP_CHIPS
+DIAG += libdiag_dcmn.a libdiag_sand.a
+endif
+endif
+
+ifdef DNX_CHIPS
+DIAG += libdiag_dnx.a
+endif
+
+ifdef DNXF_CHIPS
+DIAG += libdiag_dnxf.a libdiag_sand.a
+else
+ifdef DNX_CHIPS
+DIAG += libdiag_sand.a
+endif
+endif
+
+ifdef EA_CHIPS
+DIAG += libdiag_ea.a
+endif
+
+ifdef DPP_CHIPS
+BSP_EXTRA_DEFINES = -DBROADCOM_SAND_BSP
+endif
+
+ifndef NO_SAL_APPL
+COND_LIB_SAL_APPL=libsal_appl.$(libext)
+COND_LIB_SAL_APPL_BLD=${LIBDIR}/${COND_LIB_SAL_APPL}
+COND_LIB_SAL_APPL_PLATFORM=libsal_appl_plat.$(libext)
+COND_LIB_SAL_APPL_PLATFORM_BLD=${LIBDIR}/${COND_LIB_SAL_APPL_PLATFORM}
+endif
+
+
+DIAG_BLD = $(addprefix ${LIBDIR}/,${DIAG})
+KERNFLAGS = "LIB_EXTRA =${BLDDIR}/socdiag.o \
+			${BLDDIR}/version.o \
+			${BLDDIR}/hal.o \
+			${BLDDIR}/platform_defines.o \
+			${LIBDIR}/libdiag.a \
+			${DIAG_BLD} \
+			${COND_LIB_PHYMOD_DIAG_BLD} \
+			${COND_LIB_PORTMOD_DIAG_BLD} \
+			${COND_LIB_BCMX_DIAG_BLD} \
+			${COND_LIB_TEST_BLD} \
+			${COND_LIB_TCL_BLD} \
+			${APPL_LIBS_BLD} \
+			${COND_LIB_EAV_APPL_BLD} \
+			${COND_LIB_ACL_BLD} \
+			${COND_LIB_BCM570X_BLD} \
+			${COND_LIB_SAL_APPL_BLD} \
+			${COND_LIB_EDITLINE_BLD} \
+			${COND_LIB_SAL_APPL_PLATFORM_BLD} \
+			${COND_LIB_DRIVERS_BLD} \
+			${LIBDIR}/${LIB_BDE} \
+			${DRV_LIBS_BLD} \
+                        ${COND_LIB_ETH_DRV_BLD} \
+			${COND_LIB_BSP} \
+			" \
+			${BSP_KERNFLAGS} \
+			"EXTRA_DEFINE=-DBROADCOM_BSP \
+			-g \
+			-Dvxworks \
+			-DVX_VERSION=${VX_VERSION} \
+			${BSP_EXTRA_DEFINES}"
+
+#
+# For now, put toolbase at the start of the PATH variable so everyone 
+# picks up the right tools.  This should be passed down instead, but
+# VxWorks uses "size" without using the ${SIZE} variable.
+# For Cygnus, WIND_HOST_BIN must follow /usr/bin and /usr/local/bin
+# or a weird compilation error results.
+#
+
+ifeq ($(VX_VERSION),62)
+WIND_HOST_GNU_BIN = ${WIND_GNU_PATH}/${WIND_HOST_TYPE}/bin:${WIND_HOME}/workbench-2.4/${WIND_HOST_TYPE}/bin
+WIND_HOST_DIAB_BIN = ${WIND_DIAB_PATH}/${WIND_COMPILER_HOST}/bin:${WIND_HOME}/${WORKBENCH_VERSION}/${WIND_HOST_TYPE}/bin
+else
+
+ifeq ($(VX_VERSION),64) 
+WIND_HOST_GNU_BIN = ${WIND_GNU_PATH}/${WIND_HOST_TYPE}/bin:${WIND_HOME}/workbench-2.6/${WIND_HOST_TYPE}/bin
+WIND_HOST_DIAB_BIN = ${WIND_DIAB_PATH}/${WIND_COMPILER_HOST}/bin:${WIND_HOME}/${WORKBENCH_VERSION}/${WIND_HOST_TYPE}/bin
+else
+
+ifeq ($(VX_VERSION),68) 
+WIND_HOST_GNU_BIN = ${WIND_GNU_PATH}/${WIND_HOST_TYPE}/bin:${WIND_HOME}/${WORKBENCH_VERSION}/${WIND_HOST_TYPE}/bin:${WIND_HOME}/utilities-1.0/${WIND_HOST_TYPE}/bin
+WIND_HOST_DIAB_BIN = ${WIND_DIAB_PATH}/${WIND_COMPILER_HOST}/bin:${WIND_HOME}/${WORKBENCH_VERSION}/${WIND_HOST_TYPE}/bin
+else
+
+ifeq ($(VX_VERSION),69) 
+WIND_HOST_GNU_BIN = ${WIND_GNU_PATH}/${WIND_HOST_TYPE}/bin:${WIND_HOME}/${WORKBENCH_VERSION}/${WIND_HOST_TYPE}/bin:${WIND_HOME}/utilities-1.0/${WIND_HOST_TYPE}/bin
+WIND_HOST_DIAB_BIN = ${WIND_DIAB_PATH}/${WIND_COMPILER_HOST}/bin:${WIND_HOME}/${WORKBENCH_VERSION}/${WIND_HOST_TYPE}/bin
+else
+
+WIND_HOST_GNU_BIN = ${WIND_GNU_PATH}/${WIND_HOST_TYPE}/bin:${WIND_HOME}/${WORKBENCH_VERSION}/${WIND_HOST_TYPE}/bin
+WIND_HOST_DIAB_BIN = ${WIND_DIAB_PATH}/${WIND_COMPILER_HOST}/bin:${WIND_HOME}/${WORKBENCH_VERSION}/${WIND_HOST_TYPE}/bin
+endif
+endif
+endif
+endif
+
+WIND_HOST_BIN = ${WIND_BASE}/host/${WIND_HOST_TYPE}/bin
+
+
+ifeq ($(HOSTTYPE),sun4)
+override PATH := ${WIND_HOST_BIN}:${WIND_HOST_GNU_BIN}:/tools/bin:/bin:/usr/bin:/usr/local/bin:${PATH}
+else
+override PATH := /bin:/usr/bin:/usr/local/bin:${WIND_HOST_BIN}:${WIND_HOST_GNU_BIN}:${WIND_HOST_DIAB_BIN}:${PATH}
+endif
+
+#
+# Since we are calling down into another vendors makefile, we must be 
+# sure to add everything it requires to the make flags.
+#
+
+override MAKEFLAGS +=	SRC_DIR=${VX_SRC} VX_SRC=${VX_SRC} SRCDIR=${VX_SRC} \
+			WIND_BASE=${WIND_BASE} \
+			WIND_HOST_TYPE=${WIND_HOST_TYPE} \
+			PATH=${PATH} \
+			VX_VERSION=${VX_VERSION} \
+			CC=${CC} LD=${LD} NM=${NM} \
+			SIZE=${SIZE} 
+
+# Setup default conditional library directory
+ifndef COND_LIB_DIRECTORY
+COND_LIB_DIRECTORY=${SDK}/systems/drv
+endif
+
+ifdef BUILD_BOOTROM
+# VxWorks boot ROM not supported on NSX (use CFE)
+ifneq ($(filter nsx gtx metrocore,$(targetplat))
+	@$(ECHO) "VxWorks Bootrom not supported on $(targetplat)"
+endif
+
+endif
+
+#
+# Default target(s)
+#
+
+ifdef BUILD_COMPRESSED
+ifeq ($(VX_VERSION),55)
+# Solaris does not support 7z
+all: $(DEST_DIR)/${VX_BINARY}.Z $(DEST_DIR)/${VX_BINARY}.gz $(if $(NO_LOCAL_TARGETS),,$(VX_BINARY))
+else
+all: $(DEST_DIR)/${VX_BINARY}.Z $(DEST_DIR)/${VX_BINARY}.gz $(DEST_DIR)/${VX_BINARY}.7z $(if $(NO_LOCAL_TARGETS),,$(VX_BINARY))
+endif
+
+else
+#
+# Default target(s)
+#
+all: $(DEST_DIR)/${VX_BINARY} $(if $(NO_LOCAL_TARGETS),,$(VX_BINARY))
+
+endif
+
+#
+# Rule to build all BCM libraries before creating VxWorks binary.
+# From systems/vxworks/*, one can run "make NO_BCM=1" to skip building
+# the BCM libraries and build only the VxWorks BSP.
+#
+.PHONY: bcm_libraries
+bcm_libraries:
+ifndef NO_BCM
+ifdef BUILD_PHYMOD
+	$(MAKE) -C ${SDK}/libs/phymod SDKBUILD=$(SDKBUILD)
+endif
+	$(MAKE) -C ${SDK} SDKBUILD=$(SDKBUILD)
+endif
+
+.PHONY: driver_libraries
+driver_libraries:
+ifndef NO_BCM
+	$(MAKE) -C ${SDK}/systems/drv SDKBUILD=$(SDKBUILD)
+endif
+
+LIB_BDE = libvxbde.a
+
+bde:
+	$(MAKE) -C ${SDK}/systems/bde/vxworks SDKBUILD=$(SDKBUILD)
+
+ifdef BUILD_MACSEC
+	@$(ECHO) "Building MACSEC libraries ...."
+	$(MAKE) -C ${MACSEC_HOME} SDKBUILD=$(SDKBUILD) MACSEC_CC="${CC}" MACSEC_LD="${LD}" MACSEC_AR="$(AR)" MACSEC_CFLAGS="${MACSEC_BUILD_FLAG}" MACSEC_TARGET="${targetbase}/$(targetplat)/${platform}" all
+endif
+
+# Build Compiled-In configuration Variable Support
+# Generate C stub for default SAL and BCM API configuration variables
+# See also $SDK/rc/config.bcm
+# See also $SDK/src/sal/user/config.c
+
+ifeq "$(HOSTTYPE)" "Windows2000PC"
+${BLDDIRWITHDRIVE}/platform_defines.c: ${SDK}/rc/config.bcm
+	$(BCM2C) ${SDK}/rc/config.bcm > $@
+${BLDDIR}/platform_defines.o: ${BLDDIRWITHDRIVE}/platform_defines.c
+	$(CC) ${CFLAGS} -c $< -o $@
+	$(RM) ${BLDDIRWITHDRIVE}/platform_defines.c
+else
+${BLDDIR}/platform_defines.c: ${SDK}/rc/config.bcm
+	$(BCM2C) ${SDK}/rc/config.bcm > $@
+${BLDDIR}/platform_defines.o: ${BLDDIR}/platform_defines.c
+	$(CC) ${CFLAGS} -c $< -o $@
+endif
+
+
+#
+# Build version generator.  If NO_VERSION=1 is specified in Make.local
+# or on command line, then use the existing version.c.  If that doesn't
+# exist, copy the default one from config.
+#
+# Otherwise, force the generation of a new version.c using the perl script.
+#
+ifeq "$(HOSTTYPE)" "Windows2000PC"
+ifdef NO_VERSION
+${BLDDIR}/version.c: ${BLDDIR}/.tree
+	$(CP) ${SDK}/make/version.c $@
+else
+.PHONY: _force
+${BLDDIRWITHDRIVE}/version.c: ${BLDDIR}/.tree _force
+	$(MKVERS) > $@
+endif
+${BLDDIR}/version.o: ${BLDDIRWITHDRIVE}/version.c
+	$(CC) ${CFLAGS} -c $< -o $@
+	$(RM) ${BLDDIRWITHDRIVE}/version.c
+else
+ifdef NO_VERSION
+${BLDDIR}/version.c: ${BLDDIR}/.tree
+	$(CP) ${SDK}/make/version.c $@
+else
+.PHONY: _force
+${BLDDIR}/version.c: ${BLDDIR}/.tree _force
+	$(MKVERS) > $@
+endif
+${BLDDIR}/version.o: ${BLDDIR}/version.c
+	$(CC) ${CFLAGS} -c $< -o $@
+endif
+
+#
+# In Tornado 1, stripppc and objcopyppc corrupt the ELF program header
+# and require the use of the "stripfix" kludge.  Alternately, Solaris'
+# strip works on PPC binaries also (/usr/ccs/bin/strip).
+#
+STRIPFIX = $(PERL) ${SDK}/tools/stripfix.pl
+
+#
+# The following target creates the deflated version suitable to
+# place on the flash disk.
+#
+
+DEFLATE = ${WIND_BASE}/host/${WIND_HOST_TYPE}/bin/deflate
+
+$(DEST_DIR)/${VX_BINARY}.Z: $(DEST_DIR)/${VX_BINARY}
+	@$(ECHO) "Deflating $< ==> $@ ...."
+	$(DEFLATE) < $< > $@
+
+$(DEST_DIR)/${VX_BINARY}.gz: $(DEST_DIR)/${VX_BINARY}
+	@$(ECHO) "GZIP Compressing $< ==> $@ ...."
+	$(GZIP) -c $< > $@
+
+$(DEST_DIR)/${VX_BINARY}.7z: $(DEST_DIR)/${VX_BINARY}
+	@$(ECHO) "LZMA Compressing $< ==> $@ ...."
+	$(LZMA) a $(subst .$(VX_VERSION),-$(VX_VERSION),$<).7z $<
+	chmod 644 $@
+
+${LIBDIR}/libdrivers.${LIBSUFFIX}: ${BLDDIR}/.tree
+	$(MAKE) -C ${COND_LIB_DIRECTORY} SDKBUILD=$(SDKBUILD)
+
+ifdef COND_LIB_BCM570X
+${LIBDIR}/libbcm570x.${LIBSUFFIX}: ${BLDDIR}/.tree
+	$(MAKE) -C ${SDK}/systems/drv/bcm570x SDKBUILD=$(SDKBUILD)
+endif
+
+
+#
+# Rules for building bootrom
+#
+bootrom: bootrom.dat
+
+bootrom.dat:
+	$(MAKE) -C ${SRC_DIR} bootrom_uncmp SDKBUILD=$(SDKBUILD)
+	$(CP) ${SRC_DIR}/bootrom_uncmp bootrom.dat
+
+.PHONY: .force
+
+bootrom.hex: .force
+ifeq ($(targetplat),nsx)
+	@$(ECHO) "VxWorks Bootrom not supported on $(targetplat)"
+else
+ifeq ($(targetplat),gtx)
+	@$(ECHO) "VxWorks Bootrom not supported on $(targetplat)"
+else
+ifeq ($(targetplat),metrocore)
+	@$(ECHO) "VxWorks Bootrom not supported on $(targetplat)"
+else
+	$(MAKE) -C ${SRC_DIR} WIND_BASE="${WIND_BASE}" \
+		VX_VERSION="${VX_VERSION}" BCM_END_DRV=1 \
+		MAKEFLAGS="${MAKEFLAGS}" bootrom.hex
+	$(CP) ${SRC_DIR}/bootrom.hex $@
+	mkdir -p $(DEST_DIR)
+	$(CP) ${SRC_DIR}/bootrom.hex $(DEST_DIR)
+ifeq ($(BOOTROM_SWAP),yes)
+	$(MAKE) -C ${SRC_DIR} WIND_BASE="${WIND_BASE}" PERL="${PERL}"\
+		MAKEFLAGS="${MAKEFLAGS}" bootrom_swap.hex
+endif
+endif
+endif
+endif
+
+mkboot:
+	$(MAKE) -C ${SRC_DIR} mkboot.o SDKBUILD=$(SDKBUILD)
+	$(CP) ${SRC_DIR}/mkboot.o . 
+
+#
+# Generate file of symbols.
+# NOTE: The symbols in bootrom.dat are not useful for debugging.
+# The real symbols exist only in a temporary file during the build.
+#
+#.PHONY: bootrom.nm
+#bootrom.nm:
+#	${NM} -n bootrom.dat > bootrom.nm
+
+#
+# Generate VisionICE input file.
+#
+.PHONY: bootrom.ab
+bootrom.ab:
+	estconvert -w bootrom.o -b -c
+
+#
+# Use vxclean to do a "make clean" in the vxWorks directory only.
+#
+ifeq "$(HOSTTYPE)" "Windows2000PC"
+vxclean::
+	$(RM) ${VX_BINARY} ${VX_BINARY}.sym ${VX_BINARY}.Z bcm.Z bcm.gz ${VX_BINARY}.7z bcm.7z
+	$(RM) bootrom.dat bootrom.hex
+	$(MAKE) -C ${SRC_DIR} clean $(LOCAL_CLEAN) SDKBUILD=$(SDKBUILD)
+else
+vxclean::
+	$(RM) ${DEST_DIR}/${VX_BINARY} ${DEST_DIR}/${VX_BINARY}.sym
+	$(RM) ${DEST_DIR}/${VX_BINARY}.Z ${DEST_DIR}/bcm.Z bcm.gz ${DEST_DIR}/${VX_BINARY}.7z
+	$(RM) ./vxWorks* bootrom.* 
+	$(MAKE) -C ${SRC_DIR} clean $(LOCAL_CLEAN) SDKBUILD=$(SDKBUILD)
+endif
+
+clean:: vxclean
+	$(MAKE) -C ${SDK} clean SDKBUILD=$(SDKBUILD)
+ifdef BUILD_PHYMOD
+	$(MAKE) -C $(SDK)/libs/phymod clean
+endif
+	$(MAKE) -C ${SDK}/systems/drv clean SDKBUILD=$(SDKBUILD)
+ifdef COND_LIB_BCM570X
+	$(MAKE) -C ${SDK}/systems/drv/bcm570x clean SDKBUILD=$(SDKBUILD)
+endif
+ifdef BUILD_MACSEC
+	$(MAKE) -C ${MACSEC_HOME} MACSEC_TARGET="${targetbase}/$(targetplat)/${platform}" clean SDKBUILD=$(SDKBUILD)
+endif
+	$(MAKE) -C ${SDK}/systems/bde/vxworks clean
+
+	$(RM) ${BOBJS}
+	$(RM) ${BLDDIR}/version.c ${BLDDIR}/version.o
+	$(RM) ${BLDDIR}/platform_defines.c ${BLDDIR}/platform_defines.o
+
+distclean::
+	$(RM) ${BLDROOT}
+	$(RM) ${DEST_DIR}
+else 
+ifndef DELIVERY
+$(error DELIVERY required)
+endif
+ifeq ($(VX_VERSION),55)
+FILES := $(if $(filter-out nsx gtx metrocore,$(targetplat)),bootrom.hex) \
+	$(VX_BINARY) $(addprefix $(VX_BINARY).,Z gz sym)
+LINKS := $(addprefix $(subst .$(VX_VERSION),,$(subst ,,$(VX_BINARY))).,Z gz)
+else
+FILES := $(if $(filter-out nsx gtx metrocore,$(targetplat)),bootrom.hex) \
+	$(VX_BINARY) $(addprefix $(VX_BINARY).,Z 7z gz sym)
+LINKS := $(addprefix $(subst .$(VX_VERSION),,$(subst ,,$(VX_BINARY))).,Z 7z gz)
+endif
+
+DELIVERABLES := $(FILES) $(LINKS)
+
+# 1= source
+define DELIVERY_FILE_RULE
+_DEL_TARG += $(DELIVERY)/$(subst .$(VX_VERSION),,$(subst ,,$(1)))
+$(DELIVERY)/$(subst .$(VX_VERSION),,$(subst ,,$(1))) : 
+	@mkdir -p $(DELIVERY)
+	cp $(DEST_DIR)/$(1) $$@
+
+endef
+
+# Symlinks
+define DELIVERY_LINK_RULE
+_DEL_TARG += $(DELIVERY)/$(basename $(basename $(1)))$(suffix $(1))
+$(DELIVERY)/$(basename $(basename $(1)))$(suffix $(1)) : $(DELIVERY)/$(1)
+	ln -s $$(notdir $$?) $$@
+endef
+
+$(foreach f,$(FILES),$(eval $(call DELIVERY_FILE_RULE,$(f))))
+$(foreach f,$(LINKS),$(eval $(call DELIVERY_LINK_RULE,$(f))))
+
+DELIVER: $(_DEL_TARG)
+
+endif
+
+variable:
+	@echo $($(VAR))
+

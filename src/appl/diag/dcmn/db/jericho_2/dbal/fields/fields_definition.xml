@@ -1,0 +1,2484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields DB:
+    This xml contains the fields DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<FieldDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="fields_schema.xsd">
+
+    <Field Name="EMPTY" Size="1">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ENABLE_BIT" Size="1">
+        <OneLineDescription>Routing Enablers profile</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>SYSTEM</FieldLabels>
+            <DefaultValue>1</DefaultValue>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <Encoding EncodeType="HARD_VALUE" Value="1"/>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="DISABLE_BIT" Size="1">
+        <OneLineDescription>Routing Enablers profile</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>SYSTEM</FieldLabels>
+            <DefaultValue>0</DefaultValue>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <Encoding EncodeType="HARD_VALUE" Value="0"/>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ROUTING_ENABLERS_PROFILE" Size="5">
+        <OneLineDescription>Routing Enablers profile</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="RIF_PROFILE" Size="10">
+        <OneLineDescription>RIF profile is the VSI profile</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ENABLERS_VECTOR" Size="64">
+        <OneLineDescription>Routing Enablers Vector</OneLineDescription>
+        <FieldDbInterface Type="ARRAY32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="RESULT_TYPE" Size="32">
+        <OneLineDescription>Special field that used for identification between multiple results types in table</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SYSTEM</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="CORE_ID" Size="1">
+        <OneLineDescription>Device Core-ID, special field used for access according to core mode</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SYSTEM</FieldLabels>
+            <DefaultValue>-1</DefaultValue>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IPV4" Size="32">
+        <OneLineDescription>An Internet Protocol address (IP address) v4</OneLineDescription>
+        <FieldDbInterface Type="IP">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IPV4_SIP" Size="32">
+        <OneLineDescription>An Internet Protocol address (IP address) v4, source address</OneLineDescription>
+        <FieldDbInterface Type="IP">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IPV4_DIP" Size="32">
+        <OneLineDescription>An Internet Protocol address (IP address) v4, destination address</OneLineDescription>
+        <FieldDbInterface Type="IP">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IPV4_GROUP" Size="28">
+        <OneLineDescription>An Internet Protocol address (IP address) v4, Multi-Cast Group</OneLineDescription>
+        <FieldDbInterface Type="IP">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VRF" Size="17">
+        <OneLineDescription>Virtual Router Forwarding</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IPV6" Size="128">
+        <OneLineDescription>An Internet Protocol address (IP address) v6</OneLineDescription>
+        <FieldDbInterface Type="ARRAY8">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IPV6_SIP" Size="128">
+        <OneLineDescription>An Internet Protocol address (IP address) v6, source address</OneLineDescription>
+        <FieldDbInterface Type="ARRAY8">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IPV6_DIP" Size="128">
+        <OneLineDescription>An Internet Protocol address (IP address) v6, destination address</OneLineDescription>
+        <FieldDbInterface Type="ARRAY8">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="L2_MAC" Size="48">
+        <OneLineDescription>MAC Address</OneLineDescription>
+        <FieldDbInterface Type="ARRAY8">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="L2_SMAC" Size="48">
+        <OneLineDescription>MAC Source Address</OneLineDescription>
+        <FieldDbInterface Type="ARRAY8">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="L2_DMAC" Size="48">
+        <OneLineDescription>MAC Destination Address</OneLineDescription>
+        <FieldDbInterface Type="ARRAY8">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="KAPS_RESULT" Size="20">
+        <OneLineDescription>Payloads types supported by the KAPS.</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+            <ChildFields>
+                <ChildField Name="FEC_DEFAULT"/>
+                <ChildField Name="MC_ID_KAPS"/>
+                <ChildField Name="FEC"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="FEC_DEFAULT" EncodeType="PREFIX" Value="6"/>
+                <ChildField Name="MC_ID_KAPS" EncodeType="PREFIX" Value="7"/>
+                <ChildField Name="FEC" EncodeType="NONE" Value="0"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+     </Field>
+     
+    <Field Name="DESTINATION" Size="21">
+        <OneLineDescription>Forwarding physical destination</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+            <ChildFields>
+                <ChildField Name="PORT_ID"/>
+                <ChildField Name="MC_ID"/>
+                <ChildField Name="FLOW_ID"/>
+                <ChildField Name="LAG_ID"/>
+                <ChildField Name="FEC"/>
+            </ChildFields>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ChildFieldsEncoding>
+                <ChildField Name="PORT_ID" EncodeType="PREFIX" Value="24"/>
+                <ChildField Name="MC_ID" EncodeType="PREFIX" Value="3"/>
+                <ChildField Name="FLOW_ID" EncodeType="PREFIX" Value="2"/> 
+                <ChildField Name="LAG_ID" EncodeType="PREFIX" Value="25"/>                   
+                <ChildField Name="FEC" EncodeType="PREFIX" Value="0"/>
+            </ChildFieldsEncoding>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="FEC" Size="20">
+        <OneLineDescription>Forwarding Equivalence Class</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="FEC_DEFAULT" Size="17">
+        <OneLineDescription>FEC that can be used for default entries</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="MC_ID_KAPS" Size="17">
+        <OneLineDescription>The MC ID supported by the KAPS (only 17b)</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+
+    <Field Name="MPLS_OUT" Size="20">
+        <OneLineDescription>MPLS out label</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="MPLS_OUT_CMD" Size="20">
+        <OneLineDescription>MPLS out label CMD</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="STAT_OBJECT_ID" Size="20">
+        <OneLineDescription>Status inforamtion pointer</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SYSTEM</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="STAT_OBJECT_CMD" Size="5">
+        <OneLineDescription>Status inforamtion CMD</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SYSTEM</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="STAT_OBJECT_PROF" Size="16">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SYSTEM</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="MC_ID" Size="19">
+        <OneLineDescription>Multicast-ID</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="FLOW_ID" Size="19">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PORT_ID" Size="15">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LAG_ID" Size="15">
+        <OneLineDescription>LAG-ID</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="STP_TOPOLOGY_ID" Size="8">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <Encoding EncodeType="SUBTRACT" Value="1"/>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ENABLE_MY_MAC" Size="1">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <Encoding EncodeType="BOOL" Value="0"/>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PROFILE_INGRESS" Size="32">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="FID" Size="17">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IN_PORT" Size="9">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="C_VLAN" Size="12">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IN_LIF" Size="20">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="S_VLAN" Size="12">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="GLOB_IN_LIF" Size="22">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="GLOB_OUT_LIF" Size="22">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="GLOB_OUT_LIF_2ND" Size="22">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ERPP_OUT_LIF_PROFILE" Size="1">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="OAM_LIF_SET" Size="1">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="OUT_LIF" Size="20">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="OUT_LIF_PROFILE" Size="8">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IN_LIF_PROFILE" Size="8">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VLAN_EDIT_PROFILE" Size="6">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VLAN_EDIT_VID_1" Size="12">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VLAN_EDIT_VID_2" Size="12">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VLAN_EDIT_PCP_DEI_PROFILE" Size="6">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ENTRY_GROUPING" Size="8">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="MAC_STRENGTH" Size="2">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="AGING" Size="1">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VSI" Size="17">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ACTION_PROFILE" Size="2">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="NWK_QOS_IDX" Size="11">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LAYER_TYPE" Size="5">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="QOS_MODEL" Size="3">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="QOS_PROFILE" Size="10">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ENCAP_DEST" Size="50">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="ARRAY8">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VLAN_ID" Size="12">
+        <OneLineDescription>VLAN tagging Identifier in the packet Ethernet header</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VLAN_MEMBER_DOMAIN_BMP" Size="512">
+        <OneLineDescription>Bitmap of VLAN member domain. Each bit represent the VLAN member domain ID. VLAN member
+            domain is a group that mapped from the PP port or logical port (for example PWE). Used as part of the VLAN
+            membership table</OneLineDescription>
+        <FieldDbInterface Type="BITMAP">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PP_PORT" Size="8">
+        <OneLineDescription>Internal PP port mapped from Logical port</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VLAN_DOMAIN" Size="9">
+        <OneLineDescription>Group of PP ports that share the same semantic space of VLAN tags</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PORT_VID" Size="12">
+        <OneLineDescription>Port default VID (VLAN-ID) also called PVID</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="STG_ID" Size="8">
+        <OneLineDescription>Spanning Tree group, also known as Topology ID</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="STP_STATE" Size="2">
+        <OneLineDescription>Spanning Tree protocol state, can be block, learn and forward</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="DEFAULT_AC_PROF" Size="4">
+        <OneLineDescription>Default AC profile, used in case of no match of AC</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VSI_PROFILE" Size="6">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PROPAGATION_PROF" Size="3">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="DA_NOT_FOUND_DEST" Size="21">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="MY_MAC" Size="10">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="MY_MAC_PREFIX" Size="6">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VRID_BITMAP" Size="16">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ESEM_ACCESS_CMD" Size="6">
+        <OneLineDescription>Per port ESEM access command, mapped to access properties like default lookup result</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ESEM_ACCESS_VALID" Size="1">
+        <OneLineDescription>Indicator for ESEM access validity</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="TX_OUTER_TAG_VALID" Size="1">
+        <OneLineDescription>Enable, Disable to remove TAG on TX packet Outer-VID</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="TX_OUTER_TAG_VID" Size="12">
+        <OneLineDescription>Outer VID to use when removing TAG on TX packet</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VLAN_MEMBERSHIP_IF" Size="9">
+        <OneLineDescription>Vlan membership interface used as port (logical and physical) attribute for VLAN membership tables</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="FORWARDING_DOMAIN" Size="18">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="FORWARDING_DOMAIN_ASSIGNMENT_MODE" Size="2">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="REMARK_PROFILE" Size="5">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="MTU_PROFILE" Size="3">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="GPORT_FOR_LEARNING" Size="32">
+        <OneLineDescription>GPORT_FOR_LEARNING</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PEER_GPORT" Size="32">
+        <OneLineDescription>PEER_GPORT</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ENUM_TEST" Size="4">
+        <OneLineDescription></OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <!-- printing yype -->
+            <FieldLabels>L2</FieldLabels>
+            <EnumValues><!-- create the Enum -->
+                <EnumVal Name="DEFAULT" Description="default value of field"/>
+                <EnumVal Name="DROP" Description="drop action description"/>
+                <EnumVal Name="SNOOP" Description="snoop action description"/>
+                <EnumVal Name="REDIRECT" Description="redirect action description"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping><!-- create the mapping table (function) -->
+                <EnumVal Name="DEFAULT" Value="0"/>
+                <EnumVal Name="DROP" Value="5"/>
+                <EnumVal Name="REDIRECT" Value="3"/>
+                <EnumVal Name="SNOOP" Value="15"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="SAME_INTERFACE_FILTER_BY_INLIF_PROFILE" Size="2">
+        <OneLineDescription>Mapping from inlif profile to same intf filter</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="SYS_PORT_EQUAL" Size="1">
+        <OneLineDescription>Are source and destination sys ports equal</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INLIF_IS_PORT" Size="1">
+        <OneLineDescription>Is inlif a port</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="OUTLIF_IS_PORT" Size="2">
+        <OneLineDescription>Is outlif a port</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LIFS_EQUAL" Size="1">
+        <OneLineDescription>Are outlif and inlif equal</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="SAME_INTERFACE_FILTER_BY_OUTLIF_PROFILE" Size="2">
+        <OneLineDescription>Mapping from outlif profile to same intf filter</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="SAME_INTERFACE_FILTER_BY_FWD_CONTEXT" Size="2">
+        <OneLineDescription>Mapping from forwarding context to same intf filter</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="SAME_INTERFACE_FILTER" Size="1">
+        <OneLineDescription>Same interface filter result</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="COUNTER" Size="16" InstanceSupport="TRUE">
+        <OneLineDescription>counter ID</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="TPID_INDEX" Size="3">
+        <OneLineDescription>The index to access the TPID table</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="TPID_VALUE" Size="16">
+        <OneLineDescription>The TPID value in the TPID table</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    
+    <Field Name="SNIF_TYPE" Size="2">
+        <OneLineDescription>SNIF supported applications</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>SNIF</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="SNOOP" Description="snoop action"/>
+                <EnumVal Name="MIRROR" Description="mirror action"/>
+                <EnumVal Name="STATISTICAL_SAMPLE" Description="statistical sampling action"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="SNOOP" Value="0"/>
+                <EnumVal Name="MIRROR" Value="1"/>
+                <EnumVal Name="STATISTICAL_SAMPLE" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="SNIF_COMMAND_ID" Size="5">
+        <OneLineDescription>SNIF command(profile) ID</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="SNIF_STRENGTH" Size="2">
+        <OneLineDescription>Controls which packet to drop in case of original/SNIFed packet drop</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>SNIF</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="ENABLE_COPY_ON_REJECT" Description="Default - Snoop and Forward are orthogonal"/>
+                <EnumVal Name="DISABLE_SNIF_ON_FWD_REJECT" Description="Disable Snoop on Forward Reject"/>
+                <EnumVal Name="DISABLE_FWD_ON_SNIF_REJECT" Description="Disable Forward on Snoop Reject"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="ENABLE_COPY_ON_REJECT" Value="0"/>
+                <EnumVal Name="DISABLE_SNIF_ON_FWD_REJECT" Value="1"/>
+                <EnumVal Name="DISABLE_FWD_ON_SNIF_REJECT" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LAG_LB_KEY_OW" Size="1">
+        <OneLineDescription>LAG LB key(trunk hash) for the copy overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LAG_LB_KEY" Size="16">
+        <OneLineDescription>LAG LB key(trunk hash) for the copy</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="TC_OW" Size="1">
+        <OneLineDescription>Traffic class for the copy overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="TC" Size="3">
+        <OneLineDescription>Traffic class for the copy</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="DP_OW" Size="1">
+        <OneLineDescription>Drop precedence overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="DP" Size="2">
+        <OneLineDescription>Drop precedence</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="CROP_ENABLE" Size="1">
+        <OneLineDescription>If set, only first 256B are used for the copy, otherwise all the packet is replicated</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="REMOVE_SYSTEM_HEADERS_ENABLE" Size="1">
+        <OneLineDescription>If set then original system headers are removed from the packet</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="EXT_STAT_DATA_VALID_OW" Size="1">
+        <OneLineDescription>External statistics is valid overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="EXT_STAT_DATA_VALID" Size="1">
+        <OneLineDescription>If set, external statistics is valid</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="EXT_STAT_DATA_OPCODE_OW" Size="1">
+        <OneLineDescription>External statistics is valid overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="EXT_STAT_DATA_OPCODE" Size="8">
+        <OneLineDescription>External statistics OPCODE</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="EXT_STAT_DATA_OW" Size="1">
+        <OneLineDescription>External statistics data overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="EXT_STAT_DATA" Size="80">
+        <OneLineDescription>External statistics data</OneLineDescription>
+        <FieldDbInterface Type="ARRAY32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INT_STAT_OBJ_VALID_OW" Size="1" InstanceSupport="TRUE">
+        <OneLineDescription>Internal statistics object is valid overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INT_STAT_OBJ_VALID" Size="1" InstanceSupport="TRUE">
+        <OneLineDescription>Internal statistics object is valid</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INT_STAT_OBJ_ID_OW" Size="1" InstanceSupport="TRUE">
+        <OneLineDescription>Internal statistics object ID overwrite</OneLineDescription>    
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INT_STAT_OBJ_ID" Size="20" InstanceSupport="TRUE">
+        <OneLineDescription>Internal statistics object ID</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INT_STAT_OBJ_TYPE_OW" Size="1" InstanceSupport="TRUE">
+        <OneLineDescription>Internal statistics object type overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INT_STAT_OBJ_TYPE" Size="2" InstanceSupport="TRUE">
+        <OneLineDescription>Internal statistics object type</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INT_STAT_OBJ_META_DATA_OW" Size="1">
+        <OneLineDescription>Internal statistics metadata overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INT_STAT_OBJ_META_DATA" Size="16">
+        <OneLineDescription>Internal statistics metadata</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IN_PP_PORT_OW" Size="1">
+        <OneLineDescription>In pp port overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IN_PP_PORT" Size="8">
+        <OneLineDescription>In pp port</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ST_VSQ_PTR_OW" Size="1">
+        <OneLineDescription>Statistics VSQ pointer overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ST_VSQ_PTR" Size="8">
+        <OneLineDescription>Statistics VSQ pointer</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ADMIT_PROFILE_OW" Size="1">
+        <OneLineDescription>PP admit profile overwrite</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ADMIT_PROFILE" Size="3">
+        <OneLineDescription>PP admit profile</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="SNIF_PROBABILITY" Size="24">
+        <OneLineDescription>Probability of SNIF execution, calculated as (2^24-SnpActSnpSamplingProbability)/2^24</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SNIF</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LLVP_PROFILE" Size="3">
+        <OneLineDescription>LLVP PROFILE, part of LLVP table key</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IS_OUTER_PRIO" Size="1">
+        <OneLineDescription>OUTER TAG IS PRIORITY, part of LLVP table key</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="OUTER_TPID" Size="3">
+        <OneLineDescription>OUTER TPID INDEX, part of LLVP table key</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INNER_TPID" Size="3">
+        <OneLineDescription>INNER TPID INDEX, part of LLVP table key</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INCOMING_VID_EXIST" Size="1">
+        <OneLineDescription>Incoming packet has a VLAN tag that is not a priority tag</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+   <Field Name="INCOMING_TAG_EXIST" Size="1">
+        <OneLineDescription>Incoming packet has a VLAN tag</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INCOMING_S_TAG_EXIST" Size="1">
+        <OneLineDescription>Incoming packet has S-Tag</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ACCEPTABLE_FRAME_TYPE_ACTION" Size="2">
+        <OneLineDescription>An action to perform</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LLVP_INCOMING_TAG_STRUCTURE" Size="5">
+        <OneLineDescription>Used to generate VLAN edit command</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IVEC_INDEX" Size="7">
+        <OneLineDescription>Index to the ingress VLAN edit command table</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LLVP_PCP_DEI_PROFILE" Size="4">
+        <OneLineDescription>Port based PCP-DEI mapping profile</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="C_TAG_OFFSET" Size="1">
+        <OneLineDescription>C-Tag offset</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PACKET_HAS_C_TAG" Size="1">
+        <OneLineDescription>Packet has C-Tag</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PACKET_HAS_PCP_DEI" Size="1">
+        <OneLineDescription>Packet has PCP-DEI</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="DEFAULT_LIF" Size="20">
+        <OneLineDescription>Default Lif. Default AC lif per incoming port</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="SOURCE_ADDRESS_INDEX" Size="6">
+        <OneLineDescription>Source address index</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="SOURCE_ADDRESS" Size="48">
+        <OneLineDescription>MAC address</OneLineDescription>
+        <FieldDbInterface Type="ARRAY8">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="CONTEXT_PROFILE" Size="6">
+        <OneLineDescription>The context that is used.</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="VLAN_EDIT_CMD_ENABLE" Size="1">
+        <OneLineDescription>Enable the VLAN edit command.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="LIF_QOS_UPDATE_ENABLE" Size="1">
+        <OneLineDescription>Enable the LIF QOS update.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="LIF_LERAN_PAYLOAD_ENABLE" Size="1">
+        <OneLineDescription>Enable the LIF learn payload</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="VSI_LOOKUP_ENABLE" Size="1">
+        <OneLineDescription>Enable the VSI lookup.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="VSI_QOS_UPDATE_ENABLE" Size="1">
+        <OneLineDescription>Enable the VSI QOS update.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="VSI_LEARN_PAYLOAD_ENABLE" Size="1">
+        <OneLineDescription>Enable the VSI learn payload.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="VSI_LEARN_KEY_ENABLE" Size="1">
+        <OneLineDescription>Enable the VSI learn key.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="STP_ENABLE" Size="1">
+        <OneLineDescription>Enable STP</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="COMPATIBLE_MC_ENABLE" Size="1">
+        <OneLineDescription>Enable compatible MC.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="MY_MAC_BASED_EXEM_ENABLE" Size="1">
+        <OneLineDescription>Enable the MyMac based EXEM.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="MY_MAC_BASED_VRID_ENABLE" Size="1">
+        <OneLineDescription>Enable the MyMac based VRID.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="MY_MAC_BASED_VSI_ENABLE" Size="1">
+        <OneLineDescription>Enable the MyMac based VSI.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="MY_MAC_BASED_MC_BACKBONE_ENABLE" Size="1">
+        <OneLineDescription>Enable the MyMac based MC backbone.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="MY_MAC_BASED_UC_BACKBONE_ENABLE" Size="1">
+        <OneLineDescription>Enable the MyMac based UC backbone.</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+
+    <Field Name="VLAN_EDIT_COMMAND_INDEX" Size="7">
+        <OneLineDescription>Index to a VLAN Edit commands table - IVEC or EVEC</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="OUTER_TPID_INDEX" Size="4">
+        <OneLineDescription>Source for TPID value for a VLAN Edit added Outer tag</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="INNER_TPID_INDEX" Size="4">
+        <OneLineDescription>Source for TPID value for a VLAN Edit added Inner tag</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IVE_OUTER_VID_SRC" Size="3">
+        <OneLineDescription>Source for VID value for an IVE VLAN Edit added Outer tag</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="EMPTY" Description="No VLAN Edit action for the tag"/>
+                <EnumVal Name="AC_OUTER_VID" Description="VID Source is the AC LIF Outer VID"/>
+                <EnumVal Name="AC_INNER_VID" Description="VID Source is the AC LIF Inner VID"/>
+                <EnumVal Name="INCOMING_OUTER_VID" Description="VID Source is the Incoming packet Outer VID"/>
+                <EnumVal Name="INCOMING_INNER_VID" Description="VID Source is the Incoming packet Inner VID"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="EMPTY" Value="0"/>
+                <EnumVal Name="AC_OUTER_VID" Value="2"/>
+                <EnumVal Name="AC_INNER_VID" Value="3"/>
+                <EnumVal Name="INCOMING_OUTER_VID" Value="4"/>
+                <EnumVal Name="INCOMING_INNER_VID" Value="5"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IVE_INNER_VID_SRC" Size="3">
+        <OneLineDescription>Source for VID value for an IVE VLAN Edit added Inner tag</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="EMPTY" Description="No VLAN Edit action for the tag"/>
+                <EnumVal Name="AC_OUTER_VID" Description="VID Source is the AC LIF Outer VID"/>
+                <EnumVal Name="AC_INNER_VID" Description="VID Source is the AC LIF Inner VID"/>
+                <EnumVal Name="INCOMING_OUTER_VID" Description="VID Source is the Incoming packet Outer VID"/>
+                <EnumVal Name="INCOMING_INNER_VID" Description="VID Source is the Incoming packet Inner VID"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="EMPTY" Value="0"/>
+                <EnumVal Name="AC_OUTER_VID" Value="2"/>
+                <EnumVal Name="AC_INNER_VID" Value="3"/>
+                <EnumVal Name="INCOMING_OUTER_VID" Value="4"/>
+                <EnumVal Name="INCOMING_INNER_VID" Value="5"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IVE_OUTER_PCP_DEI_SRC" Size="3">
+        <OneLineDescription>Source for PCP-DEI value for an IVE VLAN Edit added Outer tag</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="EMPTY" Description="No VLAN Edit action for the tag"/>
+                <EnumVal Name="AC_OUTER_PCP_DEI" Description="PCP-DEI Source is the AC LIF Outer PCP-DEI mapping"/>
+                <EnumVal Name="AC_INNER_PCP_DEI" Description="PCP_DEI Source is the AC LIF Inner PCP-DEI mapping"/>
+                <EnumVal Name="INCOMING_OUTER_PCP_DEI" Description="PCP_DEI Source is the Incoming packet Outer PCP-DEI mapping"/>
+                <EnumVal Name="INCOMING_INNER_PCP_DEI" Description="PCP_DEI Source is the Incoming packet Inner PCP-DEI mapping"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="EMPTY" Value="0"/>
+                <EnumVal Name="AC_OUTER_PCP_DEI" Value="2"/>
+                <EnumVal Name="AC_INNER_PCP_DEI" Value="3"/>
+                <EnumVal Name="INCOMING_OUTER_PCP_DEI" Value="4"/>
+                <EnumVal Name="INCOMING_INNER_PCP_DEI" Value="5"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IVE_INNER_PCP_DEI_SRC" Size="3">
+        <OneLineDescription>Source for PCP-DEI value for an IVE VLAN Edit added Inner tag</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="EMPTY" Description="No VLAN Edit action for the tag"/>
+                <EnumVal Name="AC_OUTER_PCP_DEI" Description="PCP-DEI Source is the AC LIF Outer PCP-DEI mapping"/>
+                <EnumVal Name="AC_INNER_PCP_DEI" Description="PCP_DEI Source is the AC LIF Inner PCP-DEI mapping"/>
+                <EnumVal Name="INCOMING_OUTER_PCP_DEI" Description="PCP_DEI Source is the Incoming packet Outer PCP-DEI mapping"/>
+                <EnumVal Name="INCOMING_INNER_PCP_DEI" Description="PCP_DEI Source is the Incoming packet Inner PCP-DEI mapping"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="EMPTY" Value="0"/>
+                <EnumVal Name="AC_OUTER_PCP_DEI" Value="2"/>
+                <EnumVal Name="AC_INNER_PCP_DEI" Value="3"/>
+                <EnumVal Name="INCOMING_OUTER_PCP_DEI" Value="4"/>
+                <EnumVal Name="INCOMING_INNER_PCP_DEI" Value="5"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="TAGS_TO_REMOVE" Size="2">
+        <OneLineDescription>Source for PCP-DEI value for a VLAN Edit added Inner tag</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="EVE_OUTER_VID_SRC" Size="3">
+        <OneLineDescription>Source for VID value for an EVE VLAN Edit added Outer tag</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="EMPTY" Description="No VLAN Edit action for the tag"/>
+                <EnumVal Name="INCOMING_OUTER_VID" Description="VID Source is the Incoming packet Outer VID"/>
+                <EnumVal Name="INCOMING_INNER_VID" Description="VID Source is the Incoming packet Inner VID"/>
+                <EnumVal Name="AC_OUTER_VID" Description="VID Source is the AC LIF Outer VID"/>
+                <EnumVal Name="AC_INNER_VID" Description="VID Source is the AC LIF Inner VID"/>
+                <EnumVal Name="FORWARD_DOMAIN" Description="VID Source is the Forward domain (VSI)"/>
+                <EnumVal Name="ARP_AC_OUTER_VID" Description="VID Source is the ARP+AC LIF Outer VID"/>
+                <EnumVal Name="ARP_AC_INNER_VID" Description="VID Source is the ARP+AC LIF Inner VID"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="EMPTY" Value="0"/>
+                <EnumVal Name="INCOMING_OUTER_VID" Value="1"/>
+                <EnumVal Name="INCOMING_INNER_VID" Value="2"/>
+                <EnumVal Name="AC_OUTER_VID" Value="3"/>
+                <EnumVal Name="AC_INNER_VID" Value="4"/>
+                <EnumVal Name="FORWARD_DOMAIN" Value="5"/>
+                <EnumVal Name="ARP_AC_OUTER_VID" Value="6"/>
+                <EnumVal Name="ARP_AC_INNER_VID" Value="7"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="EVE_INNER_VID_SRC" Size="3">
+        <OneLineDescription>Source for VID value for an EVE VLAN Edit added Inner tag</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="EMPTY" Description="No VLAN Edit action for the tag"/>
+                <EnumVal Name="INCOMING_OUTER_VID" Description="VID Source is the Incoming packet Outer VID"/>
+                <EnumVal Name="INCOMING_INNER_VID" Description="VID Source is the Incoming packet Inner VID"/>
+                <EnumVal Name="AC_OUTER_VID" Description="VID Source is the AC LIF Outer VID"/>
+                <EnumVal Name="AC_INNER_VID" Description="VID Source is the AC LIF Inner VID"/>
+                <EnumVal Name="FORWARD_DOMAIN" Description="VID Source is the Forward domain (VSI)"/>
+                <EnumVal Name="ARP_AC_OUTER_VID" Description="VID Source is the ARP+AC LIF Outer VID"/>
+                <EnumVal Name="ARP_AC_INNER_VID" Description="VID Source is the ARP+AC LIF Inner VID"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="EMPTY" Value="0"/>
+                <EnumVal Name="INCOMING_OUTER_VID" Value="1"/>
+                <EnumVal Name="INCOMING_INNER_VID" Value="2"/>
+                <EnumVal Name="AC_OUTER_VID" Value="3"/>
+                <EnumVal Name="AC_INNER_VID" Value="4"/>
+                <EnumVal Name="FORWARD_DOMAIN" Value="5"/>
+                <EnumVal Name="ARP_AC_OUTER_VID" Value="6"/>
+                <EnumVal Name="ARP_AC_INNER_VID" Value="7"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="EVE_OUTER_PCP_DEI_SRC" Size="2">
+        <OneLineDescription>Source for PCP-DEI value for an EVE VLAN Edit added Outer tag</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="AC_INNER_PCP_DEI" Description="PCP_DEI Source is the AC LIF Inner PCP-DEI mapping"/>
+                <EnumVal Name="AC_OUTER_PCP_DEI" Description="PCP-DEI Source is the AC LIF Outer PCP-DEI mapping"/>
+                <EnumVal Name="INCOMING_INNER_PCP_DEI" Description="PCP_DEI Source is the Incoming packet Inner PCP-DEI mapping"/>
+                <EnumVal Name="INCOMING_OUTER_PCP_DEI" Description="PCP_DEI Source is the Incoming packet Outer PCP-DEI mapping"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="AC_INNER_PCP_DEI" Value="0"/>
+                <EnumVal Name="AC_OUTER_PCP_DEI" Value="1"/>
+                <EnumVal Name="INCOMING_INNER_PCP_DEI" Value="2"/>
+                <EnumVal Name="INCOMING_OUTER_PCP_DEI" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="EVE_INNER_PCP_DEI_SRC" Size="2">
+        <OneLineDescription>Source for PCP-DEI value for an EVE VLAN Edit added Inner tag</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="AC_INNER_PCP_DEI" Description="PCP_DEI Source is the AC LIF Inner PCP-DEI mapping"/>
+                <EnumVal Name="AC_OUTER_PCP_DEI" Description="PCP-DEI Source is the AC LIF Outer PCP-DEI mapping"/>
+                <EnumVal Name="INCOMING_INNER_PCP_DEI" Description="PCP_DEI Source is the Incoming packet Inner PCP-DEI mapping"/>
+                <EnumVal Name="INCOMING_OUTER_PCP_DEI" Description="PCP_DEI Source is the Incoming packet Outer PCP-DEI mapping"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="AC_INNER_PCP_DEI" Value="0"/>
+                <EnumVal Name="AC_OUTER_PCP_DEI" Value="1"/>
+                <EnumVal Name="INCOMING_INNER_PCP_DEI" Value="2"/>
+                <EnumVal Name="INCOMING_OUTER_PCP_DEI" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="LOGICAL_GPORT" Size="32">
+        <OneLineDescription>All logical gports - VLAN PORT, MPLS PORT, EXTENDER, L2GRE, MIM, VXLAN</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SYSTEM</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+
+    <Field Name="EEI" Size="24">
+        <OneLineDescription>Egress Editing Information</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>SYSTEM</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>   
+
+    <Field Name="LEARN_ENABLE" Size="1">
+        <OneLineDescription>Enable Learning</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LEARN_PAYLOAD_CONTEXT" Size="4">
+        <OneLineDescription>Learn Payload Context</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LEARN_INFO" Size="48">
+        <OneLineDescription>Learning information</OneLineDescription>
+        <FieldDbInterface Type="ARRAY8">
+            <FieldLabels>L2</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ECN_MAPPING_PROFILE" Size="2">
+        <OneLineDescription>ECN Mapping Profile</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PROTECTION_POINTER" Size="18">
+        <OneLineDescription>Protection Pointer</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PROTECTION_PATH" Size="1">
+        <OneLineDescription>Protection Path</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LIF_GENERIC_DATA" Size="16">
+        <OneLineDescription>In-LIF General data</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L2 L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="TERMINATION_TYPE" Size="3">
+        <OneLineDescription>In-LIF Termination Mode</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ACTION_PROFILE_INDEX" Size="3">
+        <OneLineDescription>In-LIF Action Profile index</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="SERVICE_TYPE" Size="3">
+        <OneLineDescription>In-LIF Service Type</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="NEXT_PARSER_CONTEXT" Size="5">
+        <OneLineDescription>In-LIF Next Parser Context</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="NEXT_LAYER_NETWORK_DOMAIN" Size="9">
+        <OneLineDescription>In-LIF Next Layer Network Domain</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="STAT_MPLS" Size="25">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="T_ID" Size="6">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="MPLS_LABEL" Size="20">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="MPLS_LABEL_2" Size="20">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="TTL_IDX" Size="9">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="TTL_MODEL" Size="2">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="LIF_ADDITIONAL_HEADERS_PROFILE" Size="5">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ESEM_CMD" Size="3">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="ESEM_NAME_SPACE" Size="9">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="MPLS_EXTENDED_FODO" Size="24">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="BFIR_ID" Size="16">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping> 
+    </Field>
+
+    <Field Name="BIER_FODO" Size="22">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="BIER_SUB_DOMAIN" Size="8">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="BIER_SI" Size="10">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="BIER_BIT_STRING_LENGTH" Size="4">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="PP_CUD" Size="22">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="IPV4_ADDITIONAL_HEADER_1" Size="4">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IPV4_ADDITIONAL_HEADER_2" Size="4">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3 MPLS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IN_LIF_VTEP_IDX_PAYLOAD_TYPE" Size="2">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <!-- printing yype -->
+            <FieldLabels>L3 MPLS</FieldLabels>
+            <EnumValues><!-- create the Enum -->
+                <EnumVal Name="IN_LIF_ID" Description="payload contain only in-lif ID"/>
+                <EnumVal Name="VTEP_IDX" Description="payload contain only VTEP index"/>
+                <EnumVal Name="IN_LIF_ID_OR_VTEP_IDX" Description="payload contain in-lif ID or VTEP index"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping><!-- create the mapping table (function) -->
+                <EnumVal Name="IN_LIF_ID" Value="0"/>
+                <EnumVal Name="VTEP_IDX" Value="1"/>
+                <EnumVal Name="IN_LIF_ID_OR_VTEP_IDX" Value="2"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IN_LIF_VTEP_IDX_PAYLOAD_DATA" Size="20">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="SCRATCH_PAD" Size="20">
+        <OneLineDescription>The scratch_pad[floating_PD_Result] must conatain LOCAL_IN_LIF_ID_AND_OR_VTEP_IDX</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="VNI" Size="24">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="TNI" Size="24">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>MPLS L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IPV4_PROTOCOL" Size="8">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="IPV4_TOS" Size="8">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="IPV6_PROTOCOL" Size="8">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="IPV6_TOS" Size="8">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="L4_SRC_PORT" Size="16">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    
+    <Field Name="L4_DEST_PORT" Size="16">
+        <OneLineDescription>Empty</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>L3</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+
+    <Field Name="CRPS_ENGINE_ID" Size="5">
+        <OneLineDescription>CRPS engine id</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <MaxValue>21</MaxValue>
+        </FieldToPhyDbMapping>
+    </Field> 
+
+    <Field Name="CRPS_ENGINE_COUNTER_FORMAT" Size="5">
+        <OneLineDescription>counter format. what it count, the frmat and the arithmetic operation it does</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>CRPS</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="NOT_VALID_MODE" Description="value not valid. made just to align dbal rules"/>			
+                <EnumVal Name="COUNTER_BYTES_WIDE" Description="one wide incrementation counter for byte"/>
+                <EnumVal Name="COUNTER_BYTES_NARROW" Description="2 narrow incrementation counters for byte"/>
+                <EnumVal Name="COUNTER_PACKETS_AND_BYTES" Description="2 narrow incrematation counters, one for packets and one for bytes"/>
+                <EnumVal Name="COUNTER_PACKETS_WIDE" Description="one wide incrementation counter for packets"/>
+                <EnumVal Name="COUNTER_PACKETS_NARROW" Description="2 narrow incrementation counters for packets"/>         
+                <EnumVal Name="COUNTER_MAX_WIDE" Description="one wide counter that holds the max value"/>
+                <EnumVal Name="COUNTER_MAX_NARROW" Description="2 narrow counters that holds the max value"/>			
+                <EnumVal Name="COUNTER_AVERAGE_WIDE" Description="one wide average counter"/>
+                <EnumVal Name="COUNTER_AVERAGE_NARROW" Description="2 narrow avergae counters"/>            
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NOT_VALID_MODE" Value="0"/>			
+                <EnumVal Name="COUNTER_BYTES_WIDE" Value="4"/>
+                <EnumVal Name="COUNTER_BYTES_NARROW" Value="6"/>
+                <EnumVal Name="COUNTER_PACKETS_AND_BYTES" Value="9"/>
+                <EnumVal Name="COUNTER_PACKETS_WIDE" Value="12"/>
+                <EnumVal Name="COUNTER_PACKETS_NARROW" Value="14"/>
+                <EnumVal Name="COUNTER_MAX_WIDE" Value="16"/>
+                <EnumVal Name="COUNTER_MAX_NARROW" Value="18"/>
+                <EnumVal Name="COUNTER_AVERAGE_WIDE" Value="20"/>               
+                <EnumVal Name="COUNTER_AVERAGE_NARROW" Value="22"/>
+			
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_WEIGHT_RATIO" Size="5">
+        <OneLineDescription>weight ration for average MODE_ACTION</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>        
+    <Field Name="CRPS_ENGINE_ENABLE_CLEAR_ON_READ" Size="1">
+        <OneLineDescription>after read a counter, reset to value 0 or 1</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_PIPE_ENABLE" Size="1">
+        <OneLineDescription>Enable CRPS ALU (access to CRPS memories)</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_N_SCAN_WAIT_TIME_BETWEEN_ALG_SCANS" Size="32">
+        <OneLineDescription>Algorithm and sequential sampling intervals. Clock resolution</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_SCAN_MODE" Size="2">
+        <OneLineDescription>scan mode: sequential,algorithmic etc</OneLineDescription>
+        <FieldDbInterface Type="ENUM">
+            <FieldLabels>CRPS</FieldLabels>
+            <EnumValues>
+                <EnumVal Name="NO_SCAN" Description="no scan"/>			
+                <EnumVal Name="SEQUENTIAL_SCAN" Description="sequential scan only "/>
+                <EnumVal Name="ALGORITHIM_SCAN" Description="algorithim scan only "/>				
+                <EnumVal Name="SEQUENTIAL_AND_ALGORITHIM_SCAN" Description="sequential and algorithim scan"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NO_SCAN" Value="0"/>			
+                <EnumVal Name="SEQUENTIAL_SCAN" Value="1"/>
+                <EnumVal Name="ALGORITHIM_SCAN" Value="2"/>
+                <EnumVal Name="SEQUENTIAL_AND_ALGORITHIM_SCAN" Value="3"/>
+            </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </Field>          
+    <Field Name="CRPS_ENGINE_SCAN_THRESHOLD" Size="8">
+        <OneLineDescription>last 8 bits of scanner threshold for sending to dma</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_SCAN_PKT_THRESHOLD" Size="4">
+        <OneLineDescription>last 4 bits of scanner pkt threshold for sending to dma. relevant just for pkts and bytes format</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>      
+    <Field Name="CRPS_ENGINE_SCAN_OBJECT_TYPE_FOR_DMA" Size="8">
+        <OneLineDescription>Add additional event-ID to DMA record, per engine</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_SCAN_DMA_RECORD_LOGICAL_SEL" Size="1">
+        <OneLineDescription>select if the record for DMA FIFO is physical or logical. (record time is in another field)</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_SCAN_CLEAR_ON_READ_ENABLE" Size="1">
+        <OneLineDescription>enable "clear after read" on the counter </OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_SOURCE_SELECT" Size="5">
+        <OneLineDescription>the source and interface id that connected to the engine</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_GROUP_SIZE" Size="6">
+        <OneLineDescription>counter set size</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_PTR_BASE_NORMALIZE" Size="20">
+        <OneLineDescription>offset to reduce from the stat-object-id</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_ADDRESS_BASE_NORMALIZE" Size="26">
+        <OneLineDescription>define the first stat index of the engine.</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_INIT_REQUEST" Size="1">
+        <OneLineDescription>init counters memory per engine and all other memories belong the engine</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ENGINE_SCAN_ENABLE" Size="1">
+        <OneLineDescription>enable-disable all scan together per engine (but not memory init)</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>        
+    <Field Name="CRPS_ENGINE_SOURCE_SELECT_ENABLE" Size="1">
+        <OneLineDescription>enable the interface mux or disable. Untill enable, no data will be enter to CRPS</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="CRPS_ENGINE_DMA_SELECT" Size="1">
+        <OneLineDescription>select which engine to use (0 or 1)</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ITM_PKTSIZE_NOT_QSIZE_SEL" Size="1">
+        <OneLineDescription>select if CRPS refer to TM packets size or Q size</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ITPP_LTNCY_CTR_EXPANSION_SELECT" Size="16">
+        <OneLineDescription>16 bits expansion select mux for ITPP</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ERPP_CTR_EXPANSION_SELECT" Size="16">
+        <OneLineDescription>16 bits expansion select mux for ERPP</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_ETPP_CTR_EXPANSION_SELECT" Size="24">
+        <OneLineDescription>24 bits expansion select mux for ETPP</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_IRPP_CTR_EXPANSION_SELECT" Size="36">
+        <OneLineDescription>36 bits expansion select mux for IRPP</OneLineDescription>
+        <FieldDbInterface Type="ARRAY32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_IRPP_PACKET_SIZE_SELECT" Size="1">
+        <OneLineDescription>select if to use compensation schem 0 or 1</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="CRPS_ETPP_LTNCY_CTR_SELECT" Size="1">
+        <OneLineDescription>select if to use ETPP IF5 for latency or for packet size</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="CRPS_ENGINE_TYPE_MAP_OFFSET" Size="20">
+        <OneLineDescription>offset per type</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>        
+    <Field Name="CRPS_ENGINE_TYPE_ADMN_MAP" Size="4">
+        <OneLineDescription>admission type bitmap</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_EXPANSION_DATA_ADMISSION" Size="1">
+        <OneLineDescription>addmission for a given expansion value</OneLineDescription>
+        <FieldDbInterface Type="BOOL">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_EXPANSION_DATA_OFFSET" Size="5">
+        <OneLineDescription>offset in the counter_set for a given expansion value</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_IF_OBJECT_ID" Size="3">
+        <OneLineDescription>crps interface object id</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <MaxValue>9</MaxValue>		
+        </FieldToPhyDbMapping>
+    </Field>
+    <Field Name="CRPS_IF_TYPE_ID" Size="2">
+        <OneLineDescription>crps interface type id</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    <Field Name="CRPS_EXPANSION_INDEX" Size="10">
+        <OneLineDescription>index for the expansion data mapping table</OneLineDescription>
+        <FieldDbInterface Type="UINT32">
+            <FieldLabels>CRPS</FieldLabels>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+        </FieldToPhyDbMapping>
+    </Field>    
+    
+</FieldDbCatalog>

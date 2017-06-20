@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../tables_hard_logic/hard_logic_schema.xsd">
+
+    <AppDB Name="EGRESS_PORT">
+        <OneLineDescription></OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="PORT_VID" Size="12"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS FCOE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="VLAN_DOMAIN">
+                    <Access>
+                        <KeyCondition Type="BIGGER_THAN" Value="14"/>
+                        <KeyCondition Field="PP_PORT" Type="LOWER_THAN" Value="124"/>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm"> 
+                            <ArrayOffset EncodeType="MULTIPLE" Field="CORE_ID" Value="4"/>
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Type="LOWER_THAN" Value="14"/>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm"> 
+                            <DataOffset EncodeType="PARTIAL_KEY" Field="PP_PORT"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Type="EQUAL_TO" Value="14"/>
+                        <Memory Name="ETPPA_PER_PORT_TABLEm"> 
+                            <EntryOffset EncodeType="HARD_VALUE" Value="1"/>
+                            <HwField Name="VLAN_DOMAINf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

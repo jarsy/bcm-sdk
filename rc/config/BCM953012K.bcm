@@ -1,0 +1,13 @@
+# $Id$
+# $Copyright: (c) 2011 Broadcom Corporation All Rights Reserved.$
+phy_port_primary_and_offset_ge0=0x0000
+phy_port_primary_and_offset_ge1=0x0001
+phy_port_primary_and_offset_ge2=0x0002
+phy_port_primary_and_offset_ge3=0x0003
+phy_port_primary_and_offset_ge4=0x0004
+board_name=bcm5301x_gmac_reset
+os=unix
+dual_imp_enable=1
+pbmp_valid=0x0000011f
+pbmp_wan_port=0x1
+

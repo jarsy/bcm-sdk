@@ -1,0 +1,49 @@
+/*
+ * $Id: configNet.h.template,v 1.2 Broadcom SDK $
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ *
+ * configNet.h - Network configuration header file
+ */
+
+/*
+DESCRIPTION
+This is an example configuration header for the VxWorks BCM570x (bc) END
+driver.  If you're familiar with VxWorks, you've seen configNet.h before.
+The role of this file is to define your END load string(s) and put
+them in the endDevTbl.
+
+
+N.B.: code formatting conventions used here are Wind River, not
+Broadcom's, since this driver wrapper resides in the BSP.
+*/
+
+#ifndef INCconfigNeth
+#define INCconfigNeth
+
+#include "vxWorks.h"
+#include "end.h"
+
+/*
+ * SENS Device for BCM570x 10/100/1000 PCI Ethernet chip
+ */
+#include "etherMultiLib.h"
+#include "endLib.h"
+
+IMPORT END_OBJ *sysBcm570xEndLoad(char *initString, void* ap);
+#define BCM570X_FUNC sysBcm570xEndLoad
+
+/* Format is unit#, PCI Memory Base, Iline, align */
+/* Unit number is prepended in muxDevLoad, don't put it here */
+
+#define BCM570X_INIT_STRING "0x80000000:1:0" 
+
+
+END_TBL_ENTRY endDevTbl [] =
+{
+  { 0, BCM570X_FUNC, BCM570X_INIT_STRING, 0, NULL, FALSE},
+  { 0, END_TBL_END, NULL, 0, NULL, FALSE}
+};
+
+#endif /* INCconfigNeth */

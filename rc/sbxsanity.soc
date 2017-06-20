@@ -1,0 +1,42 @@
+#
+# $Id$
+#
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+
+echo "testsuite: started: sanity"
+#
+# Check current unit is attached
+#
+
+if !"expr $?pcidev != 1" " \
+	echo 'Error: Current unit is not attached' ; \
+	exit ; \
+"
+
+# QE2000
+if !"expr $pcidev == 0x300" \
+        "tr 107 reinit=0"
+
+# C1 on Polaris board
+if !"expr $pcidev == 0x0380" && !"expr $unit == 2" \
+	"tr 119; tr 118; tr 114; tr 116; tr 107"
+
+if !"expr $pcidev == 0x0380" && !"expr $unit == 1" \
+	"tr 114; tr 116; tr 107"
+
+# C2 board
+if !"expr $pcidev == 0x0580" \
+	"tr 119; tr 118; tr 114; tr 116; tr 107"
+
+# polaris, reg r/w test, SFI/SCI prbs to QE
+if !"expr $pcidev == 0x0480" \
+	"tr 111; tr 110"
+
+tl
+local returnCode $?
+
+# We want to show the return code from the tl command which
+# lists the results. The automated test infrastructure keys off of this
+# value
+echo "testsuite: finished: sanity: $returnCode"

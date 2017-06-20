@@ -1,0 +1,355 @@
+# $Id: sbx.soc,v 1.63 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Initialization SBX (run commands) file
+#
+#       These are default commands that are read and executed by default
+#       when BCM boots up.  Typically this file is called sbx.soc and resides
+#       in the flash filesystem, NVRAM, or disk.
+#
+
+local configure_warmboot 1
+
+if $?1 "echo sbx: arguments not supported; exit"
+if !$?unit "echo sbx: no current unit; exit"
+
+# When running as daemon, output can be redirected to diag_log_file
+if !"expr $unit == 0" && $?diag_log_file \
+	"log file=$diag_log_file on;"
+
+# enable stable config for FE2k devices
+# 
+
+if $configure_warmboot && !"expr $pcidev == 0x0380 || $pcidev == 0x0580 \
+	|| $pcidev == 0x0300 || $pcidev == 0x0480 || $pcidev == 0x0280 " "\
+  echo $unit: configure scache for warm boot, no-op if warm boot not compiled.; \
+  stable size=0;\
+"
+
+expr $units - 1;local num_units $?
+echo "sbx: unit $unit (of $num_units) device $devname"
+local quiet no
+local echo echo
+local rcdone \$sbx$unit
+if !"expr $sbxdone + 0" "local echo noecho; local quiet yes"
+
+#deb +Tests
+#deb +PCI
+#deb +reg
+
+# Set convenience local variables
+
+# simulation related
+#if $?plisim \
+#       "local no_bcm 1"
+if $?quickturn || $?plisim \
+        "local simulator 1"
+
+# Start counter task unless already started by "init bcm" above.
+if $?plisim "local dma false"
+if !$?plisim "local dma true"
+
+# if card has 1 unit and it is C2, assume its c2 dvt board
+# setreg below puts board in freerun mode
+if !"expr $pcidev == 0x0580" && !"expr $units == 1" "\
+	echo 'C2 DVT board - use SyncE for synchronous mode' ; \
+	setreg pc_gpio_dir 0xfffffc; \
+	config add bcm88025_dv_board=1 ; \
+	init soc ; \
+	init bcm ; \
+	exit ; \
+"
+
+
+# chip related
+# if card has 4 units and unit is QE2000, FE2000 or BM3200, assume it's a metrocore line card
+if !"expr $pcidev == 0x0300 || $pcidev == 0x0380 || $pcidev == 0x0280" \
+   && !"expr $units == 4"   " \
+   local metrocore 1"
+
+if !"expr $pcidev == 0x0300 || $pcidev == 0x0380 || $pcidev == 0x0280 || $pcidev == 0x0480" \
+   && !"expr $units == 5"   " \
+   local polaris_lc 1"
+
+# if card has 2 units and unit is BM3200, assume it's a fabric card
+if !"expr $pcidev == 0x0280" && !"expr $units == 2"  " \
+   local sfm3200fabric 1"
+
+# if card has 1 units and unit is BM9600, assume it's a fabric card
+if !"expr $pcidev == 0x0480" && !"expr $units == 1"  " \
+   local sfm9600fabric 1"
+
+# if card has 1 unit and unit is BCM88230, BCM88235 or BCM88239, assume its sirius BCMSIM
+if !"expr $pcidev == 0x0230 || $pcidev == 0x0235 || $pcidev == 0x0239 || $pcidev == 0xb624" && !"expr $units == 1 || $units == 2 || $units == 3"  " \
+   local sirius 1 "
+ 
+# FE2KXT board detection
+if !"expr $pcidev == 0x0580 || $pcidev == 0x0300 || $pcidev == 0x0480 " && !"expr $units == 3" "\
+   local fe2kxt_polaris_lc 1"
+
+# Board Configuration Setting
+#       This file uses configuration properties to know on which board
+#       it is running.  Currently one of following settings must be made:
+#
+#       BCM988020R24XSP  config add metrocore=1            brdtype 1
+#       BCM9SFM3200      config add sfm3200fabric=1        brdtype 2
+#       BCMSIM (LcModel) config add plisim=1               brdtype 3
+#       BCM988130FK24X2  config add polaris_lc=1           brdtype 4
+#       BCM988130K24XG   config add sfm9600fabric=1        brdtype 5 (force)
+#       BCM988025SBLX24G config add fe2kxt_polaris_lc=1    brdtype 6
+#       BCMSIM (Sirius/BCM88230)
+#                        config add plisim_sirius=1        brdtype 8
+#       BCM988130/Sirius config add sfm9600fabric=1        brdtype 11 (default)
+#
+    
+if $?metrocore                      "\
+   local brdtype 1;                  \
+   config add port_is_sci.port1.2=1; \
+   config add metrocore=1"
+
+#   config add bm_device_mode=3"
+
+if $?sfm3200fabric " \
+   local brdtype 2;  \
+   config add sfmfabric=1"
+
+if $?plisim && !"expr $units == 2" && !"expr $pcidev == 0x0300 || $pcidev == 0x0380 || $pcidev == 0x0580"   " \
+   local brdtype 3;  \
+   config add plisim=1"
+
+# Note: 
+# following configuration applies to latest rev of Polaris (FE2k/QE2k) LC
+# SCI pins are different for older rev boards
+if $?polaris_lc   "                          \
+   config add port_is_sci.port28.4=1;        \
+   config add port_is_sci.port25.4=1;        \
+   config add sci_port_modid.port25.4=10000; \
+   config add sci_port_modid.port28.4=10001; \
+   config add rx_parse_erh.2=0;              \
+   local brdtype 4 "
+
+if $?fe2kxt_polaris_lc "\
+   local brdtype 6 "
+
+if $?sirius " \
+   local brdtype 8"
+
+if $?plisim && $?sirius  "    \
+   config add sirius_sim=1;   \
+   config add plisim_sirius=1"
+
+# Polaris only boards
+# (1) - Fabric card BCM988130BS - 
+# (2) - IPASS card - Polaris only (Default)
+# There currently is no way to distinguish between them.(gnats 36365)
+# If fabric card need to force_brdtype=5 in config.bcm
+
+if $?sfm9600fabric && !$?force_brdtype "     \
+   config add port_is_sci.port29.0=1;        \
+   config add bme_switch_controller_id=0;    \
+   config add bme_device_mode=2;             \
+   local brdtype 11 "
+
+# Fabric card
+if $?sfm9600fabric && $?force_brdtype "\
+   local brdtype $force_brdtype;  \
+   config add sfmfabric=1"
+
+# Chassis mode configuration
+#       The checked in version of this file and config.bcm assumes
+#       running on linecard in standalone mode. to run in chassis
+#       mode(fabric card + line cards), add following line in
+#       config.bcm of all cards:
+#            diag_chassis=1
+#       and remove the following line in the config.bcm of all
+#       cards:
+#            port_is_sci.port1.2=1
+#
+#       when running in chassis mode and FC1 is used, add
+#       following line in config.bcm of all line cards:
+#            active_switch_controller_id=1
+#
+#       when running in chassis mode, this file assumes the fabric
+#       card is FC1, for FC0, change the following line
+#            config add port_is_sci.port[1-4].1=1
+#            config add active_switch_controller_id=1
+#            config add bme_switch_controller_id=1
+#       to:
+#            config add port_is_sci.port[1-4].0=1
+#            config add active_switch_controller_id=0
+#            config add bme_switch_controller_id=0
+#
+
+if !"expr $diag_chassis + 0 == 1" && !"expr $brdtype<4" "                         \
+   config add port_is_sci.port1.0=1;         \
+   config add port_is_sci.port2.0=1;         \
+   config add port_is_sci.port3.0=1;         \
+   config add port_is_sci.port4.0=1;         \
+   config add port_is_sci.port1.2=0;         \
+   config add active_switch_controller_id=1; \
+   config add bme_switch_controller_id=1"
+
+if !"expr $diag_chassis + 0 == 1" && !"expr $brdtype==4" "                         \
+   config add bm_device_mode=3;              \
+   config add port_is_sci.port28.4=1;        \
+   config add port_is_sci.port25.4=1;        \
+"
+
+# FE2KXT board
+if !"expr $diag_chassis + 0 == 1" && !"expr $brdtype==6" "                         \
+   config add bm_device_mode=3;\
+"
+
+if !"expr $diag_chassis + 0 == 1" && !"expr $brdtype==5" "                         \
+   config add port_is_sci.port25.0=1;        \
+   config add port_is_sci.port35.0=1;        \
+   config add port_is_sci.port17.0=1;        \
+   config add port_is_sci.port47.0=1;        \
+   config add port_is_sci.port72.0=1;        \
+   config add port_is_sci.port69.0=1;        \
+   config add port_is_sci.port7.0=1;         \
+   config add port_is_sci.port57.0=1;        \
+   config add bm_device_mode=2"
+
+# Sirius board - fic mode
+if !"expr $diag_chassis + 0 == 1" && $?sirius " \
+   config add bme_switch_controller_id=0;       \
+   config add bm_device_mode=2;                 \
+   config add bme_num_esets=128"
+
+
+# For Broadcom MetroCore FE-2000 reference designs (only),
+# bounce the DDR2 SRAM DLL on the FPGA before init.
+# Other systems may have to do something equivalent
+
+
+if !$?brdtype "echo sbx: no current brdtype; exit"
+echo "sbx: unit $unit brdtype $brdtype"
+
+# Polaris board (FE0 - 8726 B0 rev)
+if !"expr $brdtype==4" " \
+  config add phy_8706_xe0.1=1; \
+  config add phy_8706_xe1.1=1; \
+  config add phy_xaui_tx_polarity_flip.1=0; \
+  config add port_phy_addr.port25.1=0x42; \
+  config add port_phy_addr.port26.1=0x43;\
+  config add wp_addr_width=20; \
+  config add wide_sram0_x18=0; \
+  config add wide_sram1_x18=0; \
+"
+
+# FE2KXT Polaris board
+if !"expr $brdtype==6" "\
+   config add wp_addr_width=20; \
+   config add wide_sram0_x18=0; \
+   config add wide_sram1_x18=0; \
+"
+
+if !"expr $brdtype == 6" && !$?qe_tme_mode "\
+   config add qe_tme_mode=0; \
+"
+
+# FE2KXT Polaris board
+if !"expr $brdtype == 6" && !"expr $qe_tme_mode==0" && !$?num_modules "\
+   config add num_modules=32; \
+"
+if !"expr $brdtype == 6" && !"expr $qe_tme_mode==1" && !$?num_modules "\
+   config add num_modules=4; \
+"
+
+# for easy reload checking before init soc/init bcm - only enable this when compiling for easy reload
+xxsocreload
+
+
+
+board init type=$brdtype
+
+if $?diag_unit_mask && "expr ((1<<$unit) & $diag_unit_mask)==(1<<$unit)" "echo Skipping units based on diag_unit_mask=$diag_unit_mask.;exit"
+deb +Verbose
+
+echo "$unit:init soc"
+init soc
+
+#echo "$unit:init bcm"
+init bcm
+
+echo "$unit:init bcm done"
+
+if !"expr $brdtype==8"             "                 \
+     $echo rc: Port modes initialized;               \
+     counter Interval=1000 Pbm=all Dma=$dma;         \
+     $echo rc: Counter collection enabled"
+
+# BSC/I2C controller is on Polaris LC(type 4), FE2K(unit 2) chip
+#
+if !"expr $brdtype==4" && !"expr $unit == 2" " \
+      2:bsc probe; \
+      echo Reading EEPROM:; \
+      2:bsc epr 0; \
+"
+
+# FE2KXT board
+if !"expr $brdtype==6" && !"expr $unit == 1" "\
+     1:bsc probe; \
+     echo Reading EEPROM:; \
+     1:bsc epr 0; \
+"
+
+#if !"expr $brdtype==6" && !"expr $unit == 1" "\
+#	1:bsc probe; \
+#"
+
+# forcemodmap is now called for both qe and fe
+if !"expr $pcidev == 0x0380" "echo $unit:call forcemodmap"
+if !"expr $pcidev == 0x0380" "forcemodmap"
+if !"expr $pcidev == 0x0580" "echo $unit:call forcemodmap"
+if !"expr $pcidev == 0x0580" "forcemodmap"
+if !"expr $pcidev == 0x0300" "echo $unit:call forcemodmap"
+if !"expr $pcidev == 0x0300" "forcemodmap"
+
+# define the sw linkscan polling interval in us
+#linkscan 10000
+
+# enable linkscan for all fabric serdes -
+# sci and sfi on the QE, if on the xbar
+#port sci linkscan=on
+#port sfi linkscan=on
+#port all linkscan=on autoneg=on
+#port ge linkscan=on autoneg=on
+
+if !$?plisim && $?sirius " \
+   linkscan 250000;        \
+   port hg linkscan=sw"
+
+if $?sfmfabric && !"expr $unit == $units-1" " \
+   mcinit; exit"
+
+# Turn of RCTest for diags
+if !"expr $unit == 1" "set RCTest=False"
+
+# Linkscan
+# Enable SW linkscan for ge and xe ports in FE-2000 unit.
+if !$?no_bcm  && !"expr $unit == 1" && !"expr $diag_easy_reload + 0 == 0" \
+	"linkscan 250000; \
+	 port ge linkscan=on autoneg=on \
+		speed=0 fullduplex=true txpause=true rxpause=true; \
+         port xe linkscan=on txpause=false rxpause=false; \
+         port hg linkscan=on txpause=false rxpause=false; \
+	 $echo rc: Port modes initialized"
+
+# For Broadcom MetroCore FE-2000 reference designs,
+# after all units done, do some more global init.
+if !"expr $unit == $units-1" && !$?plisim  && !"expr $brdtype!=5" && !"expr $brdtype!=2" && !$?sirius "\
+	train2k; \
+        "
+
+if !"expr $unit == $units-1" && !$?plisim "\
+	mcinit; \
+        "
+
+if $?plisim_sirius "\
+        mcinit; \
+        "
+if !"expr $?aedev + 0" && !"expr $unit == $units - 1" \
+       "aedev init"

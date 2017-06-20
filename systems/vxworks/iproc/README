@@ -1,0 +1,9 @@
+/*
+ * $Id: $
+ *
+ * $Copyright: (c) 2016 Broadcom.
+ * Broadcom Proprietary and Confidential. All rights reserved.$
+ *
+ */
+VxWorks/iProc Support
+1. 2013 Add Katana2 support based on VxWorks 6.8.3

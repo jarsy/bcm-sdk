@@ -1,0 +1,118 @@
+# $Id: config-sbx-c3ss-sim.bcm,v 1.2 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+# Example configuration file for Caladan3 simulation
+
+#string.unit-number
+num_modules=32
+ucode_num_ports.0=48
+num_max_fabric_ports_on_module=50
+ucode_port.port1.0=clport0.ge.0.0:clport1.hg25.0.0
+ucode_port.port2.0=clport0.ge.0.1:clport1.hg25.0.1
+ucode_port.port3.0=clport0.ge.0.2:clport1.hg25.0.2
+ucode_port.port4.0=clport0.ge.0.3:clport1.hg25.0.3
+ucode_port.port5.0=clport0.ge.0.4:clport1.hg25.0.4
+ucode_port.port6.0=clport0.ge.0.5:clport1.hg25.0.5
+ucode_port.port7.0=clport0.ge.0.6:clport1.hg25.0.6
+ucode_port.port8.0=clport0.ge.0.7:clport1.hg25.0.7
+ucode_port.port9.0=clport0.ge.0.8:clport1.hg25.0.8
+ucode_port.port10.0=clport0.ge.0.9:clport1.hg25.0.9
+ucode_port.port11.0=clport0.ge.0.10:clport1.hg25.0.10
+ucode_port.port12.0=clport0.ge.0.11:clport1.hg25.0.11
+ucode_port.port13.0=xtport0.ge.0.0:clport1.hg25.0.12
+ucode_port.port14.0=xtport0.ge.0.1:clport1.hg25.0.13
+ucode_port.port15.0=xtport0.ge.0.2:clport1.hg25.0.14
+ucode_port.port16.0=xtport0.ge.0.3:clport1.hg25.0.15
+ucode_port.port17.0=xtport0.ge.0.4:clport1.hg25.0.16
+ucode_port.port18.0=xtport0.ge.0.5:clport1.hg25.0.17
+ucode_port.port19.0=xtport0.ge.0.6:clport1.hg25.0.18
+ucode_port.port20.0=xtport0.ge.0.7:clport1.hg25.0.19
+ucode_port.port21.0=xtport0.ge.0.8:clport1.hg25.0.20
+ucode_port.port22.0=xtport0.ge.0.9:clport1.hg25.0.21
+ucode_port.port23.0=xtport0.ge.0.10:clport1.hg25.0.22
+ucode_port.port24.0=xtport0.ge.0.11:clport1.hg25.0.23
+ucode_port.port25.0=xtport1.ge.0.0:clport1.hg25.1.0
+ucode_port.port26.0=xtport1.ge.0.1:clport1.hg25.1.1
+ucode_port.port27.0=xtport1.ge.0.2:clport1.hg25.1.2
+ucode_port.port28.0=xtport1.ge.0.3:clport1.hg25.1.3
+ucode_port.port29.0=xtport1.ge.0.4:clport1.hg25.1.4
+ucode_port.port30.0=xtport1.ge.0.5:clport1.hg25.1.5
+ucode_port.port31.0=xtport1.ge.0.6:clport1.hg25.1.6
+ucode_port.port32.0=xtport1.ge.0.7:clport1.hg25.1.7
+ucode_port.port33.0=xtport1.ge.0.8:clport1.hg25.1.8
+ucode_port.port34.0=xtport1.ge.0.9:clport1.hg25.1.9
+ucode_port.port35.0=xtport1.ge.0.10:clport1.hg25.1.10
+ucode_port.port36.0=xtport1.ge.0.11:clport1.hg25.1.11
+ucode_port.port37.0=xtport2.ge.0.0:clport1.hg25.1.12
+ucode_port.port38.0=xtport2.ge.0.1:clport1.hg25.1.13
+ucode_port.port39.0=xtport2.ge.0.2:clport1.hg25.1.14
+ucode_port.port40.0=xtport2.ge.0.3:clport1.hg25.1.15
+ucode_port.port41.0=xtport2.ge.0.4:clport1.hg25.1.16
+ucode_port.port42.0=xtport2.ge.0.5:clport1.hg25.1.17
+ucode_port.port43.0=xtport2.ge.0.6:clport1.hg25.1.18
+ucode_port.port44.0=xtport2.ge.0.7:clport1.hg25.1.19
+ucode_port.port45.0=xtport2.ge.0.8:clport1.hg25.1.20
+ucode_port.port46.0=xtport2.ge.0.9:clport1.hg25.1.21
+ucode_port.port47.0=xtport2.ge.0.10:clport1.hg25.1.22
+ucode_port.port48.0=xtport2.ge.0.11:clport1.hg25.1.23
+
+
+# Maximum number of COSes
+bcm_num_cos=8
+
+
+# Maximum number of modules in the system (number of QEs)
+
+# By default, run in standalone mode
+#diag_chassis=0
+
+# TME mode
+#qe_tme_mode=1
+
+# System (fabric) configuration
+# 0 : BM32 + QE2K
+# 1 : BM96 + Sirius
+# 2 : BM96 + QE2K
+# 3 : BM96 + QE2K + Sirius
+#
+# Vport mode, polaris+sirius
+#fabric_configuration=1
+
+# Create subports, 4 ports on hg 0
+if_subports_create=1
+if_subports.port1=1
+if_subports.port2=1
+if_subports.port3=1
+if_subports.port4=1
+port_init_speed.port1=1000
+port_init_speed.port2=1000
+port_init_speed.port3=1000
+port_init_speed.port4=1000
+
+# Enable/Disable dual local grants
+dual_local_grants=1
+
+# Disable independent egress fifo flow control
+egress_fifo_independent_fc=0
+
+diag_emulator_partial_init=0
+
+# Default is HG
+# pbmp_xport_xe=0x0
+
+# Will use this for 1xGE SVK board
+# pbmp_xport_ge = 0
+
+# serdes speed and encoding
+# if not set, default speed and encoding are used
+# For 6.5G use 6500, for 3.125G use 3125
+# default encoding is 8B10B (TRUE); for 64B66B, use FALSE
+
+# backplane_serdes_speed=0
+# backplane_serdes_encoding=0
+
+# Hold TS: for 7 set it to 8
+hold_pri_num_timeslots=8
+
+# DDR stuff
+sirius_ddr3_clock_mhz=667

@@ -1,0 +1,7 @@
+# $Id: BCM953022K.bcm,v 1.2 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+
+pbmp_valid.0=0x00000103
+phy_port_primary_and_offset_ge0=0x0000
+phy_port_primary_and_offset_ge1=0x0001
