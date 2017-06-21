@@ -17,7 +17,7 @@ export TARGET=linux-x86-smp_generic-2_6
 export PATH=/usr/bin:$TOOLCHAIN_DIR/bin:$PATH
 export CROSS_COMPILE=i686-nptl-linux-gnu-
 export LDFLAGS="-L $TOOLCHAIN_DIR/lib"
-export OPT_CFLAGS=" -m32"
+export OPT_CFLAGS=" -m32 -DMRV_STANDALONE"
 export MODULE_LDFLAGS=" -m elf_i386"
 
 cd $COMPILE_DIR
