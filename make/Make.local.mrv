@@ -85,7 +85,7 @@
 # Uncomment to add private CFLAGS
 #DEBUG_CFLAGS=
 #DEBUG_CFLAGS= -D_GNU_SOURCE -I$(DIST)/target_x86/root_fs/src/kernel/include
-DEBUG_CFLAGS= -D_GNU_SOURCE -I$(HOME)/root-fs-x86/src/linux/include
+DEBUG_CFLAGS= -D_GNU_SOURCE -I$(KERNDIR)/include
 #DEBUG_CFLAGS= -D_GNU_SOURCE -mcpu=8548 -mabi=no-spe -mfloat-gprs=double -I$(DIST)/target_ppc/linux-2.6.24/include -I$(DIST)/target_ppc/extracted/ppc_85xx/usr/include
 #DEBUG_CFLAGS= -D_GNU_SOURCE -mcpu=8548 -mabi=no-spe -mno-spe -mfloat-gprs=double --sysroot=/opt/eldk-5.2.1/powerpc-e500v2/sysroots/ppce500v2-linux-gnuspe
 # Uncomment to turn off the optimizer when debugging (recommended)
