@@ -5,7 +5,6 @@
 CFGFLAGS += -DSAL_SPL_LOCK_ON_IRQ
 
 include ${SDK}/make/Makefile.linux-x86-generic-common-2_6
-
 ifeq (,$(KFLAGS))
 KFLAGS := -nostdinc -isystem $(SYSINC) \
 	-I$(KERNDIR)/include \

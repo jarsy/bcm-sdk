@@ -192,8 +192,8 @@ cp --parents -p ../include/appl/diag/test.h ../../../bcm_artifacts/$targetDir/in
 cp --parents -p ../include/sal/limits.h    ../../../bcm_artifacts/$targetDir/include
 cp --parents -p ../include/soc/shmoo_combo28.h  ../../../bcm_artifacts/$targetDir/include
 cp --parents -p ../include/bcm/debug.h     ../../../bcm_artifacts/$targetDir/include
-cp --parents -p -r ../include/soc/dcmn/    ../../../bcm_artifacts/$targetDir/include   
-cp --parents -p -r ../include/soc/dpp/     ../../../bcm_artifacts/$targetDir/include   
+cp --parents -p -r ../include/soc/dcmn/    ../../../bcm_artifacts/$targetDir/include
+cp --parents -p -r ../include/soc/dpp/     ../../../bcm_artifacts/$targetDir/include
 
 # --- Include headers for SDK 6.5.7
 cp --parents -p ../include/soc/ser.h ../../../bcm_artifacts/$targetDir/include

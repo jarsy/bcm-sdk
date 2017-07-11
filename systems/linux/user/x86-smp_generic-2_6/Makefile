@@ -17,9 +17,12 @@ SDK :=$(shell if [ -n "$$SDK" ] ; then\
 	pwd;					\
 	fi)
 
-ifeq ($(SDK),)					
-$(error Please run this in a tree)		
-endif 				
+ifeq ($(SDK),)
+$(error Please run this in a tree)
+endif
+
+CFGFLAGS += -D__DUNE_LINUX_BCM_CPU_PCIE__
+CFGFLAGS += -D_SIMPLE_MEMORY_ALLOCATION_=1
 
 export SDK
 

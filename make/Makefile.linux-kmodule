@@ -51,13 +51,13 @@ override EXTRA_CFLAGS = -I${SDK}/include -I${SDK}/systems/linux/kernel/modules/i
 # from the Kbuild scripts (modpost stage).
 # Kernels before 2.6.17 do not support external module symbols files,
 # so we create a dummy to prevent build failures.
-	
+
 $(KMODULE):
 	rm -f *.o *.ko .*.cmd
 	rm -fr .tmp_versions
 	ln -s $(LIBDIR)/$(MODULE) $(PRE_COMPILED_OBJ)_shipped
 	echo "suppress warning" > .$(PRE_COMPILED_OBJ).cmd
-	$(MAKE) -C $(KERNBLDDIR) CROSS_COMPILE=$(CROSS_COMPILE) M=$(PWD) modules
+	$(MAKE) V=1 -C $(KERNBLDDIR) CROSS_COMPILE=$(CROSS_COMPILE) M=$(PWD) modules
 	if [ ! -f Module.symvers ]; then echo "old kernel (pre-2.6.17)" > Module.symvers; fi
 	cp -f $(KMODULE) $(LIBDIR)
 	rm -f $(PRE_COMPILED_OBJ)_shipped

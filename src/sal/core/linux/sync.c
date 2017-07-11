@@ -23,6 +23,10 @@
 #include <linux/interrupt.h>
 #include <linux/sched.h>
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,9,0)
+#include <linux/sched/signal.h>
+#endif
+
 #ifdef BROADCOM_DEBUG
 #ifdef INCLUDE_BCM_SAL_PROFILE
 static unsigned int _sal_sem_count_curr;

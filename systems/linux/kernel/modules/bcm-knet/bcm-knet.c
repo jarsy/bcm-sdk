@@ -56,6 +56,10 @@
 #include <linux/seq_file.h>
 #include <linux/if_vlan.h>
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,9,0)
+#include <linux/sched/signal.h>
+#include <linux/signal.h>
+#endif
 
 MODULE_AUTHOR("Broadcom Corporation");
 MODULE_DESCRIPTION("Network Device Driver for Broadcom BCM TxRx API");

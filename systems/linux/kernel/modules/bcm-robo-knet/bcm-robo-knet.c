@@ -36,7 +36,12 @@
 #include <linux/etherdevice.h>
 #include <linux/random.h>
 #include <linux/seq_file.h>
-  
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,9,0)
+#include <linux/signal.h>
+#include <linux/sched/signal.h>
+#endif
+
 #include "hnddma.h"
 
 #include <soc/gmac0_core.h>

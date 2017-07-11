@@ -67,7 +67,7 @@ endif
 #
 # STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
 # BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
-# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of 
+# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of
 #			 this Makefile, to define local "Extra" flags.
 #
 ifdef IPROC_BUILD
@@ -133,10 +133,10 @@ endif
 
 #
 # DEPEND is used as a command to generate the list of dependencies.
-# The format of the output must be 
-#	"file.o : file.c a/b/c.h d/e/f.h ...", 
-# if it is on multiple lines, each line must end in a backslash. 
+# The format of the output must be
+#	"file.o : file.c a/b/c.h d/e/f.h ...",
+# if it is on multiple lines, each line must end in a backslash.
 # The output MUST be on standard out.
 #
 DEPEND = ${CC} -M $(CFLAGS) $<
- 
+

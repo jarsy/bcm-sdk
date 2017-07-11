@@ -556,6 +556,16 @@ _alloc_mpool(size_t size)
             if (alloc_size > DMA_MAX_ALLOC_SIZE) {
                 alloc_size = DMA_MAX_ALLOC_SIZE;
             }
+
+            gprintk("\nQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\n");
+            gprintk("_alloc_mpool: WWWW: size               = [0x%08x]\n", (unsigned long)size);
+            gprintk("_alloc_mpool: WWWW: alloc_size         = [0x%08x]\n", (unsigned long)alloc_size);
+            gprintk("_alloc_mpool: WWWW: _dma_mem_size      = [0x%08x]\n", (unsigned long)_dma_mem_size);
+            gprintk("_alloc_mpool: WWWW: MAX_ORDER          = [0x%08x]\n", (unsigned long)MAX_ORDER);
+            gprintk("_alloc_mpool: WWWW: PAGE_SHIFT         = [0x%08x]\n", (unsigned long)PAGE_SHIFT);
+            gprintk("_alloc_mpool: WWWW: DMA_MAX_ALLOC_SIZE = [0x%08x]\n", (unsigned long)DMA_MAX_ALLOC_SIZE);
+            gprintk("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ\n\n");
+
             /* get a memory allocation from the kernel */
             {
                 dma_addr_t dma_handle;

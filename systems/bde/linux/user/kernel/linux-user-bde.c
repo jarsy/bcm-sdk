@@ -907,7 +907,7 @@ _ioctl(unsigned int cmd, unsigned long arg)
     int inst_id;
      bde_inst_resource_t *res;
 
-    if (copy_from_user(&io, (void *)arg, sizeof(io))) {
+    if (_copy_from_user(&io, (void *)arg, sizeof(io))) {
         return -EFAULT;
     }
   
@@ -1125,7 +1125,7 @@ _ioctl(unsigned int cmd, unsigned long arg)
         break;
     }
   
-    if (copy_to_user((void *)arg, &io, sizeof(io))) {
+    if (_copy_to_user((void *)arg, &io, sizeof(io))) {
         return -EFAULT;
     }
 

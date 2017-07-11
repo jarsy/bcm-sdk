@@ -9,6 +9,7 @@
 #include <lkm.h>
 #include <sal/core/alloc.h>
 #include <sal/types.h>
+#include <linux/kconfig.h>
 #include <linux/vmalloc.h>
 #include <assert.h>
 
