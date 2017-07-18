@@ -60,12 +60,19 @@
     } while (0)
 
 /* Any layer log macros */
+#ifndef LOG_INFO
+/*
+ * dirty way to shut up gcc for ranting on conflicting
+ * definition of LOG_XXX in syslog.h (of sysroot inside
+ * the build toolchain) and here (inside BCM SDK lib)
+ */
 #define LOG_FATAL(ls_, stuff_)          BSL_LOG(ls_|BSL_FATAL, stuff_)
 #define LOG_ERROR(ls_, stuff_)          BSL_LOG(ls_|BSL_ERROR, stuff_)
 #define LOG_WARN(ls_, stuff_)           BSL_LOG(ls_|BSL_WARN, stuff_)
 #define LOG_INFO(ls_, stuff_)           BSL_LOG(ls_|BSL_INFO, stuff_)
 #define LOG_VERBOSE(ls_, stuff_)        BSL_LOG(ls_|BSL_VERBOSE, stuff_)
 #define LOG_DEBUG(ls_, stuff_)          BSL_LOG(ls_|BSL_DEBUG, stuff_)
+#endif /* LOG_INFO */
 
 /* Shell output from core driver */
 #define BSL_LSS_CLI                     (BSL_L_APPL | BSL_S_SHELL | BSL_INFO)
