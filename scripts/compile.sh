@@ -14,6 +14,7 @@ fi
 
 export ARCH=x86
 export TARGET=linux-kernel-4_9
+export TOOLCHAIN_DIR=$HOME/clovis_2015/buildtools/i686-nptl-linux-gnu
 export PATH=/usr/bin:$TOOLCHAIN_DIR/bin:$PATH
 export CROSS_COMPILE=i686-nptl-linux-gnu-
 export LDFLAGS="-L $TOOLCHAIN_DIR/lib"
