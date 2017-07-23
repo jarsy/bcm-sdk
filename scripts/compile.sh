@@ -24,9 +24,9 @@ then
 	export LINUX_MAKE_FLAGS="-j $IB_CORES"
 	/opt/incredibuild/bin/ib_console make -j $IB_CORES
 else
-	# cores_nr=`nproc --all`
-	# export LINUX_MAKE_FLAGS="-j $cores_nr"
-	make
+	cores_nr=`nproc --all`
+	export LINUX_MAKE_FLAGS="-j $cores_nr"
+	make -s -j $cores_nr
 fi
 
 # check make result
