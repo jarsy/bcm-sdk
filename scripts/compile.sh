@@ -29,7 +29,7 @@ else
 	make
 fi
 
-# check make's result
+# check make result
 if [ $? -ne 0 ]; then
 	exit 1;
 fi
