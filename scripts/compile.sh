@@ -21,6 +21,12 @@ export OPT_CFLAGS=" -m32 -DMRV_STANDALONE"
 export MODULE_LDFLAGS=" -m elf_i386"
 
 cd $COMPILE_DIR
-make
-
+if [ -s /opt/incredibuild/bin/ib_console ] && [ -n "$IB_CORES" ];
+then
+	echo "using incredibuild"
+	export PRMJ=$IB_CORES
+	/opt/incredibuild/bin/ib_console make -j $IB_CORES -O
+else
+	make
+fi;
 cd -
