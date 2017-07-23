@@ -26,7 +26,7 @@ if [ -s /opt/incredibuild/bin/ib_console ] && [ -n "$IB_CORES" ];
 then
 	echo "using incredibuild"
 	export PRMJ=$IB_CORES
-	/opt/incredibuild/bin/ib_console make -j $IB_CORES -O
+	/opt/incredibuild/bin/ib_console make -j $IB_CORES
 else
 	make
 fi;
