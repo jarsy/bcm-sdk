@@ -1,5 +1,4 @@
 #!/bin/bash
-. $BCM_SDK/scripts/env_export_sdk-6.5.7_lk-4.9.env
 
 BCM_SDK=$1
 COMPILE_DIR=$BCM_SDK/systems/linux/user/x86-smp_generic-4_9
@@ -12,6 +11,8 @@ if [ -z "$BCM_SDK" ] ; then
 	echo "$0: Example: $0 ~/My/MRV/OPX/BCM_SDK/Dev/git/bcm_sdk /tmp/bcm_sdk_artifacts"
 	exit 1;
 fi
+
+. $BCM_SDK/scripts/env_export_sdk-6.5.7_lk-4.9.env
 
 cd $COMPILE_DIR
 if [ -s /opt/incredibuild/bin/ib_console ] && [ -n "$IB_CORES" ];

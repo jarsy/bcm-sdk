@@ -5,7 +5,7 @@ bcm_to_dir=$2  # BCM SDK artifacts directory in "main" project
 
 to_dir_deploy=$bcm_to_dir/deploy
 if [ ! -d $to_dir_deploy ] ; then
-    mkdir $to_dir_deploy
+    mkdir -p $to_dir_deploy
 fi
 
 from_dir=`find $bcm_sdk_dir/systems/linux/user/ -type d -name "x86-smp_generic-*"`
