@@ -9,7 +9,7 @@ if [ ! -d $to_dir_deploy ] ; then
 fi
 
 from_dir=`find $bcm_sdk_dir/systems/linux/user/ -type d -name "x86-smp_generic-*"`
-if [ -z $from_dir ] ; then
+if [ -z "$from_dir" ] ; then
 	echo "Couldn't locate artifacts source folder"
 	exit 1
 fi;
