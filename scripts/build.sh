@@ -28,4 +28,9 @@ fi
 # Run the actual script
 #
 $BCM_SDK/scripts/compile.sh $BCM_SDK
+if [ $? != 0 ];
+then
+	echo -e " FAILED\nERROR: failed to build BCM_SDK $BCM_SDK"
+	exit 1
+fi;
 $BCM_SDK/scripts/copy_artifacts.sh $BCM_SDK $DST_DIR

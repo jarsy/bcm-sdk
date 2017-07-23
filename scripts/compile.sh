@@ -23,4 +23,9 @@ then
 else
 	make
 fi;
+if [ $? != 0 ];
+then
+	echo -e " FAILED\nERROR: failed to compile BCM_SDK"
+	exit 1
+fi;
 cd -

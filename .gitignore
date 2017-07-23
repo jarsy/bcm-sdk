@@ -1,0 +1,3 @@
+build/**/*
+systems/linux/user/**/*.ko
+systems/linux/user/**/netserve
