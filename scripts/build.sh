@@ -28,4 +28,11 @@ fi
 # Run the actual script
 #
 $BCM_SDK/scripts/compile.sh $BCM_SDK
+if [ $? -ne 0 ]; then
+	exit 1;
+fi
+
 $BCM_SDK/scripts/copy_artifacts.sh $BCM_SDK $DST_DIR
+if [ $? -ne 0 ]; then
+	exit 1;
+fi

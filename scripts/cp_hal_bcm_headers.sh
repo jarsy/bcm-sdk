@@ -1,211 +1,192 @@
-#! /bin/bash
-#------------------------------------------------------------------------
-# target folder is stated as "include" since --parent is in use
-# the file will be based in the sdk_lib
-#------------------------------------------------------------------------
+#!/bin/bash
 
-targetDir=`pwd | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+"`
+from_dir=$1   # BCM SDK source code directory.
+bcm_to_dir=$2 # BCM SDK artifacts directory in "main" project.
 
-mkdir -p ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/appl/diag/cmdlist.h ../../../bcm_artifacts/$targetDir/include
-# cp --parents -p ../include/appl/diag/debug.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/appl/diag/parse.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/appl/diag/shell.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/appl/diag/sysconf.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/appl/diag/system.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/appl/diag/warmboot.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/assert.h ../../../bcm_artifacts/$targetDir/include
-# cp --parents -p ../include/bcm/ces.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/error.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/field.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/l2.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/l3.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/multicast.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/pkt.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/policer.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/port.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/rx.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/stat.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/switch.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/tunnel.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/tx.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/types.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/vlan.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/udf.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/ibde.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/appl/config.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/appl/io.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/appl/sal.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/compiler.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/core/alloc.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/core/boot.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/core/libc.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/core/spl.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/core/sync.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/core/thread.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/core/time.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sal/core/dpc.h ../../../bcm_artifacts/$targetDir/include
+to=$bcm_to_dir
 
-cp --parents -p ../include/sal/types.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/sdk_config.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/alloc.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/avl.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/bitop.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/cosq.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/enumgen.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/error.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/fifo.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/gport.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/l3.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/mpls.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/pbmp.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/phyconfig.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/phyreg.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/port_ability.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/port.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/portmode.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/rx.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/switch.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/types.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/util.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/warmboot.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/bsl.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/bsltypes.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/bslenum.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/fabric.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/axp.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/cfp.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/chip.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/cm.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/cmic.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/cmicm.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/cmtypes.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/counter.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/dcb.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/debug.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/defs.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/devids.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/dma.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/dport.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/drv.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/drv_if.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/drvtypes.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/enet.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/error.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/ethdma.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/feature.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/field.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/intr.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/ll.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/macipadr.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/maxdef.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/mcm/allenum.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/mcm/allfields.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/mcm/cmicm.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/mcm/memacc.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/mcm/memregs.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/mem.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/memory.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/mmuerr.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/phyctrl.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/port_ability.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/portmode.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/property.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/rcpu.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/register.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/robo_fp.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/rx.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/sbusdma.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/scache.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/schanmsg.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/shared/mos_intr_common.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/shared/mos_msg_common.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/timesync.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/types.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/util.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/vm.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../systems/bde/linux/include/linux-bde.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../systems/bde/pli/plibde.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/bfd.h  ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/bhh.h  ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/cyclic_buffer.h  ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/evlog.h  ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/fcmap.h  ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/hash_tbl.h  ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/idents.h  ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/idxres_afl.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/idxres_fl.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/idxres_mdb.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/pack.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/shr_allocator.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/shr_res_bitmap.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/shr_res_tag_bitmap.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/shr_resmgr.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/shr_template.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/sram.h ../../../bcm_artifacts/$targetDir/include
+cp --parents -p    $from_dir/include/appl/diag/cmdlist.h                     $to
+cp --parents -p    $from_dir/include/appl/diag/parse.h                       $to
+cp --parents -p    $from_dir/include/appl/diag/shell.h                       $to
+cp --parents -p    $from_dir/include/appl/diag/sysconf.h                     $to
+cp --parents -p    $from_dir/include/appl/diag/system.h                      $to
+cp --parents -p    $from_dir/include/appl/diag/warmboot.h                    $to
+cp --parents -p    $from_dir/include/assert.h                                $to
+cp --parents -p    $from_dir/include/bcm/error.h                             $to
+cp --parents -p    $from_dir/include/bcm/field.h                             $to
+cp --parents -p    $from_dir/include/bcm/l2.h                                $to
+cp --parents -p    $from_dir/include/bcm/l3.h                                $to
+cp --parents -p    $from_dir/include/bcm/multicast.h                         $to
+cp --parents -p    $from_dir/include/bcm/pkt.h                               $to
+cp --parents -p    $from_dir/include/bcm/policer.h                           $to
+cp --parents -p    $from_dir/include/bcm/port.h                              $to
+cp --parents -p    $from_dir/include/bcm/rx.h                                $to
+cp --parents -p    $from_dir/include/bcm/stat.h                              $to
+cp --parents -p    $from_dir/include/bcm/switch.h                            $to
+cp --parents -p    $from_dir/include/bcm/tunnel.h                            $to
+cp --parents -p    $from_dir/include/bcm/tx.h                                $to
+cp --parents -p    $from_dir/include/bcm/types.h                             $to
+cp --parents -p    $from_dir/include/bcm/vlan.h                              $to
+cp --parents -p    $from_dir/include/bcm/udf.h                               $to
+cp --parents -p    $from_dir/include/ibde.h                                  $to
+cp --parents -p    $from_dir/include/sal/appl/config.h                       $to
+cp --parents -p    $from_dir/include/sal/appl/io.h                           $to
+cp --parents -p    $from_dir/include/sal/appl/sal.h                          $to
+cp --parents -p    $from_dir/include/sal/compiler.h                          $to
+cp --parents -p    $from_dir/include/sal/core/alloc.h                        $to
+cp --parents -p    $from_dir/include/sal/core/boot.h                         $to
+cp --parents -p    $from_dir/include/sal/core/libc.h                         $to
+cp --parents -p    $from_dir/include/sal/core/spl.h                          $to
+cp --parents -p    $from_dir/include/sal/core/sync.h                         $to
+cp --parents -p    $from_dir/include/sal/core/thread.h                       $to
+cp --parents -p    $from_dir/include/sal/core/time.h                         $to
+cp --parents -p    $from_dir/include/sal/core/dpc.h                          $to
+cp --parents -p    $from_dir/include/sal/types.h                             $to
+cp --parents -p    $from_dir/include/sdk_config.h                            $to
+cp --parents -p    $from_dir/include/shared/alloc.h                          $to
+cp --parents -p    $from_dir/include/shared/avl.h                            $to
+cp --parents -p    $from_dir/include/shared/bitop.h                          $to
+cp --parents -p    $from_dir/include/shared/cosq.h                           $to
+cp --parents -p    $from_dir/include/shared/enumgen.h                        $to
+cp --parents -p    $from_dir/include/shared/error.h                          $to
+cp --parents -p    $from_dir/include/shared/fifo.h                           $to
+cp --parents -p    $from_dir/include/shared/gport.h                          $to
+cp --parents -p    $from_dir/include/shared/l3.h                             $to
+cp --parents -p    $from_dir/include/shared/mpls.h                           $to
+cp --parents -p    $from_dir/include/shared/pbmp.h                           $to
+cp --parents -p    $from_dir/include/shared/phyconfig.h                      $to
+cp --parents -p    $from_dir/include/shared/phyreg.h                         $to
+cp --parents -p    $from_dir/include/shared/port_ability.h                   $to
+cp --parents -p    $from_dir/include/shared/port.h                           $to
+cp --parents -p    $from_dir/include/shared/portmode.h                       $to
+cp --parents -p    $from_dir/include/shared/rx.h                             $to
+cp --parents -p    $from_dir/include/shared/switch.h                         $to
+cp --parents -p    $from_dir/include/shared/types.h                          $to
+cp --parents -p    $from_dir/include/shared/util.h                           $to
+cp --parents -p    $from_dir/include/shared/warmboot.h                       $to
+cp --parents -p    $from_dir/include/shared/bsl.h                            $to
+cp --parents -p    $from_dir/include/shared/bsltypes.h                       $to
+cp --parents -p    $from_dir/include/shared/bslenum.h                        $to
+cp --parents -p    $from_dir/include/shared/fabric.h                         $to
+cp --parents -p    $from_dir/include/soc/axp.h                               $to
+cp --parents -p    $from_dir/include/soc/cfp.h                               $to
+cp --parents -p    $from_dir/include/soc/chip.h                              $to
+cp --parents -p    $from_dir/include/soc/cm.h                                $to
+cp --parents -p    $from_dir/include/soc/cmic.h                              $to
+cp --parents -p    $from_dir/include/soc/cmicm.h                             $to
+cp --parents -p    $from_dir/include/soc/cmtypes.h                           $to
+cp --parents -p    $from_dir/include/soc/counter.h                           $to
+cp --parents -p    $from_dir/include/soc/dcb.h                               $to
+cp --parents -p    $from_dir/include/soc/debug.h                             $to
+cp --parents -p    $from_dir/include/soc/defs.h                              $to
+cp --parents -p    $from_dir/include/soc/devids.h                            $to
+cp --parents -p    $from_dir/include/soc/dma.h                               $to
+cp --parents -p    $from_dir/include/soc/dport.h                             $to
+cp --parents -p    $from_dir/include/soc/drv.h                               $to
+cp --parents -p    $from_dir/include/soc/drv_if.h                            $to
+cp --parents -p    $from_dir/include/soc/drvtypes.h                          $to
+cp --parents -p    $from_dir/include/soc/enet.h                              $to
+cp --parents -p    $from_dir/include/soc/error.h                             $to
+cp --parents -p    $from_dir/include/soc/ethdma.h                            $to
+cp --parents -p    $from_dir/include/soc/feature.h                           $to
+cp --parents -p    $from_dir/include/soc/field.h                             $to
+cp --parents -p    $from_dir/include/soc/intr.h                              $to
+cp --parents -p    $from_dir/include/soc/ll.h                                $to
+cp --parents -p    $from_dir/include/soc/macipadr.h                          $to
+cp --parents -p    $from_dir/include/soc/maxdef.h                            $to
+cp --parents -p    $from_dir/include/soc/mcm/allenum.h                       $to
+cp --parents -p    $from_dir/include/soc/mcm/allfields.h                     $to
+cp --parents -p    $from_dir/include/soc/mcm/cmicm.h                         $to
+cp --parents -p    $from_dir/include/soc/mcm/memacc.h                        $to
+cp --parents -p    $from_dir/include/soc/mcm/memregs.h                       $to
+cp --parents -p    $from_dir/include/soc/mem.h                               $to
+cp --parents -p    $from_dir/include/soc/memory.h                            $to
+cp --parents -p    $from_dir/include/soc/mmuerr.h                            $to
+cp --parents -p    $from_dir/include/soc/phyctrl.h                           $to
+cp --parents -p    $from_dir/include/soc/port_ability.h                      $to
+cp --parents -p    $from_dir/include/soc/portmode.h                          $to
+cp --parents -p    $from_dir/include/soc/property.h                          $to
+cp --parents -p    $from_dir/include/soc/rcpu.h                              $to
+cp --parents -p    $from_dir/include/soc/register.h                          $to
+cp --parents -p    $from_dir/include/soc/robo_fp.h                           $to
+cp --parents -p    $from_dir/include/soc/rx.h                                $to
+cp --parents -p    $from_dir/include/soc/sbusdma.h                           $to
+cp --parents -p    $from_dir/include/soc/scache.h                            $to
+cp --parents -p    $from_dir/include/soc/schanmsg.h                          $to
+cp --parents -p    $from_dir/include/soc/shared/mos_intr_common.h            $to
+cp --parents -p    $from_dir/include/soc/shared/mos_msg_common.h             $to
+cp --parents -p    $from_dir/include/soc/timesync.h                          $to
+cp --parents -p    $from_dir/include/soc/types.h                             $to
+cp --parents -p    $from_dir/include/soc/util.h                              $to
+cp --parents -p    $from_dir/include/soc/vm.h                                $to
+cp --parents -p    $from_dir/systems/bde/linux/include/linux-bde.h           $to
+cp --parents -p    $from_dir/systems/bde/pli/plibde.h                        $to
+cp --parents -p    $from_dir/include/shared/bfd.h                            $to
+cp --parents -p    $from_dir/include/shared/bhh.h                            $to
+cp --parents -p    $from_dir/include/shared/cyclic_buffer.h                  $to
+cp --parents -p    $from_dir/include/shared/evlog.h                          $to
+cp --parents -p    $from_dir/include/shared/fcmap.h                          $to
+cp --parents -p    $from_dir/include/shared/hash_tbl.h                       $to
+cp --parents -p    $from_dir/include/shared/idents.h                         $to
+cp --parents -p    $from_dir/include/shared/idxres_afl.h                     $to
+cp --parents -p    $from_dir/include/shared/idxres_fl.h                      $to
+cp --parents -p    $from_dir/include/shared/idxres_mdb.h                     $to
+cp --parents -p    $from_dir/include/shared/pack.h                           $to
+cp --parents -p    $from_dir/include/shared/shr_allocator.h                  $to
+cp --parents -p    $from_dir/include/shared/shr_res_bitmap.h                 $to
+cp --parents -p    $from_dir/include/shared/shr_res_tag_bitmap.h             $to
+cp --parents -p    $from_dir/include/shared/shr_resmgr.h                     $to
+cp --parents -p    $from_dir/include/shared/shr_template.h                   $to
+cp --parents -p    $from_dir/include/shared/sram.h                           $to
+cp --parents -p    $from_dir/include/soc/cmdebug.h                           $to
+cp --parents -p    $from_dir/include/bcm/stack.h                             $to
+cp --parents -p    $from_dir/include/bcm/cosq.h                              $to
+cp --parents -p    $from_dir/include/bcm/fabric.h                            $to
+cp --parents -p    $from_dir/include/bcm/vswitch.h                           $to
+cp --parents -p    $from_dir/include/bcm/link.h                              $to
+cp --parents -p    $from_dir/include/bcm/qos.h                               $to
+cp --parents -p    $from_dir/include/bcm/mpls.h                              $to
+cp --parents -p    $from_dir/include/bcm/failover.h                          $to
+cp --parents -p    $from_dir/include/bcm/ipmc.h                              $to
+cp --parents -p    $from_dir/include/bcm/pkt.h                               $to
+cp --parents -p    $from_dir/include/bcm/tx.h                                $to
+cp --parents -p    $from_dir/include/bcm/rx.h                                $to
+cp --parents -p    $from_dir/include/bcm/l3.h                                $to
+cp --parents -p    $from_dir/include/bcm/trunk.h                             $to
+cp --parents -p    $from_dir/include/bcm/mirror.h                            $to
+cp --parents -p    $from_dir/include/soc/uc_msg.h                            $to
+cp --parents -p    $from_dir/include/shared/multicast.h                      $to
+cp --parents -p    $from_dir/include/bcm/stg.h                               $to
+cp --parents -p    $from_dir/include/appl/diag/dcmn/init_deinit.h            $to
+cp --parents -p    $from_dir/include/soc/hwstate/hw_log.h                    $to
+cp --parents -p    $from_dir/include/shared/swstate/access/sw_state_access.h $to
+cp --parents -p    $from_dir/include/shared/pkt.h                            $to
+cp --parents -p    $from_dir/include/bcm/oam.h                               $to
+cp --parents -p    $from_dir/include/bcm_int/dpp/oam.h                       $to
+cp --parents -p    $from_dir/src/appl/test/testlist.h                        $to
+cp --parents -p    $from_dir/src/appl/test/cache_mem_test.h                  $to
+cp --parents -p    $from_dir/include/appl/diag/test.h                        $to
+cp --parents -p    $from_dir/include/sal/limits.h                            $to
+cp --parents -p    $from_dir/include/soc/shmoo_combo28.h                     $to
+cp --parents -p    $from_dir/include/bcm/debug.h                             $to
+cp --parents -p -r $from_dir/include/soc/dcmn/                               $to
+cp --parents -p -r $from_dir/include/soc/dpp/                                $to
+cp --parents -p    $from_dir/include/soc/ser.h                               $to
+cp --parents -p    $from_dir/include/bcm/lb.h                                $to
+cp --parents -p    $from_dir/include/soc/shmoo_combo16.h                     $to
+cp --parents -p    $from_dir/include/soc/kbp/alg_kbp/include/errors.h        $to
+cp --parents -p    $from_dir/include/soc/kbp/alg_kbp/include/kbp_portable.h  $to
+cp --parents -p    $from_dir/include/soc/kbp/alg_kbp/include/db.h            $to
+cp --parents -p    $from_dir/include/soc/kbp/alg_kbp/include/device.h        $to
+cp --parents -p    $from_dir/include/soc/kbp/alg_kbp/include/init.h          $to
 
-cp --parents -p ../include/soc/cmdebug.h ../../../bcm_artifacts/$targetDir/include
-# cp --parents -p ../include/soc/mdebug.h ../../../bcm_artifacts/$targetDir/include
-# cp --parents -p ../include/soc/cmmdebug.h ../../../bcm_artifacts/$targetDir/include
-# cp --parents -p ../include/appl/diag/mdebug.h ../../../bcm_artifacts/$targetDir/include
+# copy release file
+cp -p $from_dir/RELEASE $bcm_to_dir
 
-cp --parents -p ../include/bcm/stack.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/cosq.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/fabric.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/vswitch.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/link.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/qos.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/mpls.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/failover.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/ipmc.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/pkt.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/tx.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/rx.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/l3.h ../../../bcm_artifacts/$targetDir/include
+to_dir_x86=$bcm_to_dir/x86
+if [ ! -d $to_dir_x86 ] ; then
+    mkdir $to_dir_x86
+fi
 
-cp --parents -p ../include/bcm/trunk.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/mirror.h ../../../bcm_artifacts/$targetDir/include
-
-# --- includes added in SDK 6.4.4
-cp --parents -p ../include/soc/uc_msg.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/multicast.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/stg.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/appl/diag/dcmn/init_deinit.h ../../../bcm_artifacts/$targetDir/include
-
-# --- includes added in SDK 6.4.11
-#cp --parents -p ../include/shared/swstate/sw_state.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/hwstate/hw_log.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/swstate/access/sw_state_access.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/shared/pkt.h ../../../bcm_artifacts/$targetDir/include
-#cp --parents -p ../include/shared/swstate/layout/sw_state_defs_layout.h ../../../bcm_artifacts/$targetDir/include
-
-# --- OAM headers
-cp --parents -p ../include/bcm/oam.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm_int/dpp/oam.h ../../../bcm_artifacts/$targetDir/include
-
-# --- Includes for producion testing utility ----
-cp --parents -p ../src/appl/test/testlist.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../src/appl/test/cache_mem_test.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/appl/diag/test.h ../../../bcm_artifacts/$targetDir/include
-
-# --- Include headers for MAC table count
-cp --parents -p ../include/sal/limits.h    ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/shmoo_combo28.h  ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/debug.h     ../../../bcm_artifacts/$targetDir/include
-cp --parents -p -r ../include/soc/dcmn/    ../../../bcm_artifacts/$targetDir/include
-cp --parents -p -r ../include/soc/dpp/     ../../../bcm_artifacts/$targetDir/include
-
-# --- Include headers for SDK 6.5.7
-cp --parents -p ../include/soc/ser.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/bcm/lb.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/shmoo_combo16.h ../../../bcm_artifacts/$targetDir/include
-# --- Include headers for KBP
-cp --parents -p ../include/soc/kbp/alg_kbp/include/errors.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/kbp/alg_kbp/include/kbp_portable.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/kbp/alg_kbp/include/db.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/kbp/alg_kbp/include/device.h ../../../bcm_artifacts/$targetDir/include
-cp --parents -p ../include/soc/kbp/alg_kbp/include/init.h ../../../bcm_artifacts/$targetDir/include
-
-cp -p ../RELEASE ../../../bcm_artifacts/$targetDir
-echo -n "SDK_VER=" >../../../bcm_artifacts/$targetDir/x86/bcm_sdk.mk
-cat  ../RELEASE >> ../../../bcm_artifacts/$targetDir/x86/bcm_sdk.mk
+echo -n "SDK_VER=" >       $to_dir_x86/bcm_sdk.mk
+cat   $from_dir/RELEASE >> $to_dir_x86/bcm_sdk.mk
