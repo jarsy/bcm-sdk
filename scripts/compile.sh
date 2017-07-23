@@ -25,7 +25,7 @@ cd $COMPILE_DIR
 if [ -s /opt/incredibuild/bin/ib_console ] && [ -n "$IB_CORES" ];
 then
 	echo "using incredibuild"
-	export PRMJ=$IB_CORES
+	export LINUX_MAKE_FLAGS="-j $IB_CORES"
 	/opt/incredibuild/bin/ib_console make -j $IB_CORES
 else
 	make
