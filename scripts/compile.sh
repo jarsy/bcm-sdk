@@ -12,7 +12,11 @@ if [ -z "$BCM_SDK" ] ; then
 	exit 1;
 fi
 
-. $BCM_SDK/scripts/env_export_sdk-6.5.7_lk-4.9.env
+source $BCM_SDK/scripts/env_export_sdk-6.5.7
+if [ $? -ne 0 ]; then
+	echo -e " FAILED\nERROR: failed to load env params"
+	exit 1;
+fi
 
 cd $COMPILE_DIR
 if [ -s /opt/incredibuild/bin/ib_console ] && [ -n "$IB_CORES" ];
@@ -21,11 +25,16 @@ then
 	export LINUX_MAKE_FLAGS="-j $IB_CORES"
 	/opt/incredibuild/bin/ib_console make -j $IB_CORES
 else
-	make
-fi;
-if [ $? != 0 ];
+	cores_nr=`nproc --all`
+	export LINUX_MAKE_FLAGS="-j $cores_nr"
+	make -s -j $cores_nr
+fi
+
+# check make result
+if [ $? -ne 0 ];
 then
 	echo -e " FAILED\nERROR: failed to compile BCM_SDK"
 	exit 1
 fi;
 cd -
+

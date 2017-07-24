@@ -4438,7 +4438,7 @@ bkn_proc_link_write(struct file *file, const char *buf,
     if (count >= sizeof(link_str)) {
         count = sizeof(link_str) - 1;
     }
-    if (copy_from_user(link_str, buf, count)) {
+    if (_copy_from_user(link_str, buf, count)) {
         return -EFAULT;
     }
     link_str[count] = 0;
@@ -4553,7 +4553,7 @@ bkn_proc_rate_write(struct file *file, const char *buf,
     if (count >= sizeof(rate_str)) {
         count = sizeof(rate_str) - 1;
     }
-    if (copy_from_user(rate_str, buf, count)) {
+    if (_copy_from_user(rate_str, buf, count)) {
         return -EFAULT;
     }
 
@@ -4790,7 +4790,7 @@ bkn_proc_debug_write(struct file *file, const char *buf,
     if (count >= sizeof(debug_str)) {
         count = sizeof(debug_str) - 1;
     }
-    if (copy_from_user(debug_str, buf, count)) {
+    if (_copy_from_user(debug_str, buf, count)) {
         return -EFAULT;
     }
 
@@ -4967,7 +4967,7 @@ bkn_proc_stats_write(struct file *file, const char *buf,
     if (count >= sizeof(debug_str)) {
         count = sizeof(debug_str) - 1;
     }
-    if (copy_from_user(debug_str, buf, count)) {
+    if (_copy_from_user(debug_str, buf, count)) {
         return -EFAULT;
     }
 
@@ -5115,7 +5115,7 @@ bkn_proc_dstats_write(struct file *file, const char *buf,
     if (count >= sizeof(debug_str)) {
         count = sizeof(debug_str) - 1;
     }
-    if (copy_from_user(debug_str, buf, count)) {
+    if (_copy_from_user(debug_str, buf, count)) {
         return -EFAULT;
     }
 
@@ -6609,7 +6609,7 @@ _ioctl(unsigned int cmd, unsigned long arg)
         return -EFAULT;
     }
 
-    if (copy_from_user(&io, (void*)arg, sizeof(io))) {
+    if (_copy_from_user(&io, (void*)arg, sizeof(io))) {
         return -EFAULT;
     }
 
@@ -6622,7 +6622,7 @@ _ioctl(unsigned int cmd, unsigned long arg)
     switch(cmd) {
     case 0:
         if (io.len > 0) {
-            if (copy_from_user(&kmsg, (void *)(unsigned long)io.buf, io.len)) {
+            if (_copy_from_user(&kmsg, (void *)(unsigned long)io.buf, io.len)) {
                 return -EFAULT;
             }
             ioctl_cmd++;
@@ -6634,7 +6634,7 @@ _ioctl(unsigned int cmd, unsigned long arg)
              * Retrive the kmsg.hdr.unit from user space. The dma event queue 
              * selection is based the instance derived from unit.
              */
-            if (copy_from_user(&kmsg, (void *)(unsigned long)io.buf, sizeof(kmsg))) {
+            if (_copy_from_user(&kmsg, (void *)(unsigned long)io.buf, sizeof(kmsg))) {
                 return -EFAULT;
             }
             kmsg.hdr.type = KCOM_MSG_TYPE_EVT;
@@ -6644,7 +6644,7 @@ _ioctl(unsigned int cmd, unsigned long arg)
             ioctl_evt--;
         }
         if (io.len > 0) {
-            if (copy_to_user((void *)(unsigned long)io.buf, &kmsg, io.len)) {
+            if (_copy_to_user((void *)(unsigned long)io.buf, &kmsg, io.len)) {
                 return -EFAULT;
             }
         }
@@ -6655,7 +6655,7 @@ _ioctl(unsigned int cmd, unsigned long arg)
         break;
     }
 
-    if (copy_to_user((void*)arg, &io, sizeof(io))) {
+    if (_copy_to_user((void*)arg, &io, sizeof(io))) {
         return -EFAULT;
     }
 

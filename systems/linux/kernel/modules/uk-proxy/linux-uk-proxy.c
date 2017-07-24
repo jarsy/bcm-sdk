@@ -190,7 +190,7 @@ _list_op(luk_proxy_list_t *source_list, luk_proxy_list_t *dest_list, void *data,
         /* The given data should be pushed into this entry */
         if (flags & _LIST_OP_F_USER) {
             /* The data is from user space */
-            if (copy_from_user((void *)(unsigned long)dp->data, data, *len)) {
+            if (_copy_from_user((void *)(unsigned long)dp->data, data, *len)) {
                 return -EFAULT;
             }
 	} else {
@@ -202,7 +202,7 @@ _list_op(luk_proxy_list_t *source_list, luk_proxy_list_t *dest_list, void *data,
 	/* Deliver the data in this entry */
 	if (flags & _LIST_OP_F_USER) {
             /* Data is going to user space */
-            if (copy_to_user(data, (void *)(unsigned long)dp->data, dp->len)) {
+            if (_copy_to_user(data, (void *)(unsigned long)dp->data, dp->len)) {
                 return -EFAULT;
             }
         } else {
@@ -465,7 +465,7 @@ _ioctl(unsigned int cmd, unsigned long arg)
 {
     luk_ioctl_t io; 
 
-    if (copy_from_user(&io, (void*)arg, sizeof(io))) {
+    if (_copy_from_user(&io, (void*)arg, sizeof(io))) {
         return -EFAULT;
     }
   
@@ -509,7 +509,7 @@ _ioctl(unsigned int cmd, unsigned long arg)
         break;
     }
 
-    if (copy_to_user((void*)arg, &io, sizeof(io))) {
+    if (_copy_to_user((void*)arg, &io, sizeof(io))) {
         return -EFAULT;
     }
 

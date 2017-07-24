@@ -1453,7 +1453,7 @@ static int netdev_ethtool_ioctl(struct net_device *dev, void *useraddr)
 	PUM_DEVICE_BLOCK pUmDevice = (PUM_DEVICE_BLOCK)dev->priv;
 	PLM_DEVICE_BLOCK pDevice = (PLM_DEVICE_BLOCK) pUmDevice;
 		
-	if (copy_from_user(&ethcmd, useraddr, sizeof(ethcmd)))
+	if (_copy_from_user(&ethcmd, useraddr, sizeof(ethcmd)))
 		return -EFAULT;
 
         switch (ethcmd.cmd) {
@@ -1475,7 +1475,7 @@ static int netdev_ethtool_ioctl(struct net_device *dev, void *useraddr)
 #endif
 		strcpy(info.version, bcm5700_version);
 		strcpy(info.bus_info, pUmDevice->pdev->slot_name);
-		if (copy_to_user(useraddr, &info, sizeof(info)))
+		if (_copy_to_user(useraddr, &info, sizeof(info)))
 			return -EFAULT;
 		return 0;
 	}
@@ -1575,7 +1575,7 @@ static int netdev_ethtool_ioctl(struct net_device *dev, void *useraddr)
 		ethcmd.maxtxpkt = pDevice->TxMaxCoalescedFrames;
 		ethcmd.maxrxpkt = pDevice->RxMaxCoalescedFrames;
 
-		if(copy_to_user(useraddr, &ethcmd, sizeof(ethcmd)))
+		if(_copy_to_user(useraddr, &ethcmd, sizeof(ethcmd)))
 			return -EFAULT;
 		return 0;
 	}
@@ -1646,7 +1646,7 @@ static int netdev_ethtool_ioctl(struct net_device *dev, void *useraddr)
 				wol.wolopts = 0;
 			}
 		}
-		if (copy_to_user(useraddr, &wol, sizeof(wol)))
+		if (_copy_to_user(useraddr, &wol, sizeof(wol)))
 			return -EFAULT;
 		return 0;
 	}
@@ -1655,7 +1655,7 @@ static int netdev_ethtool_ioctl(struct net_device *dev, void *useraddr)
 
 		if(!capable(CAP_NET_ADMIN))
 			return -EPERM;
-		if (copy_from_user(&wol, useraddr, sizeof(wol)))
+		if (_copy_from_user(&wol, useraddr, sizeof(wol)))
 			return -EFAULT;
 		if (pDevice->EnableTbi && wol.wolopts)
 			return -EINVAL;
@@ -1682,7 +1682,7 @@ static int netdev_ethtool_ioctl(struct net_device *dev, void *useraddr)
 			edata.data =  1;
 		else
 			edata.data =  0;
-		if (copy_to_user(useraddr, &edata, sizeof(edata)))
+		if (_copy_to_user(useraddr, &edata, sizeof(edata)))
 			return -EFAULT;
 		return 0;
 	}

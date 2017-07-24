@@ -1,3 +1,4 @@
 build/**/*
 systems/linux/user/**/*.ko
 systems/linux/user/**/netserve
+systems/linux/user/**/bcm.user*
