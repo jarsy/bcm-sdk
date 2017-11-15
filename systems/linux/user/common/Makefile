@@ -59,10 +59,6 @@ else
 KOBJ=o
 endif
 
-ifneq (,$(TOOLS_DIR))
-override PATH := $(TOOLS_DIR):$(PATH)
-endif
-
 ifeq ($(DEST_DIR),)
 DEST_DIR=${BLDDIR}
 endif
@@ -327,7 +323,6 @@ ${BLDDIR}/platform_defines.o: ${BLDDIR}/platform_defines.c
 else
 PLATFORM_DEFINES_OBJ=
 endif
-
 
 $(BCM): $(BCM).dbg
 	mkdir -p $(@D)

@@ -13,33 +13,33 @@ FEATURE_EXCLUDE_LIST = $(sort $(_FEATURE_EXCLUDE_LIST))
 
 # Conditionally Replaces DEFAULT var
 ifeq ($(origin CC),default)
-CC	= $(LSRUN) $(CROSS_COMPILE)gcc
+CC	= $(LSRUN) $(CC)
 endif
 
 ifeq ($(origin CXX),default)
-CXX	= $(CROSS_COMPILE)g++
+CXX	= $(CXX)
 endif
 
 ifeq ($(origin LD),default)
-LD	= $(CROSS_COMPILE)ld
+LD	= $(LD)
 endif
 
 ifeq ($(origin AR),default)
-AR	= $(CROSS_COMPILE)ar
+AR	= $(AR)
 endif
 
 ifeq ($(origin AS),default)
-AS	= $(CROSS_COMPILE)as
+AS	= $(AS)
 endif
 
 ifeq ($(origin ARFLAGS),default)
 	ARFLAGS	= -rc
 endif
 
-STRIP	= $(CROSS_COMPILE)strip
-RANLIB  = $(CROSS_COMPILE)ranlib
-OBJCOPY = $(CROSS_COMPILE)objcopy
-NM      = $(CROSS_COMPILE)nm
+STRIP	= $(STRIP)
+RANLIB  = $(RANLIB)
+OBJCOPY = $(OBJCOPY)
+NM      = $(NM)
 
 # Handle differences between gcc 2.x and gcc 3.x
 gcc-tune-flag = $(shell if ${CC} -dumpspecs | grep mcpu >/dev/null; then echo cpu; else echo tune; fi)
