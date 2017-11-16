@@ -9,7 +9,7 @@
 CC = gcc
 RM = rm -f
 
-CFLAGS = -g -Wall -I.
+CFLAGS = -fno-inline -Wall -I.
 
 LED_TOOLS      = ledasm leddasm ledsim
 

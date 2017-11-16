@@ -35,7 +35,7 @@ endif
 
 # Currently, this LD definitely seems to only be used for building
 # the SBX FE-2000 simulation target
-LD	= ld -melf_i386
+LD	= ld -melf_i386QQQQQQQQQQQQQQQXXXXCCCVVV
 AR	= ar
 ARFLAGS	= -rc
 STRIP	= strip

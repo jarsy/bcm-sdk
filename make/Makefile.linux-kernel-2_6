@@ -9,38 +9,6 @@
 _FEATURE_EXCLUDE_LIST += EDITLINE TCL OOB_RCPU CINT APIMODE DUNE_UI C_UNIT
 FEATURE_EXCLUDE_LIST = $(sort $(_FEATURE_EXCLUDE_LIST))
 
-# Tools
-
-# Conditionally Replaces DEFAULT var
-ifeq ($(origin CC),default)
-CC	= $(LSRUN) $(CROSS_COMPILE)gcc
-endif
-
-ifeq ($(origin CXX),default)
-CXX	= $(CROSS_COMPILE)g++
-endif
-
-ifeq ($(origin LD),default)
-LD	= $(CROSS_COMPILE)ld
-endif
-
-ifeq ($(origin AR),default)
-AR	= $(CROSS_COMPILE)ar
-endif
-
-ifeq ($(origin AS),default)
-AS	= $(CROSS_COMPILE)as
-endif
-
-ifeq ($(origin ARFLAGS),default)
-	ARFLAGS	= -rc
-endif
-
-STRIP	= $(CROSS_COMPILE)strip
-RANLIB  = $(CROSS_COMPILE)ranlib
-OBJCOPY = $(CROSS_COMPILE)objcopy
-NM      = $(CROSS_COMPILE)nm
-
 # Handle differences between gcc 2.x and gcc 3.x
 gcc-tune-flag = $(shell if ${CC} -dumpspecs | grep mcpu >/dev/null; then echo cpu; else echo tune; fi)
 
@@ -68,7 +36,7 @@ endif
 #
 # STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
 # BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
-# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of 
+# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of
 #			 this Makefile, to define local "Extra" flags.
 #
 
@@ -121,9 +89,9 @@ endif
 
 #
 # DEPEND is used as a command to generate the list of dependencies.
-# The format of the output must be 
-#	"file.o : file.c a/b/c.h d/e/f.h ...", 
-# if it is on multiple lines, each line must end in a backslash. 
+# The format of the output must be
+#	"file.o : file.c a/b/c.h d/e/f.h ...",
+# if it is on multiple lines, each line must end in a backslash.
 # The output MUST be on standard out.
 #
-DEPEND = ${CC} -M $(CFLAGS) $< 
+DEPEND = ${CC} -M $(CFLAGS) $<

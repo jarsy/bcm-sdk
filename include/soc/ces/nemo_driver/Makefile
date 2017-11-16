@@ -39,7 +39,7 @@ CFLAGS += $(CES_CFLAGS)
 
 
 .c.o:
-	$(CC) -g -O0   $(CFLAGS)  $(GEN_INCLUDE)  $(PRE_INCLUDE)  -c $*.c
+	$(CC) -O0 -fno-inline $(CFLAGS)  $(GEN_INCLUDE)  $(PRE_INCLUDE)  -c $*.c
 ##-mfpu=vfp -mfpu=fpa
 
 

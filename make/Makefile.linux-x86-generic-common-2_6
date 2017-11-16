@@ -4,4 +4,5 @@ export KBUILD_VERBOSE
 AUTOCONF = $(KERNDIR)/include/generated/autoconf.h
 
 # gcc system include path
-SYSINC = $(shell gcc -print-search-dirs | grep install | cut -c 10-)include
+# SYSINC = $(shell ${CC} -print-search-dirs | grep install | cut -c 10-)include
+SYSINC = /opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/lib/i686-poky-linux/gcc/i686-poky-linux/7.2.0/include

@@ -166,6 +166,7 @@ typedef unsigned long long uint64;
 
 #define	PTRSZ	sizeof (char*)
 
+/* kosta inline */
 #ifndef INLINE
 
 #ifdef _MSC_VER

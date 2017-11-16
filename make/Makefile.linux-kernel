@@ -9,14 +9,14 @@ _FEATURE_EXCLUDE_LIST += EDITLINE TCL OOB_RCPU CINT APIMODE DUNE_UI C_UNIT
 FEATURE_EXCLUDE_LIST = $(sort $(_FEATURE_EXCLUDE_LIST))
 # Tools
 
-CC	= $(CROSS_COMPILE)gcc
-CXX	= $(CROSS_COMPILE)g++
-LD	= $(CROSS_COMPILE)ld
-AR	= $(CROSS_COMPILE)ar
+CC	= $(CC)
+CXX	= $(CXX)
+LD	= $(LD)
+AR	= $(AR)
 ARFLAGS	= -rc
-STRIP	= $(CROSS_COMPILE)strip
-RANLIB  = $(CROSS_COMPILE)ranlib
-OBJCOPY = $(CROSS_COMPILE)objcopy
+STRIP	= $(STRIP)
+RANLIB  = $(RANLIB)
+OBJCOPY = $(OBJCOPY)
 
 # Handle differences between gcc 2.x and gcc 3.x
 gcc-tune-flag = $(shell if ${CC} -dumpspecs | grep mcpu >/dev/null; then echo cpu; else echo tune; fi)

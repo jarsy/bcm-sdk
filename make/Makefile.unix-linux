@@ -33,11 +33,7 @@ ifeq ($(shell uname -m),x86_64)
  endif
 endif
 
-LD	= ld
-AR	= ar
 ARFLAGS	= -rc
-STRIP	= strip
-RANLIB  = ranlib
 
 # Filter out features that cannot or should not be supported in Linux
 ifdef ESW_CHIPS

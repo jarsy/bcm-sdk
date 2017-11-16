@@ -61,16 +61,16 @@ FEATURE_EXCLUDE_LIST = $(sort $(_FEATURE_EXCLUDE_LIST))
 
 # User-Linux Configuration Flags
 
-CC	= $(LSRUN) $(CROSS_COMPILE)gcc
-CXX	= $(CROSS_COMPILE)g++
-LD	= $(CROSS_COMPILE)ld
-AR	= $(CROSS_COMPILE)ar
+CC	= $(LSRUN) $(CC)
+CXX	= $(CXX)
+LD	= $(LD)
+AR	= $(AR)
 ARFLAGS	= -rc
-STRIP	= $(CROSS_COMPILE)strip
-RANLIB  = $(CROSS_COMPILE)ranlib
-OBJCOPY = $(CROSS_COMPILE)objcopy
+STRIP	= $(STRIP)
+RANLIB  = $(RANLIB)
+OBJCOPY = $(OBJCOPY)
 
-OPTFLAGS_DEFAULT = -O2
+OPTFLAGS_DEFAULT = -O2 -fno-inline
 
 # Configuration Variable
 # OSType Defines: This defines the type of RTOS or microkernel which you

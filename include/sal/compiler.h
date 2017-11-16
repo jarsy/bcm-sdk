@@ -564,8 +564,9 @@ typedef struct sal_int64_s  { int u64_w[2]; } sal_int64_t;
  * not support inline.
  */
 
+/* kosta inline */
 #ifndef INLINE
-# ifdef COMPILER_HAS_INLINE
+# if defined(COMPILER_HAS_INLINE) && !defined(BROADCOM_DEBUG)
 #  define INLINE    inline
 # else
 #  define INLINE

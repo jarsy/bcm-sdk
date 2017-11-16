@@ -37,14 +37,14 @@ export AR=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i6
 export ARCH=x86
 export AS=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-as
 export CC=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-gcc -m32 -march=core2 -mtune=core2 -msse3 -mfpmath=sse --sysroot=/opt/poky/2.4/sysroots/core2-32-poky-linux
-export CFLAGS=' -O2 -pipe -g -feliminate-unused-debug-types '
+export CFLAGS=' -O2 -pipe -fno-inline -feliminate-unused-debug-types '
 export CONFIGURE_FLAGS='--target=i686-poky-linux --host=i686-poky-linux --build=x86_64-linux --with-libtool-sysroot=/opt/poky/2.4/sysroots/core2-32-poky-linux'
 export CONFIG_SITE=/opt/poky/2.4/site-config-core2-32-poky-linux
 export CPP=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-gcc -E  -m32 -march=core2 -mtune=core2 -msse3 -mfpmath=sse --sysroot=/opt/poky/2.4/sysroots/core2-32-poky-linux
 export CPPFLAGS=''
 export CROSS_COMPILE=i686-poky-linux-
 export CXX=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-g++  -m32 -march=core2 -mtune=core2 -msse3 -mfpmath=sse --sysroot=/opt/poky/2.4/sysroots/core2-32-poky-linux
-export CXXFLAGS=' -O2 -pipe -g -feliminate-unused-debug-types '
+export CXXFLAGS=' -O2 -pipe -fno-inline -feliminate-unused-debug-types '
 export GDB=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-gdb
 export KCFLAGS='--sysroot=/opt/poky/2.4/sysroots/core2-32-poky-linux'
 export LD=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-ld

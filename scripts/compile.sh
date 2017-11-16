@@ -27,7 +27,8 @@ then
 else
 	cores_nr=`nproc --all`
 	export LINUX_MAKE_FLAGS="-j $cores_nr"
-	make -s -j $cores_nr
+	# make -s -j $cores_nr
+	make
 fi
 
 # check make result

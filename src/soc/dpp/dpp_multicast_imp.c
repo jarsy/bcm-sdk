@@ -142,10 +142,24 @@ void dpp_add_ingress_replication(
   mcds->nof_ingr_reps = ++mcds->nof_reps[0];
 }
 
-/* compare two replications, and return 0 if they are exactly the same, non zero otherwise */
-STATIC INLINE uint32 compare_dpp_rep_data_t(const dpp_rep_data_t *rep1, const dpp_rep_data_t *rep2)
+unsigned int WWWWWWWW = 0xbebeaadd;
+
+static inline int foo(void)
 {
+  WWWWWWWW = 0x11223344;
+}
+
+/* compare two replications, and return 0 if they are exactly the same, non zero otherwise */
+STATIC INLINE int compare_dpp_rep_data_t(const dpp_rep_data_t *rep1, const dpp_rep_data_t *rep2)
+{
+  WWWWWWWW = 0xdeadffff;
   return (rep1->base - rep2->base) | (rep1->extra - rep2->extra);
+}
+
+void ddd(void)
+{
+  foo();
+  compare_dpp_rep_data_t(0, 0);
 }
 
 void dpp_add_egress_replication_port_cud(
@@ -164,6 +178,7 @@ void dpp_add_egress_replication_port_cud(
     DPP_MCDS_REP_DATA_SET_EGR_CUD(rep, cud);
     DPP_MCDS_REP_DATA_SET_EXTRA_CUD(rep, cud2);
     DPP_MCDS_REP_DATA_SET_EGR_PORT(rep, tm_port);
+    foo();
     ++mcds->nof_reps[core];
     ++mcds->nof_egr_port_outlif_reps[core];
 }
@@ -2446,4 +2461,3 @@ exit:
 }
 
 #include <soc/dpp/SAND/Utils/sand_footer.h>
-

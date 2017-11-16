@@ -8,8 +8,8 @@ OUT = ./pe-sdk.a
 # include directories
 INCLUDES = -I. -I./include/ 
  
-# C compiler flags (-g -O2 -Wall)
-CFLAGS = -g 
+# C compiler flags (-fno-inline -O2 -Wall)
+CFLAGS = -fno-inline
 
 # compiler
 CC = gcc

@@ -29,7 +29,7 @@ $(1:.zf=Console.c) : $(1:.zf=.c)
 	@echo updated $$@ from $$?
 
 $(1:.zf=.c) : $(1) $(ZF_GEN)
-	@$(PERL) $(ZF_GEN) -s -z . -p . -g $1 -t c
+	@$(PERL) $(ZF_GEN) -s -z . -p . -fno-inline $1 -t c
 	@echo generated ${LOCALDIR}/$$@ from $(1)
 	@mv $$(*F).cx $$@
 	@if [ -e $$(*F)Console.cx ] ; then \

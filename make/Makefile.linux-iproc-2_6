@@ -58,7 +58,7 @@ modname_flags  = $(if $(filter 1,$(words $(modname))),\
 KFLAG_INCLD ?= $(TOOLCHAIN_BASE_DIR)/buildroot/usr/lib/gcc/$(TARGET_ARCHITECTURE)/4.7.1/include
 
 ifeq (,$(KFLAGS))
-KFLAGS := -D__LINUX_ARM_ARCH__=7 -D__KERNEL__ -nostdinc  -isystem $(KFLAG_INCLD) -I$(LINUX_INCLUDE) -include $(LINUX_INCLUDE)/linux/version.h -include $(LINUX_INCLUDE)/generated/autoconf.h -I$(KERNDIR)/arch/arm/include -I$(KERNDIR)/arch/arm/mach-northstar/include -I$(KERNDIR)/arch/arm/plat-iproc/include -Wall -Wstrict-prototypes -Wno-trigraphs -Os -fno-strict-aliasing -fno-common -marm -mabi=aapcs-linux -fno-pic -pipe -msoft-float -ffreestanding -march=armv7-a -mfpu=vfp -mfloat-abi=softfp -fomit-frame-pointer -g -fno-stack-protector -Wdeclaration-after-statement -Wno-pointer-sign -mlong-calls
+KFLAGS := -D__LINUX_ARM_ARCH__=7 -D__KERNEL__ -nostdinc  -isystem $(KFLAG_INCLD) -I$(LINUX_INCLUDE) -include $(LINUX_INCLUDE)/linux/version.h -include $(LINUX_INCLUDE)/generated/autoconf.h -I$(KERNDIR)/arch/arm/include -I$(KERNDIR)/arch/arm/mach-northstar/include -I$(KERNDIR)/arch/arm/plat-iproc/include -Wall -Wstrict-prototypes -Wno-trigraphs -Os -fno-strict-aliasing -fno-common -marm -mabi=aapcs-linux -fno-pic -pipe -msoft-float -ffreestanding -march=armv7-a -mfpu=vfp -mfloat-abi=softfp -fomit-frame-pointer -fno-inline -fno-stack-protector -Wdeclaration-after-statement -Wno-pointer-sign -mlong-calls
 endif
 
 ifneq ($(targetplat),user)

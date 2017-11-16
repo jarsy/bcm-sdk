@@ -56,7 +56,7 @@ SRCS += cint_stubs.c
 SRCS += cint_c.lex.c
 SRCS += cint_c.tab.c
 
-CFLAGS := -g -O0
+CFLAGS := -O0 -fno-inline
 
 # portability interfaces - pick one
 CFLAGS += -DCINT_CONFIG_INCLUDE_STDLIB=1
