@@ -28,7 +28,7 @@ MODULE = $(LIBDIR)/linux-user-bde.o
 build: kernel_libs $(MODULE)
 endif
 
-KBUILD_EXTRA_SYMBOLS := /home/mrv/My/MRV/yocto_all/rocko_all/kernel_build/Module.symvers
+KBUILD_EXTRA_SYMBOLS := $(KERNEL_BUILDDIR)/Module.symvers
 
 $(MODULE): $(BLDDIR)/.tree kernel_libs $(BOBJS)
 	$(LD) $(MODULE_LDFLAGS) -r -d $(BOBJS) $(LIBS) -o $@

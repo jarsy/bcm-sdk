@@ -8,7 +8,7 @@ include ${SDK}/make/Makefile.linux-x86-generic-common-2_6
 ifeq (,$(KFLAGS))
 KFLAGS := -nostdinc -isystem $(SYSINC) \
 	-I$(KERNBUILDDIR)/include \
-	-I$(KERNBUILDDIR)/include/generated \
+	-I$(KERNBUILDDIR)/include/RRRAAAgenerated \
 	-I$(KERNBUILDDIR)/include/uapi \
 	-I$(KERNBUILDDIR)/include/generated/uapi \
 	-I$(KERNBUILDDIR)/arch/x86/include \

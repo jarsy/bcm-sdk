@@ -3,11 +3,12 @@ then
 	export CLOVIS_DIR=${HOME}/clovis_2015_lk4_4
 fi;
 
-source /opt/poky/2.4/environment-setup-core2-32-poky-linux
-export CC=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-gcc
+# source /opt/poky/2.4/environment-setup-core2-32-poky-linux
+# export CC=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-gcc
 
 export ARCH=x86
-export KERNDIR=/home/mrv/My/MRV/yocto_all/rocko_all/kernel_build
+# export KERNDIR=KKKKKKKKKKKKKKKKKKKKQQQ
+# export KERNDIR=/home/mrv/My/MRV/yocto_all/rocko_all/kernel_build
 
 export SDK_VER=6.5.7
 export TARGET=linux-x86-smp_generic-2_6
@@ -16,7 +17,8 @@ export CROSS_COMPILE
 
 export OPT_CFLAGS=" -m32"
 export MODULE_LDFLAGS=" -m elf_i386"
-export LINUX_INCLUDE=/opt/poky/2.4/sysroots/core2-32-poky-linux/usr/include
+export LINUX_INCLUDE=IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIQQQ
+# export LINUX_INCLUDE=/opt/poky/2.4/sysroots/core2-32-poky-linux/usr/include
 
 # Multi-thread compilation
 # cores_nr=`nproc --all`
@@ -25,3 +27,16 @@ export LINUX_INCLUDE=/opt/poky/2.4/sysroots/core2-32-poky-linux/usr/include
 # For compile of bcm.user as standalone, enable next line
 # export OPT_CFLAGS="${OPT_CFLAGS} -DMRV_STANDALONE"
 export CFLAGS="-m32"
+export KERNDIR=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-source
+export KERNDIR=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-build-artifacts
+export KERNDIR=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-build-artifacts
+export KERNBUILDDIR=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-build-artifacts
+export KERNDIR=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-source
+export KERNBUILDDIR=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-build-artifacts
+export KERNDIR=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-source
+export KERNBUILDDIR=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-build-artifacts
+export LINUX_INCLUDE=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-build-artifacts
+export KERNDIR=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-source
+export KERNBUILDDIR=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-build-artifacts
+export LINUX_INCLUDE=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-build-artifacts
+export KERNEL_BUILDDIR=/home/bark/My/MRV/yocto_all/build_qemu/tmp/work-shared/qemux86/kernel-build-artifacts

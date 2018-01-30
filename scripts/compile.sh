@@ -19,17 +19,10 @@ if [ $? -ne 0 ]; then
 fi
 
 cd $COMPILE_DIR
-if [ -s /opt/incredibuild/bin/ib_console ] && [ -n "$IB_CORES" ];
-then
-	echo "using incredibuild"
-	export LINUX_MAKE_FLAGS="-j $IB_CORES"
-	/opt/incredibuild/bin/ib_console make -j $IB_CORES
-else
-	cores_nr=`nproc --all`
-	export LINUX_MAKE_FLAGS="-j $cores_nr"
-	# make -s -j $cores_nr
-	make
-fi
+# cores_nr=`nproc --all`
+# export LINUX_MAKE_FLAGS="-j $cores_nr"
+# make -s -j $cores_nr
+make
 
 # check make result
 if [ $? -ne 0 ];

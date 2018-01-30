@@ -75,7 +75,7 @@ CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
 	    -I$(SDK)/systems/bde/linux/include \
 	    -I$(LINUX_INCLUDE) \
 	    -I$(LINUX_INCLUDE)/uapi \
-	    -I$(LINUX_INCLUDE)/generated/uapi \
+	    -I$(LINUX_INCLUDE)/RRRgenerated/uapi \
 	    -I$(KERNDIR)/arch/$(ARCH) \
 	    -I$(KERNDIR)/arch/$(ARCH)/include/uapi \
 	    -I$(KERNDIR)/arch/$(ARCH)/include/generated \
@@ -87,7 +87,7 @@ CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
 	    -I$(LINUX_INCLUDE)/asm/gcc \
 	    -I$(LINUX_INCLUDE)/asm/mach-generic \
 	    -I$(LINUX_INCLUDE)/uapi \
-	    -I$(LINUX_INCLUDE)/generated/uapi \
+	    -I$(LINUX_INCLUDE)/RRRgenerated/uapi \
 	    -I$(KERNDIR)/arch/$(ARCH) \
 	    -I$(KERNDIR)/arch/$(ARCH)/include/uapi \
 	    -I$(KERNDIR)/arch/$(ARCH)/include/generated \

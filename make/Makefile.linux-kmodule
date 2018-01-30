@@ -32,41 +32,6 @@ PWD := $(shell pwd)
 #### export ARCH
 #### endif
 
-################################################################################
-export AR=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-ar
-export ARCH=x86
-export AS=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-as
-export CC=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-gcc -m32 -march=core2 -mtune=core2 -msse3 -mfpmath=sse --sysroot=/opt/poky/2.4/sysroots/core2-32-poky-linux
-export CFLAGS=' -O2 -pipe -fno-inline -feliminate-unused-debug-types '
-export CONFIGURE_FLAGS='--target=i686-poky-linux --host=i686-poky-linux --build=x86_64-linux --with-libtool-sysroot=/opt/poky/2.4/sysroots/core2-32-poky-linux'
-export CONFIG_SITE=/opt/poky/2.4/site-config-core2-32-poky-linux
-export CPP=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-gcc -E  -m32 -march=core2 -mtune=core2 -msse3 -mfpmath=sse --sysroot=/opt/poky/2.4/sysroots/core2-32-poky-linux
-export CPPFLAGS=''
-export CROSS_COMPILE=i686-poky-linux-
-export CXX=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-g++  -m32 -march=core2 -mtune=core2 -msse3 -mfpmath=sse --sysroot=/opt/poky/2.4/sysroots/core2-32-poky-linux
-export CXXFLAGS=' -O2 -pipe -fno-inline -feliminate-unused-debug-types '
-export GDB=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-gdb
-export KCFLAGS='--sysroot=/opt/poky/2.4/sysroots/core2-32-poky-linux'
-export LD=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-ld
-export LDFLAGS='-O1 --hash-style=gnu --as-needed'
-export M4=m4
-export NM=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-nm
-export OBJCOPY=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-objcopy
-export OBJDUMP=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-objdump
-export OECORE_ACLOCAL_OPTS='-I /opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/share/aclocal'
-export OECORE_DISTRO_VERSION=2.4
-export OECORE_NATIVE_SYSROOT=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux
-export OECORE_SDK_VERSION=2.4
-export OECORE_TARGET_SYSROOT=/opt/poky/2.4/sysroots/core2-32-poky-linux
-export PATH=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin:/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/sbin:/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/bin:/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/sbin:/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/../x86_64-pokysdk-linux/bin:/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux:/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux-musl:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/mrv/go/bin:/home/mrv/.fzf/bin
-export PKG_CONFIG_PATH=/opt/poky/2.4/sysroots/core2-32-poky-linux/usr/lib/pkgconfig:/opt/poky/2.4/sysroots/core2-32-poky-linux/usr/share/pkgconfig
-export PKG_CONFIG_SYSROOT_DIR=/opt/poky/2.4/sysroots/core2-32-poky-linux
-export RANLIB=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-ranlib
-export SDKTARGETSYSROOT=/opt/poky/2.4/sysroots/core2-32-poky-linux
-export STRIP=/opt/poky/2.4/sysroots/x86_64-pokysdk-linux/usr/bin/i686-poky-linux/i686-poky-linux-strip
-export TARGET_PREFIX=i686-poky-linux-
-################################################################################
-
 # Provide an option in case kernel was built in separate directory
 KERNBLDDIR ?= $(KERNDIR)
 
